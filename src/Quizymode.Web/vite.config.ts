@@ -57,9 +57,22 @@ function injectBuildMetadata() {
   };
 }
 
+// A production bundle without VITE_API_URL silently falls back to https://localhost:8082 (src/api/client.ts),
+// so fail the build instead. A UTF-8 BOM in .env.production hid the first key from Vite 8 this way.
+function requireProductionApiUrl() {
+  return {
+    name: "quizymode-require-production-api-url",
+    configResolved(config: { command: string; mode: string; env: Record<string, unknown> }) {
+      if (config.command === "build" && config.mode === "production" && !config.env.VITE_API_URL) {
+        throw new Error("VITE_API_URL is not set for the production build (check .env.production for a BOM).");
+      }
+    },
+  };
+}
+
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), tailwindcss(), injectBuildMetadata()],
+  plugins: [react(), tailwindcss(), injectBuildMetadata(), requireProductionApiUrl()],
   define: {
     __APP_VERSION__: JSON.stringify(appVersion),
     __BUILD_LABEL__: JSON.stringify(buildLabel),
