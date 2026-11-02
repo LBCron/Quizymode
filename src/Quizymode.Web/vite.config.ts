@@ -92,7 +92,7 @@ export default defineConfig({
     sourcemap: "hidden",
     // Curated question pictures (#407) are always emitted as files (never data: URIs in the JS bundle).
     assetsInlineLimit: (filePath) => (filePath.includes("/assets/curated/") ? false : undefined),
-    rollupOptions: {
+    rolldownOptions: {
       output: {
         // Curated pictures ship as assets/m/<hash>.webp so deploy.yml can give them an explicit content type.
         assetFileNames: (assetInfo) => {
@@ -100,9 +100,12 @@ export default defineConfig({
           const isCurated = sources.some((name) => name.includes("assets/curated/"));
           return isCurated ? "assets/m/[hash][extname]" : "assets/[name]-[hash][extname]";
         },
-        manualChunks: {
-          vendor: ["react", "react-dom", "react-router-dom"],
-          query: ["@tanstack/react-query"],
+        // Rolldown (Vite 8) has no object-form manualChunks; these groups keep the same vendor/query split.
+        codeSplitting: {
+          groups: [
+            { name: "vendor", test: /[\\/]node_modules[\\/](react|react-dom|react-router|react-router-dom|scheduler)[\\/]/ },
+            { name: "query", test: /[\\/]node_modules[\\/]@tanstack[\\/](react-query|query-core)[\\/]/ },
+          ],
         },
       },
     },
