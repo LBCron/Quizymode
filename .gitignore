@@ -400,3 +400,6 @@ scripts/patch-home-collection-order-2026-04-16.sql
 scripts/latvian_seed_terms.py
 scripts/generate_language_seed_expansion.py
 /.codex-temp
+
+# Local media storage (Development/Testing FileSystem provider, #399)
+**/.media
