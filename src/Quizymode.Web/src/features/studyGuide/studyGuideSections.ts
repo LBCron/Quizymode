@@ -60,12 +60,124 @@ export function isSectionSelectable(section: StudyGuideSection): boolean {
   return !section.textExpired && (section.status === "New" || section.status === "Failed");
 }
 
+/**
+ * Still moving: queued or generating, or generated for "Make a quiz" but not saved yet. Terminal is a failed
+ * generation, a Failed or Saved auto-save, a manual Generated section, or New.
+ */
 export function isSectionActive(section: StudyGuideSection): boolean {
-  return section.status === "Queued" || section.status === "Processing";
+  return (
+    section.status === "Queued" ||
+    section.status === "Processing" ||
+    (section.status === "Generated" && section.autoSave === "Pending")
+  );
 }
 
 export function hasActiveGeneration(document: StudyGuideDocument | undefined): boolean {
   return !!document?.sections.some(isSectionActive);
+}
+
+/** Sections the "Make a quiz" request queued (the server marks them with an auto-save state). */
+export function getQuickSections(document: StudyGuideDocument): StudyGuideSection[] {
+  return document.sections.filter((section) => section.autoSave != null);
+}
+
+export function hasActiveQuickSection(document: StudyGuideDocument | undefined): boolean {
+  return !!document?.sections.some((section) => section.autoSave != null && isSectionActive(section));
+}
+
+/** Generation failed: nothing was charged (the charge is refunded). */
+export function isQuickSectionFailed(section: StudyGuideSection): boolean {
+  return section.autoSave != null && section.status === "Failed";
+}
+
+/** Generated and charged, but the automatic save gave up: the questions wait for a manual Save. */
+export function isQuickSectionSaveFailed(section: StudyGuideSection): boolean {
+  return section.autoSave === "Failed" && section.status !== "Failed";
+}
+
+export type QuickSectionStatus = "waiting" | "making" | "saving" | "saved" | "failed" | "saveFailed";
+
+export function getQuickSectionStatus(section: StudyGuideSection): QuickSectionStatus {
+  if (isQuickSectionFailed(section)) return "failed";
+  if (isQuickSectionSaveFailed(section)) return "saveFailed";
+  if (section.autoSave === "Saved") return "saved";
+  if (section.status === "Generated") return "saving";
+  return section.status === "Processing" ? "making" : "waiting";
+}
+
+export const QUICK_SECTION_STATUS_LABELS: Record<QuickSectionStatus, string> = {
+  waiting: "Waiting",
+  making: "Making questions",
+  saving: "Saving",
+  saved: "Saved",
+  failed: "Couldn't be made",
+  saveFailed: "Couldn't be saved",
+};
+
+export interface QuickProgress {
+  total: number;
+  /** Generated, saving or saved. */
+  ready: number;
+  /** Generation failed (not charged). */
+  failed: number;
+  /** Generated but the automatic save failed (charged; save manually). */
+  saveFailed: number;
+  allQueued: boolean;
+  allGenerated: boolean;
+}
+
+export function getQuickProgress(document: StudyGuideDocument): QuickProgress {
+  const quick = getQuickSections(document);
+  const failed = quick.filter(isQuickSectionFailed).length;
+  const saveFailed = quick.filter(isQuickSectionSaveFailed).length;
+  const working = quick.filter((section) => !isQuickSectionFailed(section) && !isQuickSectionSaveFailed(section));
+  return {
+    total: quick.length,
+    ready: working.filter((section) => section.status === "Generated").length,
+    failed,
+    saveFailed,
+    allQueued: working.length > 0 && working.every((section) => section.status === "Queued"),
+    allGenerated: working.length > 0 && working.every((section) => section.status === "Generated"),
+  };
+}
+
+/** The one live-region line for the progress panel, by precedence. */
+export function describeQuickProgress(progress: QuickProgress): string {
+  if (progress.allQueued) return "Your quiz is in line.";
+  if (progress.allGenerated) return "Saving your questions…";
+  return `Making your quiz: ${progress.ready} of ${progress.total} sections ready.`;
+}
+
+export function countAcceptedQuestions(document: StudyGuideDocument): number {
+  return document.sections.reduce(
+    (sum, section) => sum + section.candidates.filter((candidate) => candidate.accepted).length,
+    0
+  );
+}
+
+/**
+ * D7: the one-line Learn notice when some "Make a quiz" sections did not end up saved. Only sections whose generation
+ * failed were refunded; sections that were made but not saved were charged and say to save them from the study guide.
+ */
+export function buildQuickNotice(progress: QuickProgress): string {
+  const made = progress.total - progress.failed - progress.saveFailed;
+  const parts = [`${made} of ${progress.total} sections were made.`];
+  if (progress.failed > 0) {
+    parts.push(
+      progress.failed === 1
+        ? "1 section couldn't be made and wasn't counted against your limit."
+        : `${progress.failed} sections couldn't be made and weren't counted against your limit.`
+    );
+  }
+  if (progress.saveFailed > 0) {
+    parts.push(
+      progress.saveFailed === 1
+        ? "1 section couldn't be saved automatically. Open your study guide to save it."
+        : `${progress.saveFailed} sections couldn't be saved automatically. Open your study guide to save them.`
+    );
+  }
+  if (progress.failed > 0) parts.push("Retry from your study guide.");
+  return parts.join(" ");
 }
 
 /**
@@ -73,8 +185,11 @@ export function hasActiveGeneration(document: StudyGuideDocument | undefined): b
  * up to the sections left today. Generated (including cached) sections are never selected, so
  * they never count against the quota.
  */
-export function computePreselection(document: StudyGuideDocument): Set<string> {
-  const limit = Math.max(0, Math.min(document.quota.remainingToday, MAX_SECTIONS_PER_GENERATE));
+export function computePreselection(document: StudyGuideDocument, maxCount?: number): Set<string> {
+  const limit = Math.max(
+    0,
+    Math.min(document.quota.remainingToday, MAX_SECTIONS_PER_GENERATE, maxCount ?? MAX_SECTIONS_PER_GENERATE)
+  );
   const ids = [...document.sections]
     .sort((a, b) => a.index - b.index)
     .filter((section) => !section.textExpired && section.status === "New")

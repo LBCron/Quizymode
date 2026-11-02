@@ -7,7 +7,7 @@ using Quizymode.Api.Shared.Options;
 
 namespace Quizymode.Api.Features.StudyGuideDocuments;
 
-/// <summary>GET /study-guides/documents/config: availability, upload limits, free-tier delay, and the caller's quota.</summary>
+/// <summary>GET /study-guides/documents/config: availability, upload limits, free-tier delay, the "Make a quiz" section cap, and the caller's quota.</summary>
 public static class GetStudyGuideDocumentConfig
 {
     public static readonly IReadOnlyList<string> AcceptedExtensions = [".pdf", ".docx", ".pptx", ".txt", ".md"];
@@ -19,7 +19,8 @@ public static class GetStudyGuideDocumentConfig
         int MaxTextBytes,
         List<string> AcceptedExtensions,
         int FreeTierDelayMinutes,
-        StudyGuideDocumentContracts.Quota Quota);
+        StudyGuideDocumentContracts.Quota Quota,
+        int QuickPathMaxSections);
 
     public sealed class Endpoint : IEndpoint
     {
@@ -76,6 +77,7 @@ public static class GetStudyGuideDocumentConfig
             documentOptions.MaxTextBytes,
             AcceptedExtensions.ToList(),
             generationOptions.FreeTierDelayMinutes,
-            quota.ToResponse());
+            quota.ToResponse(),
+            Math.Max(1, generationOptions.QuickPathMaxSections));
     }
 }

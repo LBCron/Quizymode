@@ -8,6 +8,11 @@ export type StudyGuideFileType = "pdf" | "docx" | "pptx" | "txt";
 
 export type StudyGuideSectionStatus = "New" | "Queued" | "Processing" | "Generated" | "Failed";
 
+/** Set only on sections queued by "Make a quiz" (#363): the server saves their questions for you. */
+export type StudyGuideSectionAutoSave = "Pending" | "Saved" | "Failed";
+
+export type StudyGuideQuickOutcome = "Generating" | "Ready" | "NeedsChoice" | "OverAllowance" | "Unavailable";
+
 export interface StudyGuideQuota {
   tier: StudyGuideTier;
   dailyLimit: number;
@@ -26,6 +31,8 @@ export interface StudyGuideDocumentsConfig {
   acceptedExtensions: string[];
   freeTierDelayMinutes: number;
   quota: StudyGuideQuota;
+  /** "Make a quiz" generates and saves a document only when at most this many sections still need questions. */
+  quickPathMaxSections?: number;
 }
 
 export interface StudyGuideDocumentSummary {
@@ -51,6 +58,8 @@ export interface StudyGuideCandidate {
   sourceQuote: string;
   page?: number | null;
   accepted: boolean;
+  /** The saved item's id; only when accepted and the item still exists. */
+  itemId?: string | null;
 }
 
 export interface StudyGuideSection {
@@ -71,6 +80,8 @@ export interface StudyGuideSection {
   droppedCount: number;
   /** Only populated when status is Generated. */
   candidates: StudyGuideCandidate[];
+  /** null = manual review; otherwise the "Make a quiz" auto-save state. */
+  autoSave?: StudyGuideSectionAutoSave | null;
 }
 
 export interface StudyGuideDocument {
@@ -98,6 +109,18 @@ export interface CreateStudyGuideDocumentRequest {
   navigationKeyword1: string;
   navigationKeyword2: string;
   keywords?: string[];
+}
+
+export interface StudyGuideQuickResponse {
+  document: StudyGuideDocument;
+  outcome: StudyGuideQuickOutcome;
+  /** The one short line to show for the outcome. */
+  message: string;
+  queuedCount: number;
+  cachedCount: number;
+  chargedSections: number;
+  /** The saved collection's name (Ready / once something is saved). */
+  collectionName?: string | null;
 }
 
 export interface GenerateStudyGuideSectionsResponse {
@@ -157,6 +180,16 @@ export const studyGuideDocumentsApi = {
     // serialising the FormData to JSON.
     const response = await apiClient.post<StudyGuideDocument>(
       "/study-guides/documents",
+      buildCreateDocumentFormData(request),
+      { headers: { "Content-Type": "multipart/form-data" } }
+    );
+    return response.data;
+  },
+
+  /** "Make a quiz": create the document and auto-generate and auto-save a short one (POST /study-guides/documents/quick). */
+  quick: async (request: CreateStudyGuideDocumentRequest): Promise<StudyGuideQuickResponse> => {
+    const response = await apiClient.post<StudyGuideQuickResponse>(
+      "/study-guides/documents/quick",
       buildCreateDocumentFormData(request),
       { headers: { "Content-Type": "multipart/form-data" } }
     );

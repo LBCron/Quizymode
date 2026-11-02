@@ -162,14 +162,14 @@ describe("StudyGuideUploadPage", () => {
 
     // No topic: the page blocks the submit with the topic copy and focuses the topic search (AC 12.14).
     await screen.findByRole("option", { name: "science" });
-    fireEvent.click(await screen.findByRole("button", { name: /upload study guide/i }));
+    fireEvent.click(await screen.findByRole("button", { name: /choose sections and review first/i }));
     expect(
       await screen.findByText(/choose a topic: pick a suggestion, search, or browse all topics/i)
     ).toBeInTheDocument();
     expect(screen.getByRole("combobox", { name: /search topics/i })).toHaveFocus();
 
     await fillTopic();
-    fireEvent.click(screen.getByRole("button", { name: /upload study guide/i }));
+    fireEvent.click(screen.getByRole("button", { name: /choose sections and review first/i }));
     expect(await screen.findByText(/choose a file to upload/i)).toBeInTheDocument();
     expect(studyGuideDocumentsApi.create).not.toHaveBeenCalled();
   });
@@ -199,7 +199,7 @@ describe("StudyGuideUploadPage", () => {
 
     fireEvent.click(await screen.findByRole("button", { name: /science.*biology.*plants/i }));
     expect(screen.getByTestId("topic-pill")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: /upload study guide/i }));
+    fireEvent.click(screen.getByRole("button", { name: /choose sections and review first/i }));
 
     await waitFor(() =>
       expect(studyGuideDocumentsApi.create).toHaveBeenCalledWith(
@@ -263,12 +263,12 @@ describe("StudyGuideUploadPage", () => {
     await fillTopic();
 
     chooseFile(new File(["x"], "photo.png", { type: "image/png" }));
-    fireEvent.click(screen.getByRole("button", { name: /upload study guide/i }));
+    fireEvent.click(screen.getByRole("button", { name: /choose sections and review first/i }));
     expect(await screen.findByText(/unsupported file type/i)).toBeInTheDocument();
 
     chooseFile(sizedFile("huge.pdf", 21 * 1024 * 1024));
     expect(screen.getByTestId("study-guide-selected-file")).toHaveTextContent(/too large/i);
-    expect(screen.getByRole("button", { name: /upload study guide/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /choose sections and review first/i })).toBeDisabled();
     expect(studyGuideDocumentsApi.create).not.toHaveBeenCalled();
   });
 
@@ -282,7 +282,7 @@ describe("StudyGuideUploadPage", () => {
 
     fireEvent.change(textarea, { target: { value: "a".repeat(1001) } });
     expect(screen.getByText(/too long/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /upload study guide/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /choose sections and review first/i })).toBeDisabled();
   });
 
   it("uploads a file with topic, title and keywords, then opens the document page", async () => {
@@ -297,7 +297,7 @@ describe("StudyGuideUploadPage", () => {
     chooseFile(file);
     fireEvent.change(screen.getByLabelText(/title/i), { target: { value: "  Chapter 3  " } });
     fireEvent.change(screen.getByLabelText(/keywords/i), { target: { value: "exam prep, unit-2" } });
-    fireEvent.click(screen.getByRole("button", { name: /upload study guide/i }));
+    fireEvent.click(screen.getByRole("button", { name: /choose sections and review first/i }));
 
     await waitFor(() =>
       expect(studyGuideDocumentsApi.create).toHaveBeenCalledWith({
@@ -325,7 +325,7 @@ describe("StudyGuideUploadPage", () => {
     fireEvent.click(await screen.findByRole("tab", { name: /paste text/i }));
     fireEvent.change(screen.getByLabelText(/study guide text/i), { target: { value: "Photosynthesis notes" } });
     await fillTopic();
-    fireEvent.click(screen.getByRole("button", { name: /upload study guide/i }));
+    fireEvent.click(screen.getByRole("button", { name: /choose sections and review first/i }));
 
     await waitFor(() =>
       expect(studyGuideDocumentsApi.create).toHaveBeenCalledWith(
@@ -351,7 +351,7 @@ describe("StudyGuideUploadPage", () => {
     renderPage();
     await fillTopic();
     chooseFile(new File(["%PDF"], "scan.pdf", { type: "application/pdf" }));
-    fireEvent.click(screen.getByRole("button", { name: /upload study guide/i }));
+    fireEvent.click(screen.getByRole("button", { name: /choose sections and review first/i }));
 
     expect(await screen.findByText(/looks like a scan/i)).toBeInTheDocument();
   });
@@ -399,7 +399,7 @@ describe("StudyGuideUploadPage", () => {
     renderPage("/create/notes?id=u1");
     await fillTopic();
     chooseFile(file);
-    fireEvent.click(screen.getByRole("button", { name: /upload study guide/i }));
+    fireEvent.click(screen.getByRole("button", { name: /choose sections and review first/i }));
 
     await waitFor(() => expect(studyGuideDocumentsApi.create).toHaveBeenCalled());
     expect(await screen.findByTestId("document-route")).toHaveTextContent("/study-guides/documents/doc-9");

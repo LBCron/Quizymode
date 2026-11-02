@@ -60,7 +60,7 @@ const CreateHubPage = () => {
           <div className="flex flex-col rounded-lg border border-white/10 bg-slate-800/50 p-4 sm:p-5">
             <h2 className="mb-1 text-lg font-semibold">Turn notes into a quiz</h2>
             <p className="mb-4 text-sm text-slate-300">
-              Upload a study guide or your notes and Quizymode drafts quiz questions you can review and save.
+              Upload a study guide or paste your notes. Quizymode makes quiz questions and saves them to a private collection you can edit.
             </p>
             <div aria-hidden="true" className="mb-4 rounded-md border border-white/10 bg-slate-900/60 p-3 text-sm">
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Example</p>
@@ -80,9 +80,9 @@ const CreateHubPage = () => {
             </div>
             <Link
               to="/create/notes"
-              className={`mt-auto inline-flex w-full items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 sm:w-auto sm:self-start ${focusRing}`}
+              className={`mt-auto inline-flex min-h-11 w-full items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 sm:w-auto sm:self-start ${focusRing}`}
             >
-              Upload notes
+              Make a quiz
             </Link>
           </div>
 
@@ -93,7 +93,7 @@ const CreateHubPage = () => {
             </p>
             <Link
               to={`/create/question${location.search}`}
-              className={`mt-auto inline-flex w-full items-center justify-center rounded-md border border-white/30 px-4 py-2 text-sm font-medium text-white hover:bg-white/10 sm:w-auto sm:self-start ${focusRing}`}
+              className={`mt-auto inline-flex min-h-11 w-full items-center justify-center rounded-md border border-white/30 px-4 py-2 text-sm font-medium text-white hover:bg-white/10 sm:w-auto sm:self-start ${focusRing}`}
             >
               Write a question
             </Link>
@@ -124,7 +124,7 @@ const CreateHubPage = () => {
               <ErrorMessage message="Couldn't load your recent study guides." onRetry={() => void refetch()} />
             ) : recent.length === 0 ? (
               <div className="rounded-lg border border-dashed border-white/20 p-6 text-center text-sm text-slate-300">
-                No study guides yet. Upload your notes above to create your first quiz.
+                No study guides yet. Make your first quiz above.
               </div>
             ) : (
               <ul className="space-y-3">

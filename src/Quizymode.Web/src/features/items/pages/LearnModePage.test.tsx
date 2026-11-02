@@ -75,10 +75,14 @@ const makeItems = (count: number): ItemResponse[] => Array.from({ length: count 
 
 function LocationDisplay() {
   const location = useLocation();
-  return <div data-testid="location">{`${location.pathname}${location.search}`}</div>;
+  return (
+    <div data-testid="location" data-state={JSON.stringify(location.state)}>
+      {`${location.pathname}${location.search}`}
+    </div>
+  );
 }
 
-function renderPage(path: string) {
+function renderPage(path: string, state?: unknown) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const page = (
     <>
@@ -88,7 +92,7 @@ function renderPage(path: string) {
   );
   return render(
     <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={[path]}>
+      <MemoryRouter initialEntries={[state ? { pathname: path, state } : path]}>
         <Routes>
           <Route path="/learn/collections/:collectionId/:slug?" element={page} />
           <Route path="/learn/:category?" element={page} />
@@ -686,5 +690,36 @@ describe("LearnModePage question pictures (#403)", () => {
     expect(await screen.findByText("No questions were scored")).toBeInTheDocument();
     expect(screen.getByText("3 questions skipped because the picture was unavailable. Not scored.")).toBeInTheDocument();
     expect(recordAuthenticatedCompletion).not.toHaveBeenCalled();
+  });
+
+  describe("Make a quiz notice (#363)", () => {
+    const notice =
+      "2 of 3 sections were made. 1 section couldn't be made and wasn't counted against your limit. Retry from your study guide.";
+
+    it("shows the one-line notice once with a link back to the study guide, and drops it from the history state", async () => {
+      renderPage(COLLECTION_PATH, { quickNotice: notice, documentId: "doc-1" });
+
+      const status = await screen.findByText(notice);
+      expect(status.closest('[role="status"]')).toBeInTheDocument();
+      expect(screen.getByRole("link", { name: "Open study guide" })).toHaveAttribute("href", "/study-guides/documents/doc-1");
+      await waitFor(() => expect(screen.getByTestId("location")).toHaveAttribute("data-state", "null"));
+      expect(screen.getByText(notice)).toBeInTheDocument();
+    });
+
+    it("can be dismissed", async () => {
+      renderPage(COLLECTION_PATH, { quickNotice: notice, documentId: "doc-1" });
+      await screen.findByText(notice);
+
+      fireEvent.click(screen.getByRole("button", { name: "Dismiss notice" }));
+
+      expect(screen.queryByText(notice)).not.toBeInTheDocument();
+    });
+
+    it("shows no notice without one in the navigation state", async () => {
+      renderPage(COLLECTION_PATH);
+      await screen.findByRole("progressbar");
+
+      expect(screen.queryByRole("button", { name: "Dismiss notice" })).not.toBeInTheDocument();
+    });
   });
 });

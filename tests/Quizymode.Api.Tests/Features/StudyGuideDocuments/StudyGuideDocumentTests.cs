@@ -499,6 +499,6 @@ public sealed class StudyGuideDocumentTests : StudyGuideDocumentFixture
         validator.Validate(new CreateStudyGuideDocument.Request("x", null, null, "capitals", "europe", null)).IsValid.Should().BeFalse();
         validator.Validate(new CreateStudyGuideDocument.Request(StudyGuideTestData.Utf8(1_048_577), null, "geography", "capitals", "europe", null)).IsValid.Should().BeFalse();
         validator.Validate(new CreateStudyGuideDocument.Request("x", "Title", "geography", "capitals", "europe", ["ok-1"])).IsValid.Should().BeTrue();
-        CreateStudyGuideDocument.SplitKeywords(["a, b", "c"]).Should().Equal("a", "b", "c");
+        StudyGuideDocumentForm.SplitKeywords(["a, b", "c"]).Should().Equal("a", "b", "c");
     }
 }

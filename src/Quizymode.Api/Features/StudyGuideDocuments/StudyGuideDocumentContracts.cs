@@ -40,7 +40,10 @@ public static class StudyGuideDocumentContracts
         Quota Quota,
         List<Section> Sections);
 
-    /// <summary>Status: New | Queued | Processing | Generated | Failed. Candidates are listed only when Generated.</summary>
+    /// <summary>
+    /// Status: New | Queued | Processing | Generated | Failed. Candidates are listed only when Generated.
+    /// AutoSave is null for manual review, otherwise Pending | Saved | Failed (the "Make a quiz" quick path saves for you).
+    /// </summary>
     public sealed record Section(
         string Id,
         int Index,
@@ -55,8 +58,10 @@ public static class StudyGuideDocumentContracts
         DateTime? NotBeforeUtc,
         string? Error,
         int DroppedCount,
-        List<Candidate> Candidates);
+        List<Candidate> Candidates,
+        string? AutoSave);
 
+    /// <summary>ItemId is the saved item's id, only when the candidate was accepted and that item still exists.</summary>
     public sealed record Candidate(
         string Id,
         int Index,
@@ -66,5 +71,6 @@ public static class StudyGuideDocumentContracts
         string Explanation,
         string SourceQuote,
         int? Page,
-        bool Accepted);
+        bool Accepted,
+        string? ItemId);
 }

@@ -109,12 +109,20 @@ public static class GetStudyGuideDocument
             .GroupBy(candidate => candidate.GenerationId)
             .ToDictionary(group => group.Key, group => group.OrderBy(candidate => candidate.Index).ToList());
 
-        HashSet<Guid> acceptedIds = (await db.StudyGuideAcceptedCandidates
+        // Joined to Items so a saved question whose item was later deleted still shows as Saved, without an edit link.
+        Dictionary<Guid, Guid?> acceptedItems = (await db.StudyGuideAcceptedCandidates
                 .AsNoTracking()
                 .Where(accepted => accepted.DocumentId == document.Id)
-                .Select(accepted => accepted.CandidateId)
+                .GroupJoin(
+                    db.Items.AsNoTracking(),
+                    accepted => accepted.ItemId,
+                    item => item.Id,
+                    (accepted, items) => new { accepted.CandidateId, Items = items })
+                .SelectMany(
+                    row => row.Items.DefaultIfEmpty(),
+                    (row, item) => new { row.CandidateId, ItemId = item == null ? (Guid?)null : item.Id })
                 .ToListAsync(cancellationToken))
-            .ToHashSet();
+            .ToDictionary(row => row.CandidateId, row => row.ItemId);
 
         List<Guid> sectionIds = sections.Select(section => section.Id).ToList();
         HashSet<Guid> chargedSectionIds = (await db.StudyGuideQuotaCharges
@@ -129,7 +137,7 @@ public static class GetStudyGuideDocument
                 section,
                 section.GenerationId.HasValue ? generations.GetValueOrDefault(section.GenerationId.Value) : null,
                 candidates,
-                acceptedIds,
+                acceptedItems,
                 chargedSectionIds.Contains(section.Id)))
             .ToList();
 
@@ -154,7 +162,7 @@ public static class GetStudyGuideDocument
         StudyGuideSection section,
         SectionGeneration? generation,
         Dictionary<Guid, List<GenerationCandidate>> candidates,
-        HashSet<Guid> acceptedIds,
+        Dictionary<Guid, Guid?> acceptedItems,
         bool charged)
     {
         string status = StatusOf(generation);
@@ -170,7 +178,8 @@ public static class GetStudyGuideDocument
                     candidate.Explanation,
                     candidate.SourceQuote,
                     candidate.Page,
-                    acceptedIds.Contains(candidate.Id)))
+                    acceptedItems.ContainsKey(candidate.Id),
+                    acceptedItems.GetValueOrDefault(candidate.Id)?.ToString()))
                 .ToList()
             : [];
 
@@ -188,7 +197,8 @@ public static class GetStudyGuideDocument
             generation?.Status == SectionGenerationStatus.Pending ? generation.NotBeforeUtc : null,
             generation?.Status == SectionGenerationStatus.Failed ? generation.Error : null,
             generated ? generation!.DroppedCount : 0,
-            candidateResponses);
+            candidateResponses,
+            section.AutoSave?.ToString());
     }
 
     internal static string StatusOf(SectionGeneration? generation) =>

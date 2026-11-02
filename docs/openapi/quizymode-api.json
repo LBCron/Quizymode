@@ -5400,6 +5400,120 @@
         }
       }
     },
+    "/study-guides/documents/quick": {
+      "post": {
+        "tags": [
+          "StudyGuideDocuments"
+        ],
+        "summary": "Make a quiz: upload or paste notes, generate and save the questions privately",
+        "description": "multipart/form-data identical to POST /study-guides/documents. Returns 201 (or 200 with document.isDuplicate=true) with outcome Generating (questions save automatically when generation finishes), Ready (already saved; open Learn), NeedsChoice (too many sections or nothing to make; pick sections on the document page), OverAllowance (not enough daily or monthly sections left; nothing was charged) or Unavailable (generation is paused or unavailable; nothing was charged). message is the one short line to show. 503 StudyGuideDocument.Disabled before anything is created when no vendor in the caller's tier route has an API key.",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "allOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "file": {
+                        "$ref": "#/components/schemas/Microsoft.AspNetCore.Http.IFormFile"
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "text": {
+                        "$ref": "#/components/schemas/System.String"
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "$ref": "#/components/schemas/System.String"
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "category": {
+                        "$ref": "#/components/schemas/System.String"
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "navigationKeyword1": {
+                        "$ref": "#/components/schemas/System.String"
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "navigationKeyword2": {
+                        "$ref": "#/components/schemas/System.String"
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "keywords": {
+                        "$ref": "#/components/schemas/System.String"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Quizymode.Api.Features.StudyGuideDocuments.QuickStudyGuideDocument.Response"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Quizymode.Api.Features.StudyGuideDocuments.QuickStudyGuideDocument.Response"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "413": {
+            "description": "Payload Too Large"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "description": "Service Unavailable"
+          }
+        }
+      }
+    },
     "/study-sessions/activity": {
       "get": {
         "tags": [
@@ -15179,7 +15293,8 @@
           "maxTextBytes",
           "acceptedExtensions",
           "freeTierDelayMinutes",
-          "quota"
+          "quota",
+          "quickPathMaxSections"
         ],
         "type": "object",
         "properties": {
@@ -15203,6 +15318,9 @@
           },
           "quota": {
             "$ref": "#/components/schemas/Quizymode.Api.Features.StudyGuideDocuments.StudyGuideDocumentContracts.Quota"
+          },
+          "quickPathMaxSections": {
+            "$ref": "#/components/schemas/System.Int32"
           }
         }
       },
@@ -15217,6 +15335,48 @@
           }
         }
       },
+      "Quizymode.Api.Features.StudyGuideDocuments.QuickStudyGuideDocument.Response": {
+        "required": [
+          "document",
+          "outcome",
+          "message",
+          "queuedCount",
+          "cachedCount",
+          "chargedSections",
+          "collectionName"
+        ],
+        "type": "object",
+        "properties": {
+          "document": {
+            "$ref": "#/components/schemas/Quizymode.Api.Features.StudyGuideDocuments.StudyGuideDocumentContracts.Document"
+          },
+          "outcome": {
+            "$ref": "#/components/schemas/System.String"
+          },
+          "message": {
+            "$ref": "#/components/schemas/System.String"
+          },
+          "queuedCount": {
+            "$ref": "#/components/schemas/System.Int32"
+          },
+          "cachedCount": {
+            "$ref": "#/components/schemas/System.Int32"
+          },
+          "chargedSections": {
+            "$ref": "#/components/schemas/System.Int32"
+          },
+          "collectionName": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.String"
+              }
+            ]
+          }
+        }
+      },
       "Quizymode.Api.Features.StudyGuideDocuments.StudyGuideDocumentContracts.Candidate": {
         "required": [
           "id",
@@ -15227,7 +15387,8 @@
           "explanation",
           "sourceQuote",
           "page",
-          "accepted"
+          "accepted",
+          "itemId"
         ],
         "type": "object",
         "properties": {
@@ -15264,8 +15425,19 @@
           },
           "accepted": {
             "$ref": "#/components/schemas/System.Boolean"
+          },
+          "itemId": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.String"
+              }
+            ]
           }
-        }
+        },
+        "description": "ItemId is the saved item's id, only when the candidate was accepted and that item still exists."
       },
       "Quizymode.Api.Features.StudyGuideDocuments.StudyGuideDocumentContracts.Document": {
         "required": [
@@ -15445,7 +15617,8 @@
           "notBeforeUtc",
           "error",
           "droppedCount",
-          "candidates"
+          "candidates",
+          "autoSave"
         ],
         "type": "object",
         "properties": {
@@ -15518,9 +15691,19 @@
           },
           "candidates": {
             "$ref": "#/components/schemas/System.Collections.Generic.ListOfQuizymode.Api.Features.StudyGuideDocuments.StudyGuideDocumentContracts.Candidate"
+          },
+          "autoSave": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.String"
+              }
+            ]
           }
         },
-        "description": "Status: New | Queued | Processing | Generated | Failed. Candidates are listed only when Generated."
+        "description": "Status: New | Queued | Processing | Generated | Failed. Candidates are listed only when Generated.\nAutoSave is null for manual review, otherwise Pending | Saved | Failed (the \"Make a quiz\" quick path saves for you)."
       },
       "Quizymode.Api.Features.StudySessions.GetStudyActivity.DayDto": {
         "required": [

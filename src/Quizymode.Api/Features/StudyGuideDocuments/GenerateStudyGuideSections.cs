@@ -106,7 +106,9 @@ public static class GenerateStudyGuideSections
         StudyGuideGenerationOptions options,
         int retentionDays,
         DateTime nowUtc,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        bool autoSave = false,
+        bool quickPath = false)
     {
         StudyGuideDocument? document = await db.StudyGuideDocuments
             .FirstOrDefaultAsync(d => d.Id == id && d.UserId == userId, cancellationToken);
@@ -165,7 +167,8 @@ public static class GenerateStudyGuideSections
 
         StudyGuideQuotaSnapshot quota = await StudyGuideQuota.GetAsync(db, userId, options, nowUtc, cancellationToken);
         bool premium = quota.Tier == StudyGuideTier.Premium;
-        DateTime dueUtc = premium ? nowUtc : nowUtc.AddMinutes(Math.Max(0, options.FreeTierDelayMinutes));
+        int delayMinutes = quickPath ? options.QuickPathFreeTierDelayMinutes : options.FreeTierDelayMinutes;
+        DateTime dueUtc = premium ? nowUtc : nowUtc.AddMinutes(Math.Max(0, delayMinutes));
 
         int queued = 0;
         int cached = 0;
@@ -174,6 +177,8 @@ public static class GenerateStudyGuideSections
         List<(StudyGuideSection Section, SectionGeneration Generation)> charged = [];
         List<(StudyGuideSection Section, SectionGeneration Generation)> attachments = [];
         HashSet<Guid> bumped = [];
+        // Quick path (#363): attached free jobs that are still waiting are pulled forward to the quick-path due time.
+        HashSet<Guid> pulled = [];
 
         foreach (StudyGuideSection section in sections)
         {
@@ -191,6 +196,11 @@ public static class GenerateStudyGuideSections
                     if (premium)
                     {
                         bumped.Add(attached.Id);
+                    }
+
+                    if (quickPath)
+                    {
+                        pulled.Add(attached.Id);
                     }
                 }
 
@@ -220,6 +230,11 @@ public static class GenerateStudyGuideSections
                 if (premium)
                 {
                     bumped.Add(shared.Id);
+                }
+
+                if (quickPath)
+                {
+                    pulled.Add(shared.Id);
                 }
 
                 continue;
@@ -298,6 +313,25 @@ public static class GenerateStudyGuideSections
         {
             section.GenerationId = generation.Id;
             section.RequestedUtc = nowUtc;
+        }
+
+        if (autoSave)
+        {
+            // Every requested section auto-saves, including cached and already-queued ones (they carry no charge).
+            foreach (StudyGuideSection section in sections.Where(section => section.AutoSave != StudyGuideAutoSave.Saved))
+            {
+                section.AutoSave = StudyGuideAutoSave.Pending;
+                section.AutoSaveAttempts = 0;
+            }
+        }
+
+        foreach (Guid generationId in pulled)
+        {
+            SectionGeneration generation = byId.GetValueOrDefault(generationId) ?? byHash.Values.First(g => g.Id == generationId);
+            if (generation.Status == SectionGenerationStatus.Pending && generation.NotBeforeUtc > dueUtc)
+            {
+                generation.NotBeforeUtc = dueUtc;
+            }
         }
 
         foreach (Guid generationId in bumped)
