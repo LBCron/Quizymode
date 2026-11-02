@@ -1,0 +1,14 @@
+BEGIN
+UPDATE 1
+ROLLBACK
+BEGIN
+ERROR:  new row for relation "DailyQuizCompletions" violates check constraint "CK_DailyQuizCompletions_Skipped"
+DETAIL:  Failing row contains (7cdb55fe-4db3-4d4d-811e-739eb760a32e, 2026-11-02, 2, 5, 2026-11-02 00:33:46.156581+00, 99).
+CK_DailyQuizCompletions_Counts
+CK_Items_ExplanationImage_Alt
+CK_DailyQuizCompletions_Skipped
+2|5|2
+BEGIN
+ERROR:  new row for relation "Items" violates check constraint "CK_Items_ExplanationImage_Alt"
+DETAIL:  Failing row contains (5b8255bb-9888-44ab-b454-48af6d4cb7d8, f, What is the sum of the interior angles of a triangle in Euclidea..., 180 degrees, ["90 degrees", "270 degrees", "360 degrees"], In the Euclidean plane, the three interior angles of any triangl..., 18F64C777325F368, 24, seeder, 2026-11-02 00:31:05.603006+00, f, https://www.mathsisfun.com/proofangles.html, null, null, null, 5a46719b-294e-374a-9382-f76018b68c68, c32cac30-651e-444b-9864-780cf0e0126f, 0fd11c99-bd06-714b-8ae3-310021c38ba4, t, null, {}, null, 2026-11-02 00:35:32.236617+00, '180':15B,31C 'add':29C 'alway':28C 'angl':8A,24C 'degre':16B,32..., null, null, null, null, curated:diagrams/triangle-angle-sum).
+0

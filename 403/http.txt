@@ -1,0 +1,137 @@
+=== POST /items with questionImage object (expect 400 naming field)
+REQUEST: POST https://localhost:8082/items
+Authorization: Bearer <redacted user token>
+BODY: {"category":"science","navigationKeyword1":"geometry","navigationKeyword2":"area","isPrivate":true,"question":"QA403 test question?","correctAnswer":"yes","incorrectAnswers":["no","maybe","never"],"explanation":"because","questionImage":{"key":"curated:flags/fr","altText":"x"}}
+STATUS: 400
+RESPONSE: [{"propertyName":"QuestionImage","errorMessage":"QuestionImage: Pictures can't be imported. Remove questionImage/explanationImage; curated pictures are added through seed data.","attemptedValue":{"key":"curated:flags/fr","altText":"x"},"customState":null,"severity":0,"errorCode":"PredicateValidator","formattedMessagePlaceholderValues":{"PropertyName":"QuestionImage","PropertyValue":{"key":"curated:flags/fr","altText":"x"},"PropertyPath":"QuestionImage"}}]
+
+=== POST /items with questionImage:null (expect 201)
+REQUEST: POST https://localhost:8082/items
+Authorization: Bearer <redacted user token>
+BODY: {"category":"science","navigationKeyword1":"geometry","navigationKeyword2":"area","isPrivate":true,"question":"QA403 null image question?","correctAnswer":"yes","incorrectAnswers":["no","maybe","never"],"explanation":"because","questionImage":null}
+STATUS: 201
+RESPONSE: {"id":"176db967-864f-40b9-a7b9-ec7c2134fb2f","category":"science","isPrivate":true,"question":"QA403 null image question?","correctAnswer":"yes","incorrectAnswers":["no","maybe","never"],"explanation":"because","createdAt":"2026-11-02T00:33:45.9705193Z","source":null,"uploadId":null,"questionSpeech":null,"correctAnswerSpeech":null,"incorrectAnswerSpeech":null,"groupLabel":null}
+
+=== POST /items/bulk with questionImage object (expect 400)
+REQUEST: POST https://localhost:8082/items/bulk
+Authorization: Bearer <redacted admin token>
+BODY: {"isPrivate":true,"category":"science","keyword1":"geometry","keyword2":"area","keywords":[],"items":[{"question":"QA403 bulk?","correctAnswer":"y","incorrectAnswers":["a","b","c"],"explanation":"e","questionImage":{"key":"curated:flags/fr","altText":"x"}}]}
+STATUS: 400
+RESPONSE: [{"propertyName":"Items[0].QuestionImage","errorMessage":"QuestionImage: Pictures can't be imported. Remove questionImage/explanationImage; curated pictures are added through seed data.","attemptedValue":{"key":"curated:flags/fr","altText":"x"},"customState":null,"severity":0,"errorCode":"PredicateValidator","formattedMessagePlaceholderValues":{"PropertyName":"QuestionImage","PropertyValue":{"key":"curated:flags/fr","altText":"x"},"PropertyPath":"Items[0].QuestionImage","CollectionIndex":0}}]
+
+=== POST /items/upload-to-collection with explanationImage object (expect 400)
+REQUEST: POST https://localhost:8082/items/upload-to-collection
+Authorization: Bearer <redacted user token>
+BODY: {"category":"science","keyword1":"geometry","keyword2":"area","keywords":[],"items":[{"question":"QA403 bulk?","correctAnswer":"y","incorrectAnswers":["a","b","c"],"explanation":"e","explanationImage":{"key":"curated:flags/fr","altText":"x"}}],"inputText":"x"}
+STATUS: 400
+RESPONSE: [{"propertyName":"Items[0].ExplanationImage","errorMessage":"ExplanationImage: Pictures can't be imported. Remove questionImage/explanationImage; curated pictures are added through seed data.","attemptedValue":{"key":"curated:flags/fr","altText":"x"},"customState":null,"severity":0,"errorCode":"PredicateValidator","formattedMessagePlaceholderValues":{"PropertyName":"ExplanationImage","PropertyValue":{"key":"curated:flags/fr","altText":"x"},"PropertyPath":"Items[0].ExplanationImage","CollectionIndex":0}}]
+
+=== GET /items/{id} diagram item (shows explanationImage)
+REQUEST: GET https://localhost:8082/items/5b8255bb-9888-44ab-b454-48af6d4cb7d8
+Authorization: Bearer <redacted admin token>
+STATUS: 200
+RESPONSE: {"id":"5b8255bb-9888-44ab-b454-48af6d4cb7d8","category":"science","isPrivate":false,"question":"What is the sum of the interior angles of a triangle in Euclidean geometry?","correctAnswer":"180 degrees","incorrectAnswers":["90 degrees","270 degrees","360 degrees"],"explanation":"In the Euclidean plane, the three interior angles of any triangle always add to 180 degrees.","createdAt":"2026-11-02T00:31:05.603006Z","createdBy":"seeder","keywords":[{"id":"0fd11c99-bd06-714b-8ae3-310021c38ba4","name":"angles","isPrivate":false},{"id":"812b7bcc-3e6b-48fb-aa0f-1c0df777a9a1","name":"triangle-sum","isPrivate":false},{"id":"c32cac30-651e-444b-9864-780cf0e0126f","name":"geometry","isPrivate":false}],"collections":[],"source":"https://www.mathsisfun.com/proofangles.html","uploadId":null,"navigationBreadcrumb":["geometry","angles"],"factualRisk":null,"reviewComments":null,"questionSpeech":null,"correctAnswerSpeech":null,"incorrectAnswerSpeech":null,"groupLabel":null,"questionImage":null,"explanationImage":{"key":"curated:diagrams/triangle-angle-sum","altText":"A triangle with its three corner angles shaded and labelled A, B and C, next to the same three angles placed side by side along a straig
+
+=== PUT /items/{id} clearing explanation on diagram item (expect 400)
+REQUEST: PUT https://localhost:8082/items/5b8255bb-9888-44ab-b454-48af6d4cb7d8
+Authorization: Bearer <redacted admin token>
+BODY: {"category":"science","question":"What is the sum of the interior angles of a triangle in Euclidean geometry?","correctAnswer":"180 degrees","incorrectAnswers":["90 degrees","270 degrees","360 degrees"],"explanation":"","isPrivate":false}
+STATUS: 400
+RESPONSE: [{"propertyName":"NavigationKeyword1","errorMessage":"NavigationKeyword1 (primary topic) is required","attemptedValue":null,"customState":null,"severity":0,"errorCode":"NotEmptyValidator","formattedMessagePlaceholderValues":{"PropertyName":"Navigation Keyword1","PropertyValue":null,"PropertyPath":"NavigationKeyword1"}},{"propertyName":"NavigationKeyword2","errorMessage":"NavigationKeyword2 (subtopic) is required","attemptedValue":null,"customState":null,"severity":0,"errorCode":"NotEmptyValidator","formattedMessagePlaceholderValues":{"PropertyName":"Navigation Keyword2","PropertyValue":null,"PropertyPath":"NavigationKeyword2"}}]
+
+=== PUT /items/{id} whitespace explanation (expect 400)
+REQUEST: PUT https://localhost:8082/items/5b8255bb-9888-44ab-b454-48af6d4cb7d8
+Authorization: Bearer <redacted admin token>
+BODY: {"category":"science","question":"What is the sum of the interior angles of a triangle in Euclidean geometry?","correctAnswer":"180 degrees","incorrectAnswers":["90 degrees","270 degrees","360 degrees"],"explanation":"   ","isPrivate":false}
+STATUS: 400
+RESPONSE: [{"propertyName":"NavigationKeyword1","errorMessage":"NavigationKeyword1 (primary topic) is required","attemptedValue":null,"customState":null,"severity":0,"errorCode":"NotEmptyValidator","formattedMessagePlaceholderValues":{"PropertyName":"Navigation Keyword1","PropertyValue":null,"PropertyPath":"NavigationKeyword1"}},{"propertyName":"NavigationKeyword2","errorMessage":"NavigationKeyword2 (subtopic) is required","attemptedValue":null,"customState":null,"severity":0,"errorCode":"NotEmptyValidator","formattedMessagePlaceholderValues":{"PropertyName":"Navigation Keyword2","PropertyValue":null,"PropertyPath":"NavigationKeyword2"}}]
+
+=== PUT /items/{id} unchanged body (expect 200, preserves pictures)
+REQUEST: PUT https://localhost:8082/items/5b8255bb-9888-44ab-b454-48af6d4cb7d8
+Authorization: Bearer <redacted admin token>
+BODY: {"category":"science","question":"What is the sum of the interior angles of a triangle in Euclidean geometry?","correctAnswer":"180 degrees","incorrectAnswers":["90 degrees","270 degrees","360 degrees"],"explanation":"In the Euclidean plane, the three interior angles of any triangle always add to 180 degrees.","isPrivate":false}
+STATUS: 400
+RESPONSE: [{"propertyName":"NavigationKeyword1","errorMessage":"NavigationKeyword1 (primary topic) is required","attemptedValue":null,"customState":null,"severity":0,"errorCode":"NotEmptyValidator","formattedMessagePlaceholderValues":{"PropertyName":"Navigation Keyword1","PropertyValue":null,"PropertyPath":"NavigationKeyword1"}},{"propertyName":"NavigationKeyword2","errorMessage":"NavigationKeyword2 (subtopic) is required","attemptedValue":null,"customState":null,"severity":0,"errorCode":"NotEmptyValidator","formattedMessagePlaceholderValues":{"PropertyName":"Navigation Keyword2","PropertyValue":null,"PropertyPath":"NavigationKeyword2"}}]
+
+=== GET /items/{id} after PUT (explanationImage still present)
+REQUEST: GET https://localhost:8082/items/5b8255bb-9888-44ab-b454-48af6d4cb7d8
+Authorization: Bearer <redacted admin token>
+STATUS: 200
+RESPONSE: {"id":"5b8255bb-9888-44ab-b454-48af6d4cb7d8","category":"science","isPrivate":false,"question":"What is the sum of the interior angles of a triangle in Euclidean geometry?","correctAnswer":"180 degrees","incorrectAnswers":["90 degrees","270 degrees","360 degrees"],"explanation":"In the Euclidean plane, the three interior angles of any triangle always add to 180 degrees.","createdAt":"2026-11-02T00:31:05.603006Z","createdBy":"seeder","keywords":[{"id":"0fd11c99-bd06-714b-8ae3-310021c38ba4","name":"angles","isPrivate":false},{"id":"812b7bcc-3e6b-48fb-aa0f-1c0df777a9a1","name":"triangle-sum","isPrivate":false},{"id":"c32cac30-651e-444b-9864-780cf0e0126f","name":"geometry","isPrivate":false}],"collections":[],"source":"https://www.mathsisfun.com/proofangles.html","uploadId":null,"navigationBreadcrumb":["geometry","angles"],"factualRisk":null,"reviewComments":null,"questionSpeech":null,"correctAnswerSpeech":null,"incorrectAnswerSpeech":null,"groupLabel":null,"questionImage":null,"explanationImage":{"key":"curated:diagrams/triangle-angle-sum","altText":"A triangle with its three corner angles shaded and labelled A, B and C, next to the same three angles placed side by side along a straig
+
+=== GET /daily-quiz
+REQUEST: GET https://localhost:8082/daily-quiz
+Authorization: Bearer <redacted user token>
+STATUS: 200
+RESPONSE: {"date":"2026-11-02","items":[{"id":"2769d58d-74a7-4a8a-8445-b9cf80301041","category":"science","isPrivate":false,"question":"What is an astronomical unit (AU) often used to mean?","correctAnswer":"About Earth–Sun average distance","incorrectAnswers":["Moon–Earth distance","Sun’s radius","Speed of light"],"explanation":"1 AU is a convenient Earth-centered distance scale in the solar system.","createdAt":"2026-11-01T14:10:39.92192Z","keywords":[{"id":"ddb99532-cade-490e-8654-d6384601be8c","name":"distance","isPrivate":false},{"id":"29d4fa85-708a-41c6-96ea-97740bb5826d","name":"au","isPrivate":false},{"id":"eeb6e8f5-f78d-b34e-8670-4d9c9788a243","name":"astronomy","isPrivate":false},{"id":"7fac1ba5-5ae3-8042-9d67-74c0288569c8","name":"solar-system","isPrivate":false}],"collections":[],"source":"https://en.wikipedia.org/wiki/Astronomical_unit","uploadId":null,"factualRisk":null,"reviewComments":null,"questionSpeech":null,"correctAnswerSpeech":null,"incorrectAnswerSpeech":null,"groupLabel":null,"questionImage":null,"explanationImage":null},{"id":"f86006a4-97d6-4915-9613-8f318b6d4943","category":"geography","isPrivate":false,"question":"What is the national capital of Indonesia?","correc
+
+=== POST /daily-quiz/completions skipped (expect 201)
+REQUEST: POST https://localhost:8082/daily-quiz/completions
+Authorization: Bearer <redacted user token>
+BODY: {"date":"2026-11-02","correct":2,"total":5,"skipped":2}
+STATUS: 201
+RESPONSE: {"created":true,"streak":1,"completion":{"correct":2,"total":5,"completedAt":"2026-11-02T00:33:46.1565812Z","skipped":2}}
+
+=== POST /daily-quiz/completions correct > total - skipped (expect 400)
+REQUEST: POST https://localhost:8082/daily-quiz/completions
+Authorization: Bearer <redacted user token>
+BODY: {"date":"2026-11-02","correct":5,"total":5,"skipped":1}
+STATUS: 400
+RESPONSE: {"type":"https://tools.ietf.org/html/rfc7231#section-6.5.1","title":"Validation failed","status":400,"detail":"'Correct' must be less than or equal to '4'."}
+
+=== POST /daily-quiz/completions skipped > total (expect 400)
+REQUEST: POST https://localhost:8082/daily-quiz/completions
+Authorization: Bearer <redacted user token>
+BODY: {"date":"2026-11-02","correct":0,"total":5,"skipped":6}
+STATUS: 400
+RESPONSE: {"type":"https://tools.ietf.org/html/rfc7231#section-6.5.1","title":"Validation failed","status":400,"detail":"'Skipped' must be less than or equal to '5'.; 'Correct' must be less than or equal to '-1'."}
+
+=== GET /games/roster geography/flags/countries
+REQUEST: GET https://localhost:8082/games/roster?scope=geography/flags/countries
+Authorization: Bearer <redacted user token>
+STATUS: 200
+RESPONSE: {"items":[{"id":"4240fb60-3b07-4c35-8e1d-adceb7423070","category":"geography","isPrivate":false,"question":"When did Canada’s current Maple Leaf flag become official?","correctAnswer":"February 15, 1965","incorrectAnswers":["July 1, 1867","December 25, 1945","January 1, 1980"],"explanation":"Britannica notes the Maple Leaf Flag was approved in December 1964 and became official by royal proclamation on February 15, 1965.","createdAt":"2026-11-02T00:31:05.603006Z","keywords":[{"id":"910c74f7-296a-e748-8e63-bb6f05bd40fb","name":"countries","isPrivate":false},{"id":"ac91749d-62ec-4930-942f-1cbe5add5613","name":"canada","isPrivate":false},{"id":"a392c17b-9faf-c84a-b46f-dd5ffb22d59f","name":"flags","isPrivate":false},{"id":"87edd416-7c30-bd4e-bb7d-2bef152b8849","name":"history","isPrivate":false}],"collections":[],"source":"https://www.britannica.com/topic/flag-of-Canada","uploadId":null,"factualRisk":null,"reviewComments":null,"questionSpeech":null,"correctAnswerSpeech":null,"incorrectAnswerSpeech":null,"groupLabel":null,"questionImage":null,"explanationImage":null},{"id":"d4b073e0-1f3a-425a-a3c9-571e43ccef9b","category":"geography","isPrivate":false,"question":"The United States flag’s
+
+=== GET /games/roster geography/flags
+REQUEST: GET https://localhost:8082/games/roster?scope=geography/flags
+Authorization: Bearer <redacted user token>
+STATUS: 200
+RESPONSE: {"items":[{"id":"8c30fe77-3d41-409c-86a5-d858c2643ed8","category":"geography","isPrivate":false,"question":"Japan’s national flag has what width-to-length ratio?","correctAnswer":"2 to 3","incorrectAnswers":["1 to 2","10 to 19","1 to 1"],"explanation":"Britannica describes Japan’s flag as a white field with a central red disk and gives a width-to-length ratio of 2 to 3.","createdAt":"2026-11-02T00:31:05.603006Z","keywords":[{"id":"c46103ce-0216-4bb6-8be0-6b48d2162567","name":"proportions","isPrivate":false},{"id":"727c4add-87c9-eb4b-8dd5-0543c3855bd6","name":"japan","isPrivate":false},{"id":"a392c17b-9faf-c84a-b46f-dd5ffb22d59f","name":"flags","isPrivate":false},{"id":"910c74f7-296a-e748-8e63-bb6f05bd40fb","name":"countries","isPrivate":false}],"collections":[],"source":"https://www.britannica.com/topic/flag-of-Japan","uploadId":null,"factualRisk":null,"reviewComments":null,"questionSpeech":null,"correctAnswerSpeech":null,"incorrectAnswerSpeech":null,"groupLabel":null,"questionImage":null,"explanationImage":null},{"id":"6e09d200-5016-4584-8e7b-740d6b8f2f5b","category":"geography","isPrivate":false,"question":"How many red stripes appear on the United States flag?","correctAnswer":"
+
+#### PUT checks (second pass; first pass omitted navigation keywords so its PUT 400s are NOT valid evidence)
+=== GET /items/{id} diagram item before PUT
+REQUEST: GET https://localhost:8082/items/5b8255bb-9888-44ab-b454-48af6d4cb7d8
+Authorization: Bearer <redacted admin token>
+STATUS: 200
+RESPONSE: {"id":"5b8255bb-9888-44ab-b454-48af6d4cb7d8","category":"science","isPrivate":false,"question":"What is the sum of the interior angles of a triangle in Euclidean geometry?","correctAnswer":"180 degrees","incorrectAnswers":["90 degrees","270 degrees","360 degrees"],"explanation":"In the Euclidean plane, the three interior angles of any triangle always add to 180 degrees.","createdAt":"2026-11-02T00:31:05.603006Z","createdBy":"seeder","keywords":[{"id":"0fd11c99-bd06-714b-8ae3-310021c38ba4","name":"angles","isPrivate":false},{"id":"812b7bcc-3e6b-48fb-aa0f-1c0df777a9a1","name":"triangle-sum","isPrivate":false},{"id":"c32cac30-651e-444b-9864-780cf0e0126f","name":"geometry","isPrivate":false}],"collections":[],"source":"https://www.mathsisfun.com/proofangles.html","uploadId":null,"navigationBreadcrumb":["geometry","angles"],"factualRisk":null,"reviewComments":null,"questionSpeech":null,"correctAnswerSpeech":null,"incorrectAnswerSpeech":null,"groupLabel":null,"questionImage":null,"explanationImage":{"key":"curated:diagrams/triangle-angle-sum","altText":"A triangle with its three corner angles shaded and labelled A, B and C, next to the same three angles placed side by side along a straig
+
+=== PUT clear explanation (empty) on diagram item (expect 400)
+REQUEST: PUT https://localhost:8082/items/5b8255bb-9888-44ab-b454-48af6d4cb7d8
+Authorization: Bearer <redacted admin token>
+BODY: {"category":"science","navigationKeyword1":"geometry","navigationKeyword2":"angles","question":"What is the sum of the interior angles of a triangle in Euclidean geometry?","correctAnswer":"180 degrees","incorrectAnswers":["90 degrees","270 degrees","360 degrees"],"explanation":"","isPrivate":false}
+STATUS: 400
+RESPONSE: {"type":"https://tools.ietf.org/html/rfc7231#section-6.5.1","title":"Item.ExplanationRequiredForImage","status":400,"detail":"Explanation can't be empty while the item has an explanation picture."}
+
+=== PUT clear explanation (whitespace) on diagram item (expect 400)
+REQUEST: PUT https://localhost:8082/items/5b8255bb-9888-44ab-b454-48af6d4cb7d8
+Authorization: Bearer <redacted admin token>
+BODY: {"category":"science","navigationKeyword1":"geometry","navigationKeyword2":"angles","question":"What is the sum of the interior angles of a triangle in Euclidean geometry?","correctAnswer":"180 degrees","incorrectAnswers":["90 degrees","270 degrees","360 degrees"],"explanation":"   ","isPrivate":false}
+STATUS: 400
+RESPONSE: {"type":"https://tools.ietf.org/html/rfc7231#section-6.5.1","title":"Item.ExplanationRequiredForImage","status":400,"detail":"Explanation can't be empty while the item has an explanation picture."}
+
+=== PUT unchanged body, no image fields (expect 200)
+REQUEST: PUT https://localhost:8082/items/5b8255bb-9888-44ab-b454-48af6d4cb7d8
+Authorization: Bearer <redacted admin token>
+BODY: {"category":"science","navigationKeyword1":"geometry","navigationKeyword2":"angles","question":"What is the sum of the interior angles of a triangle in Euclidean geometry?","correctAnswer":"180 degrees","incorrectAnswers":["90 degrees","270 degrees","360 degrees"],"explanation":"In the Euclidean plane, the three interior angles of any triangle always add to 180 degrees.","isPrivate":false}
+STATUS: 200
+RESPONSE: {"id":"5b8255bb-9888-44ab-b454-48af6d4cb7d8","category":"science","isPrivate":false,"question":"What is the sum of the interior angles of a triangle in Euclidean geometry?","correctAnswer":"180 degrees","incorrectAnswers":["90 degrees","270 degrees","360 degrees"],"explanation":"In the Euclidean plane, the three interior angles of any triangle always add to 180 degrees.","createdAt":"2026-11-02T00:31:05.603006Z","source":"https://www.mathsisfun.com/proofangles.html","questionSpeech":null,"correctAnswerSpeech":null,"incorrectAnswerSpeech":null,"groupLabel":null}
+
+=== GET /items/{id} after PUT (explanationImage must still be present)
+REQUEST: GET https://localhost:8082/items/5b8255bb-9888-44ab-b454-48af6d4cb7d8
+Authorization: Bearer <redacted admin token>
+STATUS: 200
+RESPONSE: {"id":"5b8255bb-9888-44ab-b454-48af6d4cb7d8","category":"science","isPrivate":false,"question":"What is the sum of the interior angles of a triangle in Euclidean geometry?","correctAnswer":"180 degrees","incorrectAnswers":["90 degrees","270 degrees","360 degrees"],"explanation":"In the Euclidean plane, the three interior angles of any triangle always add to 180 degrees.","createdAt":"2026-11-02T00:31:05.603006Z","createdBy":"seeder","keywords":[{"id":"0fd11c99-bd06-714b-8ae3-310021c38ba4","name":"angles","isPrivate":false},{"id":"812b7bcc-3e6b-48fb-aa0f-1c0df777a9a1","name":"triangle-sum","isPrivate":false},{"id":"c32cac30-651e-444b-9864-780cf0e0126f","name":"geometry","isPrivate":false}],"collections":[],"source":"https://www.mathsisfun.com/proofangles.html","uploadId":null,"navigationBreadcrumb":["geometry","angles"],"factualRisk":null,"reviewComments":null,"questionSpeech":null,"correctAnswerSpeech":null,"incorrectAnswerSpeech":null,"groupLabel":null,"questionImage":null,"explanationImage":{"key":"curated:diagrams/triangle-angle-sum","altText":"A triangle with its three corner angles shaded and labelled A, B and C, next to the same three angles placed side by side along a straig
+=== GET /games/roster?scope=geography/flags/countries (items array elided)
+{"items":"[5 items elided]","scopes":[{"scope":"geography/flags/countries","available":5,"returned":5,"status":"ok","excludedPictures":195}]}
+=== GET /games/roster?scope=geography/flags (items array elided)
+{"items":"[19 items elided]","scopes":[{"scope":"geography/flags","available":19,"returned":19,"status":"ok","excludedPictures":195}]}

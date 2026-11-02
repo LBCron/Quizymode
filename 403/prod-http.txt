@@ -1,0 +1,56 @@
+== GET /items/56f0b468… (Pythagorean) ==
+{
+ "id": "56f0b468-7ace-4ed2-9202-d3a43ff46e8c",
+ "question": "To which triangles does the Pythagorean theorem apply?",
+ "questionImage": null,
+ "explanationImage": {
+  "key": "curated:diagrams/pythagorean-theorem",
+  "altText": "A right triangle with its two shorter sides labelled a and b, which meet at a right angle, and its longest side, opposite the right angle, labelled c."
+ }
+}
+== GET /items/0499d9b7… (flag) ==
+{
+ "id": "0499d9b7-ce5d-5d70-b742-bced74235637",
+ "questionImage": {
+  "key": "curated:flags/sb",
+  "altText": "A yellow diagonal stripe runs from the lower left to the upper right, between a blue triangle with five white stars at the upper left and a green triangle at the lower right."
+ },
+ "explanationImage": null
+}
+== diagram assets in prod bundle ==
+"../assets/curated/diagrams/circle-radius-diameter.webp":gz
+"../assets/curated/diagrams/parallelogram-area.webp":pz
+"../assets/curated/diagrams/pythagorean-theorem.webp":yz
+"../assets/curated/diagrams/triangle-angle-sum.webp":xz
+== GET /games/roster?scope=geography/flags/countries ==
+{
+ "items": "[5 entries]",
+ "scopes": "[1 entries]"
+}
+== GET /games/roster?scope=science/geometry/triangles ==
+{
+ "items": "[5 entries]",
+ "scopes": "[1 entries]"
+}
+== scopes[] for geography/flags/countries ==
+[
+ {
+  "scope": "geography/flags/countries",
+  "available": 5,
+  "returned": 5,
+  "status": "ok",
+  "excludedPictures": 195
+ }
+]
+items: ['Canada’s national flag has what width-', 'When did Canada’s current Maple Leaf f', 'The United States flag’s width-to-leng', 'Japan’s national flag has what width-t', 'What does the red disk on Japan’s flag']
+== scopes[] for science/geometry/triangles ==
+[
+ {
+  "scope": "science/geometry/triangles",
+  "available": 5,
+  "returned": 5,
+  "status": "ok",
+  "excludedPictures": 0
+ }
+]
+items: ['The centroid of a triangle is the inters', 'The orthocenter of a triangle is the int', 'To which triangles does the Pythagorean ', 'What kind of triangle has side lengths 3', 'The incenter of a triangle is the inters']

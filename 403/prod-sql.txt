@@ -1,0 +1,23 @@
+                  Id                  |           ExplanationImageKey           |                                                                                           ExplanationImageAlt                                                                                           
+--------------------------------------+-----------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ 8296c4f4-2868-43e5-b0ac-afedc279d654 | curated:diagrams/circle-radius-diameter | A circle with its centre marked, a radius r from the centre to the edge, a diameter d straight across through the centre, and the outline of the circle highlighted as the circumference C.
+ 1e12e0d1-5b25-4397-81da-5fa90b6b2837 | curated:diagrams/parallelogram-area     | A parallelogram with its bottom side labelled b as the base, and a dashed line labelled h dropping straight down from the top side to the base at a right angle.
+ 56f0b468-7ace-4ed2-9202-d3a43ff46e8c | curated:diagrams/pythagorean-theorem    | A right triangle with its two shorter sides labelled a and b, which meet at a right angle, and its longest side, opposite the right angle, labelled c.
+ 5b8255bb-9888-44ab-b454-48af6d4cb7d8 | curated:diagrams/triangle-angle-sum     | A triangle with its three corner angles shaded and labelled A, B and C, next to the same three angles placed side by side along a straight line, where together they fill a half circle of 180 degrees.
+(4 rows)
+
+ question_image_items 
+----------------------
+                  195
+(1 row)
+
+              MigrationId               
+----------------------------------------
+ 20261101233736_AddItemExplanationImage
+(1 row)
+
+ column_name | data_type | column_default 
+-------------+-----------+----------------
+ Skipped     | integer   | 0
+(1 row)
+
