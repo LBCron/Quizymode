@@ -1366,6 +1366,90 @@ namespace Quizymode.Api.Migrations
                     b.ToTable("LlmProviderSettings", (string)null);
                 });
 
+            modelBuilder.Entity("Quizymode.Api.Shared.Models.MediaAsset", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Bytes")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("FailureCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Format")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<int>("Height")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ObjectKey")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("OwnerUserId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int>("ProcessingVersion")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Sha256")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character(64)")
+                        .IsFixedLength();
+
+                    b.Property<int>("SourceBytes")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("SourceFormat")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Width")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ObjectKey")
+                        .IsUnique();
+
+                    b.HasIndex("OwnerUserId", "CreatedAt");
+
+                    b.HasIndex("State", "UpdatedAt");
+
+                    b.ToTable("MediaAssets", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_MediaAssets_Bytes_Max", "\"Bytes\" <= 102400");
+
+                            t.HasCheckConstraint("CK_MediaAssets_Failed_Code", "\"State\" <> 'Failed' OR \"FailureCode\" IS NOT NULL");
+
+                            t.HasCheckConstraint("CK_MediaAssets_Ready_Complete", "\"State\" <> 'Ready' OR (\"ObjectKey\" IS NOT NULL AND \"Sha256\" <> '' AND \"Width\" > 0 AND \"Height\" > 0 AND \"Bytes\" > 0)");
+
+                            t.HasCheckConstraint("CK_MediaAssets_State", "\"State\" IN ('Processing', 'Ready', 'Failed')");
+                        });
+                });
+
             modelBuilder.Entity("Quizymode.Api.Shared.Models.PageView", b =>
                 {
                     b.Property<Guid>("Id")

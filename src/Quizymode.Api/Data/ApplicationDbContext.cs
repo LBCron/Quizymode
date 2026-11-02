@@ -100,6 +100,8 @@ public sealed class ApplicationDbContext : DbContext
 
     public DbSet<StudyPlan> StudyPlans => Set<StudyPlan>();
 
+    public DbSet<MediaAsset> MediaAssets => Set<MediaAsset>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);

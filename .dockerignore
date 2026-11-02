@@ -31,3 +31,5 @@ data/generated
 !.git/config
 !.git/packed-refs
 !.git/refs/heads/**
+
+**/.media

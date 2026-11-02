@@ -128,6 +128,22 @@ internal static partial class StartupExtensions
                     });
             });
 
+            // Picture uploads (AC 3.24): decoding is CPU- and memory-bound, so uploads are capped per user. In-memory per
+            // instance; durable per-account quotas are #405.
+            options.AddPolicy("media-uploads", httpContext =>
+            {
+                string partitionKey = GetAuthenticatedOrTrustedIpPartitionKey(httpContext);
+                return RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey,
+                    static _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 20,
+                        Window = TimeSpan.FromHours(1),
+                        QueueLimit = 0,
+                        AutoReplenishment = true
+                    });
+            });
+
             // Flashcard "Still learning" grades queue one item per call (#251); generous for a long deck, strict for floods.
             options.AddPolicy("review-queue-enqueue", httpContext =>
             {
