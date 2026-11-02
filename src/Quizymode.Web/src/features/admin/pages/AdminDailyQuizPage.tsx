@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { dailyQuizApi } from "@/api/learningLoop";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import { QuestionImage } from "@/components/study/QuestionImage";
 import { utcToday } from "@/features/learningLoop/localLearningState";
 
 const DAYS_AHEAD = 7;
@@ -82,21 +83,24 @@ const AdminDailyQuizPage = () => {
             <ol className="mt-4 space-y-2">
               {active.map((item) => (
                 <li key={item.itemId} className="flex items-start justify-between gap-3 rounded-lg bg-white p-3 shadow">
-                  <div className="min-w-0">
-                    <p className="text-xs font-semibold uppercase text-gray-500">
-                      #{item.position + 1} · {item.category ?? "No category"}
-                    </p>
-                    <p className="mt-1 text-sm text-gray-900">{item.question}</p>
-                    <Link to={`/items/${item.itemId}`} className="mt-1 inline-block text-xs font-semibold text-indigo-700 hover:underline">
-                      Open item
-                    </Link>
+                  <div className="flex min-w-0 items-start gap-3">
+                    <QuestionImage image={item.questionImage} size="sm" />
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold uppercase text-gray-500">
+                        #{item.position + 1} · {item.category ?? "No category"}
+                      </p>
+                      <p className="mt-1 text-sm text-gray-900">{item.question}</p>
+                      <Link to={`/items/${item.itemId}`} className="mt-1 inline-block text-xs font-semibold text-indigo-700 hover:underline">
+                        Open item
+                      </Link>
+                    </div>
                   </div>
                   <button
                     type="button"
                     onClick={() => exclude.mutate(item.itemId)}
                     disabled={exclude.isPending}
                     className="shrink-0 rounded-md border border-red-300 px-3 py-1.5 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
-                    aria-label={`Remove from daily set: ${item.question}`}
+                    aria-label={`Remove from daily set: ${item.question}${item.questionImage ? ` (picture: ${item.questionImage.altText})` : ""}`}
                   >
                     Remove
                   </button>
@@ -109,8 +113,9 @@ const AdminDailyQuizPage = () => {
               <h2 className="text-sm font-semibold text-gray-800">Removed for this day</h2>
               <ul className="mt-2 space-y-1 text-sm text-gray-600">
                 {excluded.map((item) => (
-                  <li key={item.itemId} className="line-through">
-                    {item.question}
+                  <li key={item.itemId} className="flex items-center gap-2">
+                    <QuestionImage image={item.questionImage} size="xs" />
+                    <span className="line-through">{item.question}</span>
                   </li>
                 ))}
               </ul>

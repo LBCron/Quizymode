@@ -1,5 +1,5 @@
 import { apiClient } from "./client";
-import type { ItemResponse } from "@/types/api";
+import type { ItemImageReference, ItemResponse } from "@/types/api";
 
 /** Review queue (REVIEW-001, #117). */
 export interface ReviewQueueResponse {
@@ -62,6 +62,7 @@ export interface AdminDailyQuizItem {
   category: string | null;
   excluded: boolean;
   excludedAt: string | null;
+  questionImage?: ItemImageReference | null;
 }
 
 export interface AdminDailyQuizDay {

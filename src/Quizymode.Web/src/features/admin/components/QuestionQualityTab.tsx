@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { adminApi } from "@/api/admin";
 import ErrorMessage from "@/components/ErrorMessage";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import { QuestionImage } from "@/components/study/QuestionImage";
 
 interface QuestionQualityTabProps {
   days: number;
@@ -90,7 +91,10 @@ const QuestionQualityTab = ({ days, includeBots, includeInternal = false }: Ques
               {data.items.map((item) => (
                 <tr key={item.itemId}>
                   <td className="max-w-xs px-4 py-3 text-sm font-medium text-slate-900">
-                    {item.question}
+                    <div className="flex items-center gap-2">
+                      <QuestionImage image={item.questionImage} size="xs" />
+                      <span>{item.question}</span>
+                    </div>
                   </td>
                   <td className={TD}>{item.correctAnswer}</td>
                   <td className={TD}>{item.category ?? "—"}</td>

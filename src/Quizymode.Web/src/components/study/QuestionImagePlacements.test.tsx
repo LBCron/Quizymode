@@ -13,6 +13,8 @@ import ItemListCard from "@/components/ItemListCard";
 import ReviewBoardPage from "@/features/admin/pages/ReviewBoardPage";
 import { CollectionPrintView } from "@/features/collections/components/CollectionPrintView";
 import { adminApi } from "@/api/admin";
+import { itemsApi } from "@/api/items";
+import ItemsPage from "@/features/items/pages/ItemsPage";
 import type { ItemResponse } from "@/types/api";
 
 vi.mock("@/media/curatedImages", () => ({
@@ -24,6 +26,7 @@ vi.mock("@/contexts/AuthContext", () => ({
 vi.mock("@/api/admin", () => ({
   adminApi: { getReviewBoardItems: vi.fn(), approveItem: vi.fn(), rejectItem: vi.fn() },
 }));
+vi.mock("@/api/items", () => ({ itemsApi: { getRandom: vi.fn() } }));
 vi.mock("@/api/ratings", () => ({ ratingsApi: { getStats: vi.fn().mockResolvedValue(null) } }));
 
 const questionImage = { key: "curated:flags/fr", altText: "Three vertical bands: blue, white, red" };
@@ -418,5 +421,29 @@ describe("CollectionPrintView explanation picture", () => {
 
     render(<CollectionPrintView title="T" hideAnswers items={[{ ...baseItem, explanationImage }]} />);
     expect(screen.queryByAltText(explanationImage.altText)).not.toBeInTheDocument();
+  });
+});
+
+describe("ItemsPage thumbnail", () => {
+  const explanationOnly: ItemResponse = { ...pictureItem, id: "expl-1", question: "Explained?", questionImage: null, explanationImage: { key: "curated:flags/fr", altText: "Explanation picture" } };
+
+  it("shows a lazy question thumbnail on item cards and none for explanation-only items", async () => {
+    vi.mocked(itemsApi.getRandom).mockResolvedValue({ items: [pictureItem, textItem, explanationOnly] } as never);
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <ItemsPage />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: /Flashcards Mode/ }));
+
+    expect(await screen.findByText("Which country uses this flag?")).toBeInTheDocument();
+    expect(screen.getByAltText(questionImage.altText)).toHaveAttribute("loading", "lazy");
+    expect(screen.getAllByRole("img")).toHaveLength(1);
+    expect(screen.queryByAltText("Explanation picture")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("explanation-image")).not.toBeInTheDocument();
   });
 });

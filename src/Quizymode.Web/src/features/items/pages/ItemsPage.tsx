@@ -5,6 +5,7 @@ import { itemsApi } from "@/api/items";
 import { categoryNameToSlug } from "@/utils/categorySlug";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import ErrorMessage from "@/components/ErrorMessage";
+import { QuestionImage } from "@/components/study/QuestionImage";
 
 const ItemsPage = () => {
   const [searchParams] = useSearchParams();
@@ -137,12 +138,17 @@ const ItemsPage = () => {
                   className="bg-white shadow rounded-lg p-6 cursor-pointer hover:shadow-lg transition-shadow"
                   onClick={() => handleItemClick(item.id)}
                 >
-                  <p className="text-gray-900 font-medium">
-                    {item.question.length > 100
-                      ? `${item.question.substring(0, 100)}...`
-                      : item.question}
-                  </p>
-                  <p className="mt-2 text-sm text-gray-500">{item.category}</p>
+                  <div className="flex items-start gap-3">
+                    <QuestionImage image={item.questionImage} size="sm" />
+                    <div className="min-w-0">
+                      <p className="text-gray-900 font-medium">
+                        {item.question.length > 100
+                          ? `${item.question.substring(0, 100)}...`
+                          : item.question}
+                      </p>
+                      <p className="mt-2 text-sm text-gray-500">{item.category}</p>
+                    </div>
+                  </div>
                 </div>
               ))}
 

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Quizymode.Api.Data;
 using Quizymode.Api.Services;
+using Quizymode.Api.Shared.Helpers;
 using Quizymode.Api.Shared.Http;
 using Quizymode.Api.Shared.Kernel;
 using Quizymode.Api.Shared.Models;
@@ -37,6 +38,7 @@ public static class GetQuestionQualityReport
     /// <param name="RandomGuessPercent">100 divided by the number of options (one correct plus the incorrect answers).</param>
     /// <param name="CheckAnswerKey">True when the correct rate is below the random-guess rate.</param>
     /// <param name="LastEditedUtc">The item's last UpdatedAt; null when never edited. Statistics start after it.</param>
+    /// <param name="QuestionImage">The curated question picture, or null when the item has none.</param>
     public sealed record QuestionResponse(
         Guid ItemId,
         string Question,
@@ -47,7 +49,8 @@ public static class GetQuestionQualityReport
         double CorrectRatePercent,
         double RandomGuessPercent,
         bool CheckAnswerKey,
-        DateTime? LastEditedUtc);
+        DateTime? LastEditedUtc,
+        ItemImageReference? QuestionImage = null);
 
     public sealed class Endpoint : IEndpoint
     {
@@ -141,7 +144,9 @@ public static class GetQuestionQualityReport
                     item.CorrectAnswer,
                     item.IncorrectAnswers.Count,
                     item.Category == null ? null : item.Category.Name,
-                    item.UpdatedAt))
+                    item.UpdatedAt,
+                    item.QuestionImageKey,
+                    item.QuestionImageAlt))
                 .ToDictionaryAsync(item => item.Id, cancellationToken);
 
         List<QuestionStats> stats = [];
@@ -202,7 +207,8 @@ public static class GetQuestionQualityReport
                     rate,
                     guess,
                     stat.Correct * 100.0 / stat.Answers < 100.0 / (stat.Item.IncorrectCount + 1),
-                    stat.Item.UpdatedAt);
+                    stat.Item.UpdatedAt,
+                    ItemImageReferenceHelper.FromColumns(stat.Item.QuestionImageKey, stat.Item.QuestionImageAlt));
             })
             .ToList();
 
@@ -210,7 +216,7 @@ public static class GetQuestionQualityReport
             windowStartUtc, windowEndUtc, request.MinAnswers, botSessions, !request.IncludeBots, internalSessions, !request.IncludeInternal, responses));
     }
 
-    private sealed record ItemInfo(Guid Id, string Question, string CorrectAnswer, int IncorrectCount, string? Category, DateTime? UpdatedAt);
+    private sealed record ItemInfo(Guid Id, string Question, string CorrectAnswer, int IncorrectCount, string? Category, DateTime? UpdatedAt, string? QuestionImageKey, string? QuestionImageAlt);
 
     private sealed record QuestionStats(ItemInfo Item, int Answers, int Correct);
 }
