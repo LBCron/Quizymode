@@ -68,6 +68,26 @@ public sealed class DeleteCollectionTests : DatabaseTestFixture
     }
 
     [Fact]
+    public async Task HandleAsync_AlsoDeletesEveryUsersStudyPlans_WhenDeleting()
+    {
+        string userId = Guid.NewGuid().ToString();
+        Collection col = await CreateCollectionAsync(userId, isPublic: true);
+        Collection other = await CreateCollectionAsync(userId, isPublic: true);
+        DateOnly testDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(5);
+        DbContext.StudyPlans.AddRange(
+            new StudyPlan { UserId = userId, CollectionId = col.Id, TestDate = testDate, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+            new StudyPlan { UserId = "another-user", CollectionId = col.Id, TestDate = testDate, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+            new StudyPlan { UserId = userId, CollectionId = other.Id, TestDate = testDate, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow });
+        await DbContext.SaveChangesAsync();
+
+        var result = await DeleteCollection.HandleAsync(col.Id.ToString(), DbContext, UserContext(userId).Object, CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+        DbContext.StudyPlans.Should().NotContain(p => p.CollectionId == col.Id);
+        DbContext.StudyPlans.Should().ContainSingle(p => p.CollectionId == other.Id);
+    }
+
+    [Fact]
     public async Task HandleAsync_AlsoDeletesBookmarks_WhenDeleting()
     {
         string userId = Guid.NewGuid().ToString();

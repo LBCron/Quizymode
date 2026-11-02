@@ -88,6 +88,15 @@ public static class DeleteCollection
                 db.CollectionShares.RemoveRange(shares);
             }
 
+            // Test-date plans (#364) have no FK; every user's plan for this collection goes with it.
+            List<StudyPlan> studyPlans = await db.StudyPlans
+                .Where(p => p.CollectionId == collectionId)
+                .ToListAsync(cancellationToken);
+            if (studyPlans.Count > 0)
+            {
+                db.StudyPlans.RemoveRange(studyPlans);
+            }
+
             // Remove related collection items first
             List<CollectionItem> collectionItems = await db.CollectionItems
                 .Where(ci => ci.CollectionId == collectionId)

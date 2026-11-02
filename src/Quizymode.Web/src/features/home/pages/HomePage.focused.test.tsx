@@ -10,6 +10,7 @@ import { featuredApi } from "@/api/featured";
 import { interestsApi } from "@/api/learningLoop";
 import { usersApi } from "@/api/users";
 import { studySessionsApi } from "@/api/studySessions";
+import { studyPlansApi } from "@/api/studyPlans";
 import { installMemoryLocalStorage } from "@/test/memoryStorage";
 import { renderWithProviders } from "@/features/learningLoop/learningLoopTestUtils";
 import { writeLocalInterests } from "@/features/learningLoop/localLearningState";
@@ -23,6 +24,7 @@ vi.mock("@/api/categories", () => ({ categoriesApi: { getAll: vi.fn() } }));
 vi.mock("@/api/collections", () => ({ collectionsApi: { discover: vi.fn(), getById: vi.fn() } }));
 vi.mock("@/api/featured", () => ({ featuredApi: { get: vi.fn() } }));
 vi.mock("@/api/users", () => ({ usersApi: { getSettings: vi.fn(), updateSetting: vi.fn() } }));
+vi.mock("@/api/studyPlans", () => ({ studyPlansApi: { list: vi.fn(), upsert: vi.fn(), remove: vi.fn() } }));
 vi.mock("@/api/studySessions", () => ({ studySessionsApi: { list: vi.fn() } }));
 vi.mock("@/api/learningLoop", () => ({
   interestsApi: { popularCategories: vi.fn(), get: vi.fn(), replace: vi.fn() },
@@ -57,6 +59,7 @@ describe("HomePage personalized layout (#382)", () => {
     vi.mocked(featuredApi.get).mockResolvedValue({ sets: [], collections: [] });
     vi.mocked(interestsApi.popularCategories).mockResolvedValue([]);
     vi.mocked(studySessionsApi.list).mockResolvedValue([]);
+    vi.mocked(studyPlansApi.list).mockResolvedValue([]);
     vi.mocked(usersApi.getSettings).mockResolvedValue({ settings: {} });
     const { dailyQuizApi, reviewQueueApi } = await import("@/api/learningLoop");
     vi.mocked(dailyQuizApi.get).mockResolvedValue({ date: "2026-10-27", items: [], completion: null, streak: 0 });
@@ -203,5 +206,30 @@ describe("HomePage personalized layout (#382)", () => {
 
     await screen.findByRole("heading", { name: "Continue" });
     expect(headingOrder()).toEqual(["Today", "Continue", "For you"]);
+  });
+
+  it("signed in focused Home shows test-date plan cards inside Today, before the daily quiz", async () => {
+    auth.value = { isAuthenticated: true, isLoading: false, userId: "user-1" };
+    vi.mocked(interestsApi.get).mockResolvedValue(["history"]);
+    const testDate = new Date();
+    testDate.setDate(testDate.getDate() + 4);
+    vi.mocked(studyPlansApi.list).mockResolvedValue([
+      {
+        collectionId: "00000000-0000-4000-8000-000000000001",
+        available: true,
+        collectionName: "Spanish basics",
+        itemCount: 10,
+        testDate: `${testDate.getFullYear()}-${String(testDate.getMonth() + 1).padStart(2, "0")}-${String(testDate.getDate()).padStart(2, "0")}`,
+        createdAt: new Date().toISOString(),
+        firstLearnAt: null,
+        lastActivityAt: null,
+      },
+    ]);
+    renderWithProviders(<HomePage />);
+
+    const card = await screen.findByRole("link", { name: /Learn the basics/ });
+    expect(card).toHaveTextContent("Spanish basics · Test in 4 days");
+    expect(card.compareDocumentPosition(screen.getByRole("link", { name: /Daily quiz/ })) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(headingOrder()).toEqual(["Today", "For you"]);
   });
 });

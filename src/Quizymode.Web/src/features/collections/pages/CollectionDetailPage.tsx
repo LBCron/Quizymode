@@ -22,6 +22,7 @@ import { CollectionVisibilityToggles } from "../components/CollectionVisibilityT
 import { ShareCollectionButton } from "../components/ShareCollectionButton";
 import { CollectionExportControls } from "../components/CollectionExportControls";
 import { CollectionPrintView } from "../components/CollectionPrintView";
+import { PlanForTestButton } from "@/features/studyPlans/PlanForTestButton";
 
 const CollectionDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -241,6 +242,9 @@ const CollectionDetailPage = () => {
               title={collectionData.name}
               isPublic={collectionData.isPublic ?? false}
             />
+          )}
+          {collectionData && id && allItems.length > 0 && (
+            <PlanForTestButton collectionId={id} collectionName={collectionData.name} />
           )}
           <button
             type="button"

@@ -5,13 +5,15 @@ import type { ReactElement } from "react";
 import { INTERESTS_QUERY_KEY } from "@/features/interests/useInterests";
 import { GuestProgressClaim } from "./GuestProgressClaim";
 
-const { mockClaim, mockAuth, mockClaimInterests } = vi.hoisted(() => ({
+const { mockClaim, mockAuth, mockClaimInterests, mockClaimPlans } = vi.hoisted(() => ({
   mockClaim: vi.fn(),
+  mockClaimPlans: vi.fn(),
   mockAuth: vi.fn(),
   mockClaimInterests: vi.fn(),
 }));
 vi.mock("./claimGuestProgress", () => ({ claimGuestProgress: mockClaim }));
 vi.mock("@/features/learningLoop/claimLocalInterests", () => ({ claimLocalInterests: mockClaimInterests }));
+vi.mock("@/features/studyPlans/claimLocalStudyPlans", () => ({ claimLocalStudyPlans: mockClaimPlans }));
 
 let queryClient: QueryClient;
 const render = (ui: ReactElement) => rtlRender(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>);
@@ -22,6 +24,7 @@ describe("GuestProgressClaim", () => {
     vi.clearAllMocks();
     queryClient = new QueryClient();
     mockClaimInterests.mockResolvedValue(false);
+    mockClaimPlans.mockResolvedValue(false);
     mockAuth.mockReturnValue({ isAuthenticated: true, isLoading: false, userId: "user-1" });
   });
 
@@ -73,7 +76,37 @@ describe("GuestProgressClaim", () => {
     render(<GuestProgressClaim />);
 
     await waitFor(() => expect(mockClaimInterests).toHaveBeenCalledTimes(1));
-    expect(invalidate).not.toHaveBeenCalled();
+    expect(invalidate).not.toHaveBeenCalledWith({ queryKey: ["interests"] });
     expect(queryClient.getQueryData(INTERESTS_QUERY_KEY("user-1"))).toBeUndefined();
+  });
+
+  it("#364: claims test-date plans in their own chain and refetches plans once both claims settle", async () => {
+    let finishProgress: (value: unknown) => void = () => undefined;
+    mockClaim.mockReturnValue(new Promise((resolve) => (finishProgress = resolve)));
+    mockClaimInterests.mockRejectedValue(new Error("interests down"));
+    const invalidate = vi.spyOn(queryClient, "invalidateQueries");
+    render(<GuestProgressClaim />);
+
+    await waitFor(() => expect(mockClaimPlans).toHaveBeenCalledTimes(1));
+    expect(invalidate).not.toHaveBeenCalledWith({ queryKey: ["study-plans"] });
+    finishProgress({ status: "none" });
+
+    await waitFor(() => expect(invalidate).toHaveBeenCalledWith({ queryKey: ["study-plans"] }));
+  });
+
+  it("#364: a failing plans claim does not block the guest history claim result", async () => {
+    mockClaim.mockResolvedValue({ status: "saved", saved: 1, skipped: 0 });
+    mockClaimPlans.mockRejectedValue(new Error("down"));
+    const invalidate = vi.spyOn(queryClient, "invalidateQueries");
+    render(<GuestProgressClaim />);
+
+    expect(await screen.findByRole("status")).toHaveTextContent("Saved 1 quiz result from");
+    await waitFor(() => expect(invalidate).toHaveBeenCalledWith({ queryKey: ["study-plans"] }));
+  });
+
+  it("#364: anonymous visitors do not claim plans", () => {
+    mockAuth.mockReturnValue({ isAuthenticated: false, isLoading: false });
+    render(<GuestProgressClaim />);
+    expect(mockClaimPlans).not.toHaveBeenCalled();
   });
 });

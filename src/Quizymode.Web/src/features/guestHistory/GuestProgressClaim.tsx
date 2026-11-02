@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { INTERESTS_QUERY_KEY } from "@/features/interests/useInterests";
 import { claimLocalInterests } from "@/features/learningLoop/claimLocalInterests";
+import { claimLocalStudyPlans } from "@/features/studyPlans/claimLocalStudyPlans";
 import { claimGuestProgress, type ClaimGuestProgressResult } from "./claimGuestProgress";
 
 /**
@@ -34,9 +35,15 @@ export function GuestProgressClaim() {
       .then(() => claimLocalInterests((merged) => queryClient.setQueryData(INTERESTS_QUERY_KEY(userId), merged)))
       .then((claimed) => {
         if (claimed) void queryClient.invalidateQueries({ queryKey: ["interests"] });
-      });
+      })
+      // A failed topic claim keeps the local copy for the next page session; it must not surface as an unhandled rejection.
+      .catch(() => undefined);
+    // Test-date plans made while anonymous (#364) are claimed in their own chain; plans refetch once both claims settle
+    // (guest runs imported by run() count towards a plan's activity).
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    void run();
+    void Promise.allSettled([run(), claimLocalStudyPlans()]).then(() =>
+      queryClient.invalidateQueries({ queryKey: ["study-plans"] }),
+    );
   }, [isAuthenticated, isLoading, run, queryClient, userId]);
 
   if (!isAuthenticated || result.status === "none") return null;

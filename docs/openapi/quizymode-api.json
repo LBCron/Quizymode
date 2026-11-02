@@ -5514,6 +5514,105 @@
         }
       }
     },
+    "/study-plans": {
+      "get": {
+        "tags": [
+          "StudyPlans"
+        ],
+        "summary": "List the current user's test-date plans",
+        "description": "Ordered by test date. Plans whose test date passed more than 2 days ago are removed. Each plan reports the user's first Learn and latest Learn/Quiz activity on the collection (within 14 days before the plan was created, or later); a collection that is no longer visible to the user is reported unavailable without its name. Requires authentication.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Quizymode.Api.Features.StudyPlans.StudyPlans.ListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/study-plans/{collectionId}": {
+      "put": {
+        "tags": [
+          "StudyPlans"
+        ],
+        "summary": "Create or change the test date for a collection",
+        "description": "testDate is yyyy-MM-dd, from yesterday (UTC) to 31 days ahead. At most 5 upcoming plans per user (StudyPlans.LimitReached); changing an existing plan is always allowed. 404 with an empty body when the collection does not exist or is not visible to the user. Requires authentication.",
+        "parameters": [
+          {
+            "name": "collectionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/System.Guid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Quizymode.Api.Features.StudyPlans.StudyPlans.UpsertRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Quizymode.Api.Features.StudyPlans.StudyPlans.StudyPlanDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "StudyPlans"
+        ],
+        "summary": "Remove the current user's test-date plan for a collection",
+        "description": "Idempotent: 204 whether or not a plan existed. Only the caller's own plan can be removed. Requires authentication.",
+        "parameters": [
+          {
+            "name": "collectionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/System.Guid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
     "/study-sessions/activity": {
       "get": {
         "tags": [
@@ -15705,6 +15804,103 @@
         },
         "description": "Status: New | Queued | Processing | Generated | Failed. Candidates are listed only when Generated.\nAutoSave is null for manual review, otherwise Pending | Saved | Failed (the \"Make a quiz\" quick path saves for you)."
       },
+      "Quizymode.Api.Features.StudyPlans.StudyPlans.ListResponse": {
+        "required": [
+          "plans"
+        ],
+        "type": "object",
+        "properties": {
+          "plans": {
+            "$ref": "#/components/schemas/System.Collections.Generic.ListOfQuizymode.Api.Features.StudyPlans.StudyPlans.StudyPlanDto"
+          }
+        }
+      },
+      "Quizymode.Api.Features.StudyPlans.StudyPlans.StudyPlanDto": {
+        "required": [
+          "collectionId",
+          "available",
+          "collectionName",
+          "itemCount",
+          "testDate",
+          "createdAt",
+          "firstLearnAt",
+          "lastActivityAt"
+        ],
+        "type": "object",
+        "properties": {
+          "collectionId": {
+            "description": "The planned collection.",
+            "$ref": "#/components/schemas/System.Guid"
+          },
+          "available": {
+            "description": "False when the collection is gone or no longer visible to the user.",
+            "$ref": "#/components/schemas/System.Boolean"
+          },
+          "collectionName": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "description": "Null when unavailable (no name leak).",
+                "$ref": "#/components/schemas/System.String"
+              }
+            ]
+          },
+          "itemCount": {
+            "description": "Items in the collection; 0 when unavailable.",
+            "$ref": "#/components/schemas/System.Int32"
+          },
+          "testDate": {
+            "description": "yyyy-MM-dd, a calendar day without a time zone.",
+            "$ref": "#/components/schemas/System.String"
+          },
+          "createdAt": {
+            "description": "When the plan was first created, UTC.",
+            "$ref": "#/components/schemas/System.DateTime"
+          },
+          "firstLearnAt": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "description": "Earliest Learn run of this collection on or after (plan created minus 14 days), UTC.",
+                "$ref": "#/components/schemas/System.NullableOfSystem.DateTime"
+              }
+            ]
+          },
+          "lastActivityAt": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "description": "Latest Learn or Quiz run of this collection in the same window, UTC.",
+                "$ref": "#/components/schemas/System.NullableOfSystem.DateTime"
+              }
+            ]
+          }
+        }
+      },
+      "Quizymode.Api.Features.StudyPlans.StudyPlans.UpsertRequest": {
+        "required": [
+          "testDate"
+        ],
+        "type": "object",
+        "properties": {
+          "testDate": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.String"
+              }
+            ]
+          }
+        }
+      },
       "Quizymode.Api.Features.StudySessions.GetStudyActivity.DayDto": {
         "required": [
           "date",
@@ -17297,6 +17493,12 @@
           "$ref": "#/components/schemas/Quizymode.Api.Features.StudyGuideDocuments.StudyGuideDocumentContracts.Section"
         }
       },
+      "System.Collections.Generic.ListOfQuizymode.Api.Features.StudyPlans.StudyPlans.StudyPlanDto": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Quizymode.Api.Features.StudyPlans.StudyPlans.StudyPlanDto"
+        }
+      },
       "System.Collections.Generic.ListOfQuizymode.Api.Features.StudySessions.GetStudyActivity.DayDto": {
         "type": "array",
         "items": {
@@ -17489,6 +17691,9 @@
     },
     {
       "name": "StudyGuideDocuments"
+    },
+    {
+      "name": "StudyPlans"
     },
     {
       "name": "StudySessions"
