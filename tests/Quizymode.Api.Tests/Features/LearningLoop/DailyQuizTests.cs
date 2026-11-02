@@ -188,6 +188,34 @@ public sealed class DailyQuizTests : DatabaseTestFixture
     }
 
     [Fact]
+    public async Task AdminGetAndExclude_ReturnQuestionImage_AndNullForPlainOrDeletedItems()
+    {
+        await SeedPublicItemsAsync(10);
+        Daily.DailyQuizResponse set = await GetAsync();
+        Guid withPicture = Guid.Parse(set.Items[0].Id);
+        Guid deleted = Guid.Parse(set.Items[1].Id);
+        Guid removed = Guid.Parse(set.Items[2].Id);
+        Item pictureItem = await DbContext.Items.SingleAsync(i => i.Id == withPicture);
+        pictureItem.QuestionImageKey = "curated:flags/fr";
+        pictureItem.QuestionImageAlt = "Three vertical bands";
+        DbContext.Items.Remove(await DbContext.Items.SingleAsync(i => i.Id == deleted));
+        await DbContext.SaveChangesAsync();
+
+        Daily.AdminDayResponse got = (await Daily.AdminGetAsync("2026-10-18", DbContext, Now, CancellationToken.None)).Value;
+        Daily.AdminDayResponse excluded = (await Daily.ExcludeAsync("2026-10-18", removed, DbContext, "admin-1", Now, CancellationToken.None)).Value;
+
+        foreach (Daily.AdminDayResponse day in new[] { got, excluded })
+        {
+            day.Items.Single(i => i.ItemId == withPicture).QuestionImage
+                .Should().Be(new ItemImageReference("curated:flags/fr", "Three vertical bands"));
+            Daily.AdminItemDto placeholder = day.Items.Single(i => i.ItemId == deleted);
+            placeholder.Question.Should().Be("(item no longer exists)");
+            placeholder.QuestionImage.Should().BeNull();
+            day.Items.Where(i => i.ItemId != withPicture && i.ItemId != deleted).Should().OnlyContain(i => i.QuestionImage == null);
+        }
+    }
+
+    [Fact]
     public async Task AdminGet_AllowsTodayThroughSevenDaysAhead_Only()
     {
         await SeedPublicItemsAsync(40);

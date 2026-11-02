@@ -6,6 +6,9 @@ import QuestionQualityTab from "./QuestionQualityTab";
 
 const { mockGetQuestionQualityReport } = vi.hoisted(() => ({ mockGetQuestionQualityReport: vi.fn() }));
 
+vi.mock("@/media/curatedImages", () => ({
+  resolveCuratedImage: (key: string) => (key === "curated:flags/fr" ? "/assets/m/fr.webp" : null),
+}));
 vi.mock("@/api/admin", () => ({
   adminApi: { getQuestionQualityReport: mockGetQuestionQualityReport },
 }));
@@ -61,6 +64,32 @@ describe("QuestionQualityTab", () => {
     expect(screen.getByText("Check answer key")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Edit" })).toHaveAttribute("href", "/items/item-1/edit");
     expect(screen.getByText(/since last edit/i, { selector: "th" })).toBeInTheDocument();
+  });
+
+  it("shows a question thumbnail only for questions with a picture", async () => {
+    const row = {
+      correctAnswer: "France",
+      category: "geography",
+      collections: [],
+      answers: 12,
+      correctRatePercent: 50,
+      randomGuessPercent: 25,
+      checkAnswerKey: false,
+      lastEditedUtc: null,
+    };
+    mockGetQuestionQualityReport.mockResolvedValue({
+      ...base,
+      items: [
+        { ...row, itemId: "a", question: "Which flag?", questionImage: { key: "curated:flags/fr", altText: "Blue, white, red bands" } },
+        { ...row, itemId: "b", question: "Plain question?", questionImage: null },
+      ],
+    });
+
+    renderTab();
+
+    expect(await screen.findByText("Which flag?")).toBeInTheDocument();
+    expect(screen.getAllByRole("img")).toHaveLength(1);
+    expect(screen.getByAltText("Blue, white, red bands")).toBeInTheDocument();
   });
 
   it("shows an empty state", async () => {

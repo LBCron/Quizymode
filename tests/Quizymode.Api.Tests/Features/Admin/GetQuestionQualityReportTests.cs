@@ -52,6 +52,25 @@ public sealed class GetQuestionQualityReportTests : DatabaseTestFixture
         GetQuestionQualityReport.HandleAsync(new GetQuestionQualityReport.QueryRequest(days, minAnswers), DbContext, CancellationToken.None);
 
     [Fact]
+    public async Task HandleAsync_ReturnsQuestionImage_OrNullWhenItemHasNone()
+    {
+        Item withPicture = NewItem();
+        withPicture.QuestionImageKey = "curated:flags/fr";
+        withPicture.QuestionImageAlt = "Three vertical bands";
+        Item plain = NewItem();
+        await DbContext.Items.AddRangeAsync(withPicture, plain);
+        await AddAnswers(withPicture.Id, correct: 4, wrong: 6);
+        await AddAnswers(plain.Id, correct: 5, wrong: 5);
+        await DbContext.SaveChangesAsync();
+
+        GetQuestionQualityReport.Response report = (await Run()).Value!;
+
+        report.Items.Single(i => i.ItemId == withPicture.Id).QuestionImage
+            .Should().Be(new ItemImageReference("curated:flags/fr", "Three vertical bands"));
+        report.Items.Single(i => i.ItemId == plain.Id).QuestionImage.Should().BeNull();
+    }
+
+    [Fact]
     public async Task HandleAsync_ListsOnlyItemsAtOrAboveMinimumSortedByCorrectRate()
     {
         Item hard = NewItem();

@@ -591,6 +591,7 @@ export interface QuestionQualityItemResponse {
   randomGuessPercent: number;
   checkAnswerKey: boolean;
   lastEditedUtc: string | null;
+  questionImage?: ItemImageReference | null;
 }
 
 export interface QuestionQualityReportResponse {

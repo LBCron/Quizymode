@@ -9808,6 +9808,17 @@
                 "$ref": "#/components/schemas/System.NullableOfSystem.DateTime"
               }
             ]
+          },
+          "questionImage": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "description": "The curated question picture, or null when the item has none.",
+                "$ref": "#/components/schemas/Quizymode.Api.Shared.Models.ItemImageReference"
+              }
+            ]
           }
         }
       },
@@ -12052,6 +12063,16 @@
               },
               {
                 "$ref": "#/components/schemas/System.NullableOfSystem.DateTime"
+              }
+            ]
+          },
+          "questionImage": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Quizymode.Api.Shared.Models.ItemImageReference"
               }
             ]
           }
