@@ -48,10 +48,10 @@ internal sealed class StudyGuideGenerationWorker(
         }
     }
 
-    /// <summary>Claims and processes one batch of due jobs; returns how many were claimed.</summary>
+    /// <summary>Claims and processes one batch of due jobs, then saves finished "Make a quiz" sections; returns how many jobs were claimed.</summary>
     internal async Task<int> RunOnceAsync(CancellationToken cancellationToken)
     {
-        List<Guid> claimed;
+        List<Guid> claimed = [];
         try
         {
             await using AsyncServiceScope scope = _scopeFactory.CreateAsyncScope();
@@ -61,11 +61,25 @@ internal sealed class StudyGuideGenerationWorker(
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             _logger.LogError(ex, "StudyGuideGeneration: failed to claim due jobs.");
-            return 0;
         }
 
         await Task.WhenAll(claimed.Select(id => ProcessOneAsync(id, cancellationToken)));
+        await AutoSaveAsync(cancellationToken);
         return claimed.Count;
+    }
+
+    /// <summary>The safety net that also catches work finished by another instance or before a crash; never throws.</summary>
+    private async Task AutoSaveAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await using AsyncServiceScope scope = _scopeFactory.CreateAsyncScope();
+            await scope.ServiceProvider.GetRequiredService<StudyGuideAutoSaver>().SweepAsync(cancellationToken);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.LogError(ex, "StudyGuideAutoSave: sweep failed.");
+        }
     }
 
     private async Task ProcessOneAsync(Guid generationId, CancellationToken cancellationToken)

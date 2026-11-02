@@ -1,6 +1,7 @@
 using Quizymode.Api.Shared.Http;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Quizymode.Api.Data;
@@ -150,6 +151,13 @@ public static class AcceptStudyGuideCandidates
         }
     }
 
+    /// <summary>
+    /// Runs the accept as one transaction (items, accepted rows, collection links and <c>document.CollectionId</c> commit together),
+    /// serialised per document by a Postgres advisory lock so a manual accept and the auto-save sweep cannot race. The manual
+    /// call waits for the lock. The auto-save call (<paramref name="autoSaveSectionIds"/> not null) skips the document with
+    /// <see cref="StudyGuideDocumentErrors.Conflict"/> when the lock is busy, skips blocked or invalid candidates instead of
+    /// failing the batch, and marks those sections' auto-save as Saved in the same commit.
+    /// </summary>
     internal static async Task<Result<Response?>> HandleAsync(
         Guid id,
         Request request,
@@ -163,8 +171,90 @@ public static class AcceptStudyGuideCandidates
         int retentionDays,
         DateTime nowUtc,
         CancellationToken cancellationToken,
-        ILogger? logger = null)
+        ILogger? logger = null,
+        IReadOnlyCollection<Guid>? autoSaveSectionIds = null)
     {
+        IDbContextTransaction? ownTransaction = null;
+        if (db.Database.IsRelational() && db.Database.CurrentTransaction is null)
+        {
+            try
+            {
+                ownTransaction = await db.Database.BeginTransactionAsync(cancellationToken);
+            }
+            catch (NotSupportedException)
+            {
+            }
+        }
+
+        await using IDbContextTransaction? transaction = ownTransaction;
+        if (db.Database.IsNpgsql() && db.Database.CurrentTransaction is not null)
+        {
+            string lockKey = "study-guide-accept:" + id;
+            if (autoSaveSectionIds is null)
+            {
+                await db.Database.ExecuteSqlInterpolatedAsync(
+                    $"SELECT pg_advisory_xact_lock(hashtext({lockKey}))",
+                    cancellationToken);
+            }
+            else
+            {
+                bool acquired = await db.Database
+                    .SqlQuery<bool>($"SELECT pg_try_advisory_xact_lock(hashtext({lockKey})) AS \"Value\"")
+                    .SingleAsync(cancellationToken);
+                if (!acquired)
+                {
+                    return Result.Failure<Response?>(StudyGuideDocumentErrors.Conflict);
+                }
+            }
+        }
+
+        Result<Response?> result = await AcceptAsync(
+            id,
+            request,
+            db,
+            userContext,
+            simHashService,
+            itemCategoryResolver,
+            taxonomyRegistry,
+            auditService,
+            moderation,
+            retentionDays,
+            nowUtc,
+            cancellationToken,
+            logger,
+            autoSaveSectionIds);
+        if (transaction is null)
+        {
+            return result;
+        }
+
+        if (result.IsFailure)
+        {
+            db.ChangeTracker.Clear();
+            return result;
+        }
+
+        await transaction.CommitAsync(cancellationToken);
+        return result;
+    }
+
+    private static async Task<Result<Response?>> AcceptAsync(
+        Guid id,
+        Request request,
+        ApplicationDbContext db,
+        IUserContext userContext,
+        ISimHashService simHashService,
+        ITaxonomyItemCategoryResolver itemCategoryResolver,
+        ITaxonomyRegistry taxonomyRegistry,
+        IAuditService auditService,
+        ITextModerationService moderation,
+        int retentionDays,
+        DateTime nowUtc,
+        CancellationToken cancellationToken,
+        ILogger? logger,
+        IReadOnlyCollection<Guid>? autoSaveSectionIds)
+    {
+        bool lenient = autoSaveSectionIds is not null;
         string userId = userContext.UserId!;
         bool publish = request.Publish && userContext.IsAdmin;
         StudyGuideDocument? document = await db.StudyGuideDocuments
@@ -243,6 +333,11 @@ public static class AcceptStudyGuideCandidates
             moderated.AddRange(incorrectAnswers);
             if (moderation.Evaluate(moderated.ToArray()).Outcome == TextModerationOutcome.Blocked)
             {
+                if (lenient)
+                {
+                    continue;
+                }
+
                 return Result.Failure<Response?>(Error.Validation(
                     StudyGuideDocumentErrors.ProfanityBlocked.Code,
                     "One or more questions contain blocked language. Edit them and try again."));
@@ -256,6 +351,11 @@ public static class AcceptStudyGuideCandidates
             FluentValidation.Results.ValidationResult itemValidation = itemValidator.Validate(item);
             if (!itemValidation.IsValid)
             {
+                if (lenient)
+                {
+                    continue;
+                }
+
                 invalid.Add($"\"{Truncate(question, 60)}\": {itemValidation.Errors[0].ErrorMessage}");
                 continue;
             }
@@ -336,6 +436,24 @@ public static class AcceptStudyGuideCandidates
                     ItemId = itemId,
                     AcceptedUtc = nowUtc
                 });
+            }
+        }
+
+        if (lenient)
+        {
+            List<StudyGuideSection> toMark = await db.StudyGuideSections
+                .Where(section => section.DocumentId == document.Id && autoSaveSectionIds!.Contains(section.Id))
+                .ToListAsync(cancellationToken);
+            foreach (StudyGuideSection section in toMark.Where(section => section.AutoSave == StudyGuideAutoSave.Pending))
+            {
+                section.AutoSave = StudyGuideAutoSave.Saved;
+            }
+
+            // Nothing was saved and there is no collection yet: do not create an empty one.
+            if (createdIds.Count == 0 && document.CollectionId is null)
+            {
+                await db.SaveChangesAsync(cancellationToken);
+                return Result.Success<Response?>(new Response(string.Empty, 0, duplicateCount, failedCount, []));
             }
         }
 

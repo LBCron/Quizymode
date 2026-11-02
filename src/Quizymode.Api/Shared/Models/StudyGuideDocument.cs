@@ -72,6 +72,20 @@ public sealed class StudyGuideSection
     public Guid? GenerationId { get; set; }
 
     public DateTime? RequestedUtc { get; set; }
+
+    /// <summary>Set only by the "Make a quiz" quick path (#363): null = manual review, otherwise the server saves the generated questions.</summary>
+    public StudyGuideAutoSave? AutoSave { get; set; }
+
+    /// <summary>Failed auto-save attempts; the section becomes <see cref="StudyGuideAutoSave.Failed"/> after the cap.</summary>
+    public int AutoSaveAttempts { get; set; }
+}
+
+/// <summary>Auto-save state of a quick-path section. Stored as a small integer.</summary>
+public enum StudyGuideAutoSave
+{
+    Pending = 1,
+    Saved = 2,
+    Failed = 3
 }
 
 /// <summary>One section charged against a user's study guide quota. Deleted (refunded) when the generation fails.</summary>

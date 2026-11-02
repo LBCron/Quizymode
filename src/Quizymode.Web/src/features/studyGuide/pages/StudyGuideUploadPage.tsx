@@ -1,8 +1,13 @@
 import * as React from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { studyGuideDocumentsApi, type CreateStudyGuideDocumentRequest } from "@/api/studyGuideDocuments";
+import {
+  studyGuideDocumentsApi,
+  type CreateStudyGuideDocumentRequest,
+  type StudyGuideDocumentsConfig,
+  type StudyGuideQuickResponse,
+} from "@/api/studyGuideDocuments";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import ErrorMessage from "@/components/ErrorMessage";
 import { ItemTopicScopeFields, type TopicScopeFieldsHandle } from "@/components/items/ItemTopicScopeFields";
@@ -16,6 +21,7 @@ import {
 } from "@/features/topics/suggestionText";
 import { useTopicSuggestionAnalytics } from "@/features/topics/topicSuggestionAnalytics";
 import ContentComplianceNotice from "@/features/legal/components/ContentComplianceNotice";
+import { buildCollectionStudyPath } from "@/utils/collectionPath";
 import { parseKeywordsInput, utf8ByteLength } from "../studyGuideUploadSchema";
 import {
   DEFAULT_DOCUMENT_LIMITS,
@@ -39,6 +45,38 @@ function getCreateErrorMessage(error: unknown, limits: StudyGuideDocumentLimits)
   return info.message;
 }
 
+/** One line above the buttons: how big a quick quiz can be and what is left today. */
+function getAllowanceLine(config: StudyGuideDocumentsConfig | undefined): string | null {
+  const parts: string[] = [];
+  if (config?.quickPathMaxSections) {
+    parts.push(`A quick quiz covers up to ${config.quickPathMaxSections} sections.`);
+  }
+  if (config?.quota) {
+    parts.push(
+      config.quota.remainingToday > 0
+        ? `You have ${config.quota.remainingToday} sections left today.`
+        : "You've used all your sections for today. Try again tomorrow."
+    );
+  }
+  return parts.length > 0 ? parts.join(" ") : null;
+}
+
+/** Where "Make a quiz" sends the user for each outcome (D5/D7, AC 6.6.29). */
+function openQuickResult(navigate: ReturnType<typeof useNavigate>, response: StudyGuideQuickResponse) {
+  const documentPath = `/study-guides/documents/${encodeURIComponent(response.document.id)}`;
+  const isDuplicate = response.document.isDuplicate;
+  const collectionId = response.document.collectionId;
+  if (response.outcome === "Ready" && collectionId) {
+    navigate(buildCollectionStudyPath("learn", collectionId, response.collectionName ?? response.document.title), {
+      replace: true,
+    });
+  } else if (response.outcome === "Generating" || response.outcome === "Ready") {
+    navigate(documentPath, { state: { quick: true, isDuplicate } });
+  } else {
+    navigate(documentPath, { state: { quickMessage: response.message, isDuplicate } });
+  }
+}
+
 const TABS: Array<{ id: StudyGuideInputMode; label: string }> = [
   { id: "file", label: "Upload file" },
   { id: "text", label: "Paste text" },
@@ -47,6 +85,7 @@ const TABS: Array<{ id: StudyGuideInputMode; label: string }> = [
 const StudyGuideUploadPage = () => {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
   // #240: the one-shot upload flow is gone; old ?id= links only get a notice above the normal form.
   const hasRetiredUploadLink = (searchParams.get("id")?.trim() ?? "") !== "";
@@ -60,11 +99,15 @@ const StudyGuideUploadPage = () => {
   const [rank1Name, setRank1Name] = React.useState("");
   const [rank2Name, setRank2Name] = React.useState("");
   const [keywordsText, setKeywordsText] = React.useState("");
+  const [moreOptionsOpen, setMoreOptionsOpen] = React.useState(false);
+  const [slowSubmit, setSlowSubmit] = React.useState(false);
   const [formError, setFormError] = React.useState<string | null>(null);
   const [forcedUnavailable, setForcedUnavailable] = React.useState(false);
   const [topicBlocked, setTopicBlocked] = React.useState(false);
   const [fileSample, setFileSample] = React.useState<{ file: File; text: string } | null>(null);
   const topicScopeRef = React.useRef<TopicScopeFieldsHandle>(null);
+  const errorRef = React.useRef<HTMLDivElement>(null);
+  const inFlightRef = React.useRef(false);
   const topicAnalytics = useTopicSuggestionAnalytics();
   const tabRefs = React.useRef<Record<StudyGuideInputMode, HTMLButtonElement | null>>({ file: null, text: null });
 
@@ -83,27 +126,64 @@ const StudyGuideUploadPage = () => {
   };
   const isEnabled = !!config?.enabled && !forcedUnavailable;
 
+  const reportSaved = (request: CreateStudyGuideDocumentRequest) => {
+    // The document and its collection are the owner's own, so the path is not reported (AC 5.4.12).
+    topicAnalytics.onSaved({
+      category: request.category,
+      rank1: request.navigationKeyword1,
+      rank2: request.navigationKeyword2,
+      isPrivate: true,
+    });
+  };
+  const handleSubmitError = (error: unknown) => {
+    if (readApiError(error).status === 503) {
+      setForcedUnavailable(true);
+    }
+    setFormError(getCreateErrorMessage(error, limits));
+  };
+
   const createMutation = useMutation({
     mutationFn: (request: CreateStudyGuideDocumentRequest) => studyGuideDocumentsApi.create(request),
     onSuccess: (document, request) => {
-      // The document and its collection are the owner's own, so the path is not reported (AC 5.4.12).
-      topicAnalytics.onSaved({
-        category: request.category,
-        rank1: request.navigationKeyword1,
-        rank2: request.navigationKeyword2,
-        isPrivate: true,
-      });
+      reportSaved(request);
       navigate(`/study-guides/documents/${encodeURIComponent(document.id)}`, {
         state: { isDuplicate: document.isDuplicate },
       });
     },
-    onError: (error) => {
-      if (readApiError(error).status === 503) {
-        setForcedUnavailable(true);
-      }
-      setFormError(getCreateErrorMessage(error, limits));
+    onError: handleSubmitError,
+    onSettled: () => {
+      inFlightRef.current = false;
     },
   });
+
+  // "Make a quiz": the server creates the document, queues generation and saves the questions privately.
+  const quickMutation = useMutation({
+    mutationFn: (request: CreateStudyGuideDocumentRequest) => studyGuideDocumentsApi.quick(request),
+    onSuccess: (response, request) => {
+      reportSaved(request);
+      // Seed the document page's query so it never decides completion from older cached data.
+      queryClient.setQueryData(["studyGuideDocuments", response.document.id], response.document);
+      openQuickResult(navigate, response);
+    },
+    onError: handleSubmitError,
+    onSettled: () => {
+      inFlightRef.current = false;
+    },
+  });
+  const isSubmitting = createMutation.isPending || quickMutation.isPending;
+
+  React.useEffect(() => {
+    if (!isSubmitting) {
+      setSlowSubmit(false);
+      return undefined;
+    }
+    const timer = window.setTimeout(() => setSlowSubmit(true), 3000);
+    return () => window.clearTimeout(timer);
+  }, [isSubmitting]);
+
+  React.useEffect(() => {
+    if (formError) errorRef.current?.focus();
+  }, [formError]);
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
@@ -130,10 +210,12 @@ const StudyGuideUploadPage = () => {
     fileName: file?.name ?? null,
     fileSample: fileSample && fileSample.file === file ? fileSample.text : "",
   });
+  const allowanceLine = getAllowanceLine(config);
   const binaryFileSelected = mode === "file" && !!file && !isReadableTextFile(file.name);
 
-  const handleSubmit = (event: React.FormEvent) => {
-    event.preventDefault();
+  const submit = (quick: boolean) => {
+    // Both buttons stay focusable while a request runs, so a second click is ignored here rather than disabled.
+    if (inFlightRef.current || isSubmitting) return;
     setFormError(null);
     setTopicBlocked(false);
     if (!isTopicComplete({ category: categoryName, rank1: rank1Name, rank2: rank2Name })) {
@@ -156,7 +238,8 @@ const StudyGuideUploadPage = () => {
       setFormError(validationError);
       return;
     }
-    createMutation.mutate({
+    inFlightRef.current = true;
+    (quick ? quickMutation : createMutation).mutate({
       file: form.file,
       text: form.mode === "text" ? form.text : null,
       title: title.trim() || null,
@@ -165,6 +248,11 @@ const StudyGuideUploadPage = () => {
       navigationKeyword2: form.navigationKeyword2,
       keywords: form.keywords,
     });
+  };
+
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    submit(true);
   };
 
   const handleTabKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
@@ -185,14 +273,15 @@ const StudyGuideUploadPage = () => {
         </Link>
       </div>
       <p className="text-gray-600 text-sm mb-4">
-        Upload a PDF, Word, PowerPoint, or text file (or paste notes). You pick which pages to turn into
-        multiple-choice questions, and you review every question before anything is saved.
+        Upload a PDF, Word, PowerPoint or text file, or paste your notes. Make a quiz turns short notes into
+        multiple-choice questions and saves them privately, ready to learn. Want to check each question first? Use
+        Choose sections and review first.
       </p>
 
       <ContentComplianceNotice />
 
       {formError && (
-        <div className="mb-4">
+        <div className="mb-4 focus:outline-none" role="alert" tabIndex={-1} ref={errorRef}>
           <ErrorMessage message={formError} onRetry={() => setFormError(null)} />
         </div>
       )}
@@ -251,6 +340,7 @@ const StudyGuideUploadPage = () => {
                     setFormError(null);
                   }}
                   onKeyDown={handleTabKeyDown}
+                  disabled={isSubmitting}
                   className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium ${
                     mode === tab.id
                       ? "border-indigo-600 text-indigo-700"
@@ -292,6 +382,7 @@ const StudyGuideUploadPage = () => {
                       accept={limits.acceptedExtensions.join(",")}
                       className="sr-only"
                       aria-describedby="study-guide-file-hint"
+                      disabled={isSubmitting}
                       onChange={(event) => chooseFile(event.target.files?.[0] ?? null)}
                     />
                   </label>
@@ -323,6 +414,7 @@ const StudyGuideUploadPage = () => {
                   className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900"
                   placeholder="Paste your notes, a chapter summary, or a study guide…"
                   aria-describedby="study-guide-upload-counter"
+                  disabled={isSubmitting}
                 />
                 <p
                   id="study-guide-upload-counter"
@@ -333,21 +425,6 @@ const StudyGuideUploadPage = () => {
                 </p>
               </div>
             )}
-          </div>
-
-          <div>
-            <label htmlFor="study-guide-upload-title" className="block text-sm font-medium text-gray-700 mb-1">
-              Title (optional)
-            </label>
-            <input
-              id="study-guide-upload-title"
-              type="text"
-              value={title}
-              maxLength={STUDY_GUIDE_TITLE_MAX_LENGTH}
-              onChange={(event) => setTitle(event.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900"
-              placeholder="Defaults to the file name or the first line"
-            />
           </div>
 
           <ItemTopicScopeFields
@@ -365,7 +442,7 @@ const StudyGuideUploadPage = () => {
               setRank1Name(next.rank1);
               setRank2Name(next.rank2);
             }}
-            disabled={createMutation.isPending}
+            disabled={isSubmitting}
             suggestionText={suggestionText}
             suggestionHelperText={binaryFileSelected ? BINARY_FILE_HELPER : undefined}
             onSuggestionsShown={topicAnalytics.onSuggestionsShown}
@@ -377,26 +454,100 @@ const StudyGuideUploadPage = () => {
           />
 
           <div>
-            <label htmlFor="study-guide-upload-keywords" className="block text-sm font-medium text-gray-700 mb-1">
-              Keywords (comma-separated, optional)
-            </label>
-            <input
-              id="study-guide-upload-keywords"
-              type="text"
-              value={keywordsText}
-              onChange={(event) => setKeywordsText(event.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900"
-              placeholder="e.g. chapter-3, midterm"
-            />
+            <button
+              type="button"
+              aria-expanded={moreOptionsOpen}
+              aria-controls="study-guide-more-options"
+              onClick={() => setMoreOptionsOpen((open) => !open)}
+              className="inline-flex min-h-11 items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-800 focus-visible:ring-2 focus-visible:ring-indigo-500"
+            >
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                className={`h-4 w-4 transition-transform motion-reduce:transition-none ${moreOptionsOpen ? "rotate-90" : ""}`}
+              >
+                <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
+              </svg>
+              More options
+            </button>
+            {/* Stays mounted (hidden) so typed values survive collapsing. */}
+            <div id="study-guide-more-options" hidden={!moreOptionsOpen} className="mt-2 space-y-5">
+              <div>
+                <label htmlFor="study-guide-upload-title" className="block text-sm font-medium text-gray-700 mb-1">
+                  Title (optional)
+                </label>
+                <input
+                  id="study-guide-upload-title"
+                  type="text"
+                  value={title}
+                  maxLength={STUDY_GUIDE_TITLE_MAX_LENGTH}
+                  disabled={isSubmitting}
+                  onChange={(event) => setTitle(event.target.value)}
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900"
+                  placeholder="Defaults to the file name or the first line"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="study-guide-upload-keywords" className="block text-sm font-medium text-gray-700 mb-1">
+                  Keywords (comma-separated, optional)
+                </label>
+                <input
+                  id="study-guide-upload-keywords"
+                  type="text"
+                  value={keywordsText}
+                  disabled={isSubmitting}
+                  onChange={(event) => setKeywordsText(event.target.value)}
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900"
+                  placeholder="e.g. chapter-3, midterm"
+                />
+              </div>
+            </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={createMutation.isPending || submitBlocked}
-            className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
-          >
-            {createMutation.isPending ? "Uploading…" : "Upload study guide"}
-          </button>
+          {allowanceLine && (
+            <p id="quick-allowance" className="text-xs text-gray-600">
+              {allowanceLine}
+            </p>
+          )}
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <button
+              type="submit"
+              disabled={submitBlocked}
+              aria-disabled={isSubmitting || undefined}
+              aria-describedby={allowanceLine ? "quick-allowance" : undefined}
+              className={`inline-flex min-h-11 w-full items-center justify-center rounded-md bg-indigo-600 px-5 text-sm font-medium text-white hover:bg-indigo-700 focus-visible:ring-2 focus-visible:ring-indigo-500 sm:w-auto disabled:opacity-50 ${
+                isSubmitting ? "cursor-not-allowed opacity-50" : ""
+              }`}
+            >
+              {quickMutation.isPending ? "Making your quiz…" : "Make a quiz"}
+            </button>
+            <button
+              type="button"
+              disabled={submitBlocked}
+              aria-disabled={isSubmitting || undefined}
+              aria-describedby={allowanceLine ? "quick-allowance" : undefined}
+              onClick={() => submit(false)}
+              className={`inline-flex min-h-11 w-full items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-center text-sm font-medium text-gray-700 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-indigo-500 sm:w-auto disabled:opacity-50 ${
+                isSubmitting ? "cursor-not-allowed opacity-50" : ""
+              }`}
+            >
+              {createMutation.isPending ? "Uploading…" : "Choose sections and review first"}
+            </button>
+          </div>
+          <p className="text-xs text-gray-500">
+            Review first: you pick the sections and check every question before anything is saved.
+          </p>
+          <p role="status" className="sr-only">
+            {quickMutation.isPending
+              ? "Making your quiz. Reading your notes."
+              : createMutation.isPending
+                ? "Uploading your study guide."
+                : ""}
+          </p>
+          {slowSubmit && <p className="text-sm text-gray-600">Reading your notes. This can take a few seconds.</p>}
         </form>
       )}
     </div>

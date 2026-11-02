@@ -65,6 +65,15 @@ public abstract class DatabaseTestFixture : IDisposable
     /// </summary>
     protected ApplicationDbContext CreateDbContext() => new(_options);
 
+    /// <summary>A separate context on the same database with extra interceptors (for example one that fails a save).</summary>
+    protected ApplicationDbContext CreateDbContext(params IInterceptor[] interceptors) =>
+        new(new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseSqlite(_connection)
+            .ReplaceService<IModelCustomizer, TestModelCustomizer>()
+            .EnableSensitiveDataLogging()
+            .AddInterceptors(interceptors)
+            .Options);
+
     public void Dispose()
     {
         DbContext.Dispose();

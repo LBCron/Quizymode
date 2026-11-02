@@ -107,8 +107,9 @@ internal static class AddItemsBulkHandler
                 bulkDefaultExtraNames.Add(normalized);
             }
 
+            // Callers that already hold a transaction (study-guide accept/auto-save) own commit and rollback.
             IDbContextTransaction? transaction = null;
-            if (db.Database.IsRelational())
+            if (db.Database.IsRelational() && db.Database.CurrentTransaction is null)
             {
                 try
                 {

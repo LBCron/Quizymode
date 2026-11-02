@@ -23,6 +23,18 @@ internal sealed record class StudyGuideGenerationOptions
     /// <summary>Free-tier jobs become due this many minutes after they are queued; premium jobs are due immediately.</summary>
     public int FreeTierDelayMinutes { get; set; } = 10;
 
+    /// <summary>"Make a quiz" (#363) generates and saves a document only when at most this many sections still need questions.</summary>
+    public int QuickPathMaxSections { get; set; } = 3;
+
+    /// <summary>Free-tier delay for quick-path jobs (default none); the manual flow keeps <see cref="FreeTierDelayMinutes"/>.</summary>
+    public int QuickPathFreeTierDelayMinutes { get; set; }
+
+    /// <summary>Documents the auto-save sweep handles per worker tick.</summary>
+    public int AutoSaveBatchSize { get; set; } = 20;
+
+    /// <summary>Failed auto-save attempts before a section is marked Failed and left to the manual review flow.</summary>
+    public int AutoSaveMaxAttempts { get; set; } = 3;
+
     public int PollIntervalSeconds { get; set; } = 15;
 
     public int ClaimBatchSize { get; set; } = 2;

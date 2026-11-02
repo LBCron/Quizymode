@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { itemsApi } from "@/api/items";
 import { collectionsApi } from "@/api/collections";
@@ -73,6 +73,7 @@ const LearnModePage = () => {
   const { category: categorySlug, collectionId } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const hasCategoryScope = !!categorySlug && !collectionId;
   const { navigationKeywords, filterKeywords } = useMemo(
     () => getStudyScopeKeywords(searchParams, hasCategoryScope),
@@ -86,6 +87,13 @@ const LearnModePage = () => {
   const [learnSize, setLearnSize] = useState(DEFAULT_LEARN_SIZE);
   const [learnSizeInput, setLearnSizeInput] = useState(String(DEFAULT_LEARN_SIZE));
   const [notice, setNotice] = useState<string | null>(null);
+  // "Make a quiz" can hand over one line about sections that could not be made (#363); captured once, then dropped from history.
+  const [quickNotice, setQuickNotice] = useState<{ text: string; documentId?: string } | null>(() => {
+    const state = location.state as { quickNotice?: unknown; documentId?: unknown } | null;
+    return typeof state?.quickNotice === "string"
+      ? { text: state.quickNotice, documentId: typeof state.documentId === "string" ? state.documentId : undefined }
+      : null;
+  });
   const [storageFailed, setStorageFailed] = useState(false);
   const [abandonedRestoreKey, setAbandonedRestoreKey] = useState<string | null>(null);
   const [confirmingRestart, setConfirmingRestart] = useState(false);
@@ -95,6 +103,12 @@ const LearnModePage = () => {
   const questionHeadingRef = useRef<HTMLHeadingElement>(null);
   const startTrackedRunId = useRef<string | null>(null);
   const completionHandledRunIds = useRef(new Set<string>());
+
+  useEffect(() => {
+    if ((location.state as { quickNotice?: unknown } | null)?.quickNotice !== undefined) {
+      navigate(location.pathname + location.search, { replace: true, state: null });
+    }
+  }, [location.state, location.pathname, location.search, navigate]);
 
   const { data: categoriesData, error: categoriesError } = useQuery({
     queryKey: ["categories"],
@@ -485,6 +499,32 @@ const LearnModePage = () => {
 
   const notices = (
     <>
+      {quickNotice && (
+        <div
+          role="status"
+          className="mx-auto mb-4 flex max-w-4xl flex-wrap items-center justify-between gap-2 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900"
+        >
+          <span className="min-w-0 break-words">{quickNotice.text}</span>
+          <span className="flex flex-wrap items-center gap-2">
+            {quickNotice.documentId && (
+              <Link
+                to={`/study-guides/documents/${encodeURIComponent(quickNotice.documentId)}`}
+                className="inline-flex min-h-11 items-center font-medium text-indigo-700 hover:text-indigo-900"
+              >
+                Open study guide
+              </Link>
+            )}
+            <button
+              type="button"
+              aria-label="Dismiss notice"
+              onClick={() => setQuickNotice(null)}
+              className="inline-flex min-h-11 items-center font-medium text-amber-900 underline"
+            >
+              Dismiss
+            </button>
+          </span>
+        </div>
+      )}
       {notice && (
         <div role="alert" className="mx-auto mb-4 max-w-4xl rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
           {notice}

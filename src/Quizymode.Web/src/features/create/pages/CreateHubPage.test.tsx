@@ -58,7 +58,7 @@ describe("CreateHubPage", () => {
     expect(screen.getByRole("heading", { level: 1, name: "Create" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 2, name: "Turn notes into a quiz" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 2, name: "Write a question" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Upload notes" })).toHaveAttribute("href", "/create/notes");
+    expect(screen.getByRole("link", { name: "Make a quiz" })).toHaveAttribute("href", "/create/notes");
     expect(screen.getByRole("link", { name: "Write a question" })).toHaveAttribute("href", "/create/question");
     expect(screen.getByRole("link", { name: "Import questions from text or a file" })).toHaveAttribute(
       "href",
@@ -121,7 +121,7 @@ describe("CreateHubPage", () => {
     renderPage();
 
     expect(await screen.findByText("Couldn't load your recent study guides.")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Upload notes" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Make a quiz" })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "My study guides" })).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /retry|try again/i }));
@@ -135,7 +135,7 @@ describe("CreateHubPage", () => {
     expect(screen.getByRole("status")).toHaveTextContent("Sign in to create quizzes and questions.");
     expect(screen.getByRole("link", { name: "Sign In" })).toHaveAttribute("href", "/login");
     expect(screen.getByRole("link", { name: "Sign Up" })).toHaveAttribute("href", "/signup");
-    expect(screen.getByRole("link", { name: "Upload notes" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Make a quiz" })).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Recent study guides" })).not.toBeInTheDocument();
     expect(studyGuideDocumentsApi.list).not.toHaveBeenCalled();
   });

@@ -1,4 +1,5 @@
 import * as React from "react";
+import { Link } from "react-router-dom";
 import type { StudyGuideCandidate } from "@/api/studyGuideDocuments";
 import { validateCandidateEdit, type CandidateEdit } from "../studyGuideDocumentSchema";
 import { formatSourceLocation } from "../studyGuideSections";
@@ -14,6 +15,8 @@ interface StudyGuideCandidateCardProps {
   onToggle: (candidateId: string) => void;
   onSaveEdit: (candidateId: string, edit: CandidateEdit) => void;
   disabled?: boolean;
+  /** Not saved, but its section was auto-saved: the question is already among the user's items (or was skipped). */
+  alreadyHandled?: boolean;
 }
 
 function toEdit(candidate: StudyGuideCandidate, edit?: CandidateEdit): CandidateEdit {
@@ -36,6 +39,7 @@ export function StudyGuideCandidateCard({
   onToggle,
   onSaveEdit,
   disabled = false,
+  alreadyHandled = false,
 }: StudyGuideCandidateCardProps) {
   const [draft, setDraft] = React.useState<CandidateEdit | null>(null);
   const [error, setError] = React.useState<string | null>(null);
@@ -79,6 +83,10 @@ export function StudyGuideCandidateCard({
         {candidate.accepted ? (
           <span className="mt-0.5 rounded-full border border-green-300 bg-green-50 px-2 py-0.5 text-xs font-semibold text-green-800">
             Saved
+          </span>
+        ) : alreadyHandled ? (
+          <span className="mt-0.5 rounded-full border border-slate-300 bg-slate-50 px-2 py-0.5 text-xs font-semibold text-slate-700">
+            Already in your items
           </span>
         ) : (
           <input
@@ -219,16 +227,25 @@ export function StudyGuideCandidateCard({
                 From your guide, {formatSourceLocation(candidate, sectionLabel)}: “{candidate.sourceQuote}”
               </blockquote>
             )}
-            {!candidate.accepted && (
+            {!candidate.accepted && !alreadyHandled && (
               <button
                 type="button"
                 onClick={startEditing}
                 disabled={disabled}
-                className="text-xs font-medium text-indigo-600 hover:text-indigo-800 disabled:opacity-50"
+                className="inline-flex min-h-11 items-center text-xs font-medium text-indigo-600 hover:text-indigo-800 disabled:opacity-50"
                 aria-label={`Edit question ${number}`}
               >
                 Edit
               </button>
+            )}
+            {candidate.accepted && candidate.itemId && (
+              <Link
+                to={`/items/${candidate.itemId}/edit`}
+                className="inline-flex min-h-11 items-center text-xs font-medium text-indigo-600 hover:text-indigo-800"
+                aria-label={`Edit saved question ${number}`}
+              >
+                Edit
+              </Link>
             )}
           </div>
         )}

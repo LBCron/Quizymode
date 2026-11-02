@@ -135,38 +135,26 @@ public static class CreateStudyGuideDocument
                 return CustomResults.Unauthorized();
             }
 
-            Request request = new(
-                NullIfEmpty(text),
-                NullIfEmpty(title),
-                NullIfEmpty(category),
-                NullIfEmpty(navigationKeyword1),
-                NullIfEmpty(navigationKeyword2),
-                // keywords may be repeated or comma-separated; the bound value holds only the first occurrence.
-                SplitKeywords(httpRequest.HasFormContentType ? httpRequest.Form["keywords"] : new Microsoft.Extensions.Primitives.StringValues(keywords)));
-
-            FluentValidation.Results.ValidationResult validation = await validator.ValidateAsync(request, cancellationToken);
-            if (!validation.IsValid)
+            StudyGuideDocumentForm.Parsed form = await StudyGuideDocumentForm.ReadAsync(
+                file,
+                text,
+                title,
+                category,
+                navigationKeyword1,
+                navigationKeyword2,
+                keywords,
+                httpRequest,
+                validator,
+                documentOptions.Value,
+                cancellationToken);
+            if (form.Rejection is not null)
             {
-                return Results.BadRequest(validation.Errors);
-            }
-
-            UploadedFile? upload = null;
-            if (file is not null)
-            {
-                if (file.Length > documentOptions.Value.MaxFileBytes)
-                {
-                    return StudyGuideDocumentResults.Problem(
-                        Result.Failure(StudyGuideDocumentErrors.FileTooLarge(documentOptions.Value.MaxFileBytes)));
-                }
-
-                using MemoryStream buffer = new((int)file.Length);
-                await file.CopyToAsync(buffer, cancellationToken);
-                upload = new UploadedFile(buffer.ToArray(), file.FileName);
+                return form.Rejection;
             }
 
             Result<Outcome> result = await HandleAsync(
-                request,
-                upload,
+                form.Request!,
+                form.Upload,
                 db,
                 userContext.UserId,
                 moderation,
@@ -184,8 +172,6 @@ public static class CreateStudyGuideDocument
                     : Results.Ok(value.Document),
                 _ => StudyGuideDocumentResults.Problem(result));
         }
-
-        private static string? NullIfEmpty(string? value) => string.IsNullOrWhiteSpace(value) ? null : value;
     }
 
     public sealed class FeatureRegistration : IFeatureRegistration
@@ -210,20 +196,12 @@ public static class CreateStudyGuideDocument
 #pragma warning restore EXTEXP0001
             services.AddScoped<StudyGuideGenerationQueue>();
             services.AddScoped<SectionGenerationProcessor>();
+            services.AddScoped<StudyGuideAutoSaver>();
             services.AddHostedService<StudyGuideGenerationWorker>();
             services.AddScoped<IValidator<Request>, Validator>();
             services.AddScoped<IValidator<GenerateStudyGuideSections.Request>, GenerateStudyGuideSections.Validator>();
             services.AddScoped<IValidator<AcceptStudyGuideCandidates.Request>, AcceptStudyGuideCandidates.Validator>();
         }
-    }
-
-    internal static List<string>? SplitKeywords(IEnumerable<string?> values)
-    {
-        List<string> keywords = values
-            .SelectMany(value => (value ?? string.Empty).Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-            .Where(value => value.Length > 0)
-            .ToList();
-        return keywords.Count == 0 ? null : keywords;
     }
 
     internal static async Task<Result<Outcome>> HandleAsync(
