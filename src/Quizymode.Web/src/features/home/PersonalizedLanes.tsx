@@ -16,6 +16,9 @@ import { computeStreak, readDailyCompletions, utcToday } from "@/features/learni
 import { useInterests, useLocalVersion } from "@/features/interests/useInterests";
 import { useTopicEditor } from "@/features/interests/topicEditorContext";
 import { DAILY_QUIZ_QUERY_KEY } from "@/features/learningLoop/pages/DailyQuizPage";
+import { StudyPlanTodayCard } from "@/features/studyPlans/StudyPlanTodayCard";
+import { useStudyPlanActions, useStudyPlans } from "@/features/studyPlans/useStudyPlans";
+import { MAX_LANE_PLANS, daysUntil } from "@/features/studyPlans/studyPlanSteps";
 import { homeCategoryCards } from "./homePageData";
 import { rankPersonalizedHome, type ActivityRun } from "./personalization";
 
@@ -97,6 +100,8 @@ export function PersonalizedLanes({ featuredSets, focused = false }: { featuredS
     retry: false,
     staleTime: 60 * 1000,
   });
+  const studyPlans = useStudyPlans();
+  const planActions = useStudyPlanActions();
   const popularQuery = useQuery({
     queryKey: ["home", "popular-categories"],
     queryFn: () => interestsApi.popularCategories(),
@@ -138,11 +143,31 @@ export function PersonalizedLanes({ featuredSets, focused = false }: { featuredS
 
   if (isAuthLoading) return null;
 
+  // Plans whose test date passed are hidden before the top 3 are chosen (#364); the rest are summarized as "+N more".
+  const planNow = new Date();
+  const upcomingPlans = studyPlans.plans.filter((plan) => (daysUntil(plan.testDate, planNow) ?? -1) >= 0);
+  const shownPlans = upcomingPlans.slice(0, MAX_LANE_PLANS);
+  const morePlans = upcomingPlans.length - shownPlans.length;
+
   return (
     <>
       <section className={laneClass} aria-labelledby="home-today-heading">
         <h2 id="home-today-heading" className={`${eyebrowClass} mb-1.5`}>Today</h2>
         <div className="grid gap-2 sm:grid-cols-2">
+          {shownPlans.map((plan) => (
+            <StudyPlanTodayCard
+              key={plan.collectionId}
+              plan={plan}
+              isGuest={!signedIn}
+              now={planNow}
+              onRemove={(collectionId) => void planActions.remove(collectionId).catch(() => undefined)}
+            />
+          ))}
+          {morePlans > 0 && (
+            <p className="col-span-full text-xs text-slate-300">
+              +{morePlans} more test {morePlans === 1 ? "plan" : "plans"}
+            </p>
+          )}
           <Link
             to="/daily"
             className="flex items-center justify-between gap-3 rounded-[18px] border border-white/10 bg-gradient-to-br from-amber-500/20 to-rose-500/10 p-3 hover:border-amber-300/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200"

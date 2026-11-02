@@ -98,6 +98,8 @@ public sealed class ApplicationDbContext : DbContext
 
     public DbSet<UserInterest> UserInterests => Set<UserInterest>();
 
+    public DbSet<StudyPlan> StudyPlans => Set<StudyPlan>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);

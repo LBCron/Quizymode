@@ -5,11 +5,15 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import CollectionDetailPage from "./CollectionDetailPage";
 import { collectionsApi } from "@/api/collections";
+import { installMemoryLocalStorage } from "@/test/memoryStorage";
+import { upsertLocalStudyPlan } from "@/features/studyPlans/localStudyPlans";
+import { addLocalDays } from "@/features/studyPlans/studyPlanSteps";
 import * as exportFormats from "../utils/exportFormats";
 
 vi.mock("@/contexts/AuthContext", () => ({
   useAuth: () => ({ isAuthenticated: false }),
 }));
+vi.mock("@/api/studyPlans", () => ({ studyPlansApi: { list: vi.fn().mockResolvedValue([]), upsert: vi.fn(), remove: vi.fn() } }));
 vi.mock("@/hooks/useCurrentUserId", () => ({ useCurrentUserId: () => null }));
 vi.mock("@/hooks/useListenAll", () => ({
   useListenAll: () => ({ listenState: "idle", handleButton: vi.fn(), isSupported: false }),
@@ -52,11 +56,13 @@ const items = [
   },
 ];
 
-function renderPage() {
+const PLAN_COLLECTION_ID = "00000000-0000-4000-8000-000000000001";
+
+function renderPage(id = "c1") {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={["/collections/c1"]}>
+      <MemoryRouter initialEntries={[`/collections/${id}`]}>
         <Routes>
           <Route path="/collections/:id" element={<CollectionDetailPage />} />
         </Routes>
@@ -68,6 +74,7 @@ function renderPage() {
 describe("CollectionDetailPage export and print (#258)", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    installMemoryLocalStorage();
     vi.mocked(collectionsApi.getById).mockResolvedValue({
       id: "c1",
       name: "Bio Set",
@@ -138,5 +145,32 @@ describe("CollectionDetailPage export and print (#258)", () => {
     renderPage();
     await screen.findByText(/no items in this collection/i);
     expect(screen.queryByRole("button", { name: "Download CSV" })).not.toBeInTheDocument();
+  });
+
+  it("offers Plan for a test to a guest viewer and opens the dialog (#364)", async () => {
+    const user = userEvent.setup({ delay: null });
+    renderPage();
+
+    await user.click(await screen.findByRole("button", { name: "Plan for a test" }));
+
+    const dialog = await screen.findByRole("dialog", { name: "Plan for a test" });
+    expect(within(dialog).getByText("Bio Set")).toBeInTheDocument();
+    expect(within(dialog).getByText(/Saved in this browser only/)).toBeInTheDocument();
+  });
+
+  it("labels the button with the test date once a plan exists (#364)", async () => {
+    upsertLocalStudyPlan(PLAN_COLLECTION_ID, addLocalDays(new Date(), 3));
+    renderPage(PLAN_COLLECTION_ID);
+
+    const button = await screen.findByRole("button", { name: /^Test plan: .+\. Edit$/ });
+    expect(button).toHaveTextContent(/^Test plan: /);
+    expect(screen.queryByRole("button", { name: "Plan for a test" })).not.toBeInTheDocument();
+  });
+
+  it("hides Plan for a test for an empty collection (#364)", async () => {
+    vi.mocked(collectionsApi.getItems).mockResolvedValue({ items: [] } as never);
+    renderPage();
+    await screen.findByText(/no items in this collection/i);
+    expect(screen.queryByRole("button", { name: "Plan for a test" })).not.toBeInTheDocument();
   });
 });

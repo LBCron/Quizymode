@@ -2034,6 +2034,31 @@ namespace Quizymode.Api.Migrations
                     b.ToTable("StudyGuideSections", (string)null);
                 });
 
+            modelBuilder.Entity("Quizymode.Api.Shared.Models.StudyPlan", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<Guid>("CollectionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateOnly>("TestDate")
+                        .HasColumnType("date");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("UserId", "CollectionId");
+
+                    b.HasIndex("CollectionId");
+
+                    b.ToTable("StudyPlans", (string)null);
+                });
+
             modelBuilder.Entity("Quizymode.Api.Shared.Models.StudySession", b =>
                 {
                     b.Property<Guid>("Id")
