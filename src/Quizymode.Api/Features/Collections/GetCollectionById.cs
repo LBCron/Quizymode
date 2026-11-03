@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Quizymode.Api.Data;
+using Quizymode.Api.Shared.Helpers;
 using Quizymode.Api.Shared.Http;
 using Quizymode.Api.Services;
 using Quizymode.Api.Shared.Kernel;
@@ -70,7 +71,8 @@ public static class GetCollectionById
                     Error.NotFound("Collection.NotFound", "Collection not found"));
             }
 
-            int itemCount = await db.CollectionItems
+            // Items with unapproved uploaded pictures count only for their creator (#400).
+            int itemCount = await ItemVisibility.EligibleCollectionItems(db, userContext.IsAuthenticated ? userContext.UserId : null)
                 .CountAsync(ci => ci.CollectionId == id, cancellationToken);
 
             Response response = new(

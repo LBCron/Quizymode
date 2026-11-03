@@ -171,7 +171,7 @@ public static class DiscoverCollections
                 .OrderByDescending(c => c.CreatedAt)
                 .ToListAsync(cancellationToken);
 
-            var itemCounts = await db.CollectionItems
+            var itemCounts = await ItemVisibility.EligibleCollectionItems(db, userContext.IsAuthenticated ? userContext.UserId : null)
                 .Where(ci => collectionIds.Contains(ci.CollectionId))
                 .GroupBy(ci => ci.CollectionId)
                 .Select(g => new { CollectionId = g.Key, Count = g.Count() })
@@ -231,7 +231,7 @@ public static class DiscoverCollections
         List<string> tagList,
         CancellationToken cancellationToken)
     {
-        IQueryable<Item> query = db.Items.AsQueryable();
+        IQueryable<Item> query = db.Items.Where(ItemVisibility.MediaEligible);
 
         Guid? categoryId = null;
         if (!string.IsNullOrWhiteSpace(category))

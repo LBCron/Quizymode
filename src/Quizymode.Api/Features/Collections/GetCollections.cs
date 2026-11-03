@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Quizymode.Api.Data;
+using Quizymode.Api.Shared.Helpers;
 using Quizymode.Api.Shared.Http;
 using Quizymode.Api.Services;
 using Quizymode.Api.Shared.Kernel;
@@ -85,7 +86,8 @@ public static class GetCollections
 
             // Batch-load item counts with a single GROUP BY instead of a correlated subquery per collection
             List<Guid> collectionIds = rawCollections.Select(c => c.Id).ToList();
-            Dictionary<Guid, int> itemCounts = await db.CollectionItems
+            // Items with unapproved uploaded pictures count only for their creator (#400).
+            Dictionary<Guid, int> itemCounts = await ItemVisibility.EligibleCollectionItems(db, userId)
                 .Where(ci => collectionIds.Contains(ci.CollectionId))
                 .GroupBy(ci => ci.CollectionId)
                 .Select(g => new { CollectionId = g.Key, Count = g.Count() })

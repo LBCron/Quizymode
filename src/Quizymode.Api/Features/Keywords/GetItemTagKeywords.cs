@@ -75,6 +75,7 @@ public static class GetItemTagKeywords
                 join i in db.Items on ik.ItemId equals i.Id
                 join k in db.Keywords on ik.KeywordId equals k.Id
                 where i.CategoryId == categoryId.Value && !i.IsPrivate && !k.IsPrivate
+                    && (i.ImageReviewState == null || i.ImageReviewState == ItemImageReviewState.Approved)
                 select k.Name;
         }
         else
@@ -84,7 +85,7 @@ public static class GetItemTagKeywords
                 join i in db.Items on ik.ItemId equals i.Id
                 join k in db.Keywords on ik.KeywordId equals k.Id
                 where i.CategoryId == categoryId.Value
-                    && (!i.IsPrivate || i.CreatedBy == uid)
+                    && ((!i.IsPrivate && (i.ImageReviewState == null || i.ImageReviewState == ItemImageReviewState.Approved)) || i.CreatedBy == uid)
                     && (!k.IsPrivate || k.CreatedBy == uid)
                 select k.Name;
         }

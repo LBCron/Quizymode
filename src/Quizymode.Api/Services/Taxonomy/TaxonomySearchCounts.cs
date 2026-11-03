@@ -59,7 +59,8 @@ internal sealed class TaxonomySearchCounts(
     {
         var rows = await db.Items
             .AsNoTracking()
-            .Where(item => !item.IsPrivate && item.CategoryId != null)
+            .Where(ItemVisibility.PublicEligible)
+            .Where(item => item.CategoryId != null)
             .GroupBy(item => new
             {
                 Category = item.Category!.Name,

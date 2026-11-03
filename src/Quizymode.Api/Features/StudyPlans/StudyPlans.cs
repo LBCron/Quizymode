@@ -2,6 +2,7 @@ using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Quizymode.Api.Data;
+using Quizymode.Api.Shared.Helpers;
 using Quizymode.Api.Features.Collections;
 using Quizymode.Api.Services;
 using Quizymode.Api.Shared.Http;
@@ -261,7 +262,7 @@ public static class StudyPlans
 
         Dictionary<Guid, int> counts = availableList.Count == 0
             ? []
-            : await db.CollectionItems.AsNoTracking()
+            : await ItemVisibility.EligibleCollectionItems(db, userId).AsNoTracking()
                 .Where(ci => availableList.Contains(ci.CollectionId))
                 .GroupBy(ci => ci.CollectionId)
                 .Select(g => new { CollectionId = g.Key, Count = g.Count() })

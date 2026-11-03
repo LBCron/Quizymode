@@ -96,8 +96,9 @@ public static class ExportItems
                     item.Explanation,
                     tagKeywords,
                     item.Source,
-                    ItemImageReferenceHelper.FromColumns(item.QuestionImageKey, item.QuestionImageAlt),
-                    ItemImageReferenceHelper.FromColumns(item.ExplanationImageKey, item.ExplanationImageAlt));
+                    // Uploaded pictures are never exported (AC 3.25.8); the export carries curated pictures only.
+                    item.QuestionImageAssetId is null ? ItemImageReferenceHelper.FromColumns(item.QuestionImageKey, item.QuestionImageAlt) : null,
+                    item.ExplanationImageAssetId is null ? ItemImageReferenceHelper.FromColumns(item.ExplanationImageKey, item.ExplanationImageAlt) : null);
             }).ToList();
 
             return Results.Ok(result);

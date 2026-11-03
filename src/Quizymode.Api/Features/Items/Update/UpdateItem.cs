@@ -1,5 +1,6 @@
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Quizymode.Api.Data;
 using Quizymode.Api.Shared.Http;
 using Quizymode.Api.Services;
@@ -31,7 +32,9 @@ public static class UpdateItem
         ItemSpeechSupport? QuestionSpeech = null,
         ItemSpeechSupport? CorrectAnswerSpeech = null,
         Dictionary<int, ItemSpeechSupport>? IncorrectAnswerSpeech = null,
-        string? GroupLabel = null);
+        string? GroupLabel = null,
+        ImageSlotInput? QuestionImage = null,
+        ImageSlotInput? ExplanationImage = null);
 
     public sealed record Response(
         string Id,
@@ -46,7 +49,10 @@ public static class UpdateItem
         ItemSpeechSupport? QuestionSpeech = null,
         ItemSpeechSupport? CorrectAnswerSpeech = null,
         Dictionary<int, ItemSpeechSupport>? IncorrectAnswerSpeech = null,
-        string? GroupLabel = null);
+        string? GroupLabel = null,
+        ItemImageReference? QuestionImage = null,
+        ItemImageReference? ExplanationImage = null,
+        ItemImageReviewInfo? ImageReview = null);
 
     public sealed class Validator : AbstractValidator<Request>
     {
@@ -75,6 +81,9 @@ public static class UpdateItem
                 .WithMessage("Question must not exceed 1000 characters");
 
             this.AddSpeechSupportRules(x => x.QuestionSpeech, 1000, "QuestionSpeech");
+            this.AddImageSlotRules(x => x.QuestionImage, "QuestionImage", allowRemove: true);
+            this.AddImageSlotRules(x => x.ExplanationImage, "ExplanationImage", allowRemove: true);
+            this.AddExplanationPictureRequiresTextRule(x => x.ExplanationImage, x => x.Explanation);
 
             RuleFor(x => x.CorrectAnswer)
                 .NotEmpty()
@@ -138,7 +147,8 @@ public static class UpdateItem
                 .Produces(StatusCodes.Status400BadRequest)
                 .Produces(StatusCodes.Status401Unauthorized)
                 .Produces(StatusCodes.Status403Forbidden)
-                .Produces(StatusCodes.Status404NotFound);
+                .Produces(StatusCodes.Status404NotFound)
+                .Produces(StatusCodes.Status409Conflict);
         }
 
         private static async Task<IResult> Handler(
@@ -191,6 +201,7 @@ public static class UpdateItem
         ITaxonomyRegistry taxonomyRegistry,
         CancellationToken cancellationToken)
     {
+        IDbContextTransaction? transaction = null;
         try
         {
             if (!Guid.TryParse(id, out Guid itemId))
@@ -214,8 +225,10 @@ public static class UpdateItem
                 return Result.Failure<Response>(accessError);
             }
 
-            // Pictures are preserved by PUT; an explanation picture needs explanation text to illustrate (#403).
-            if (item.ExplanationImageKey is not null && string.IsNullOrWhiteSpace(request.Explanation))
+            // Omitted pictures are kept by PUT; an explanation picture needs explanation text to illustrate (#403). Removing it needs none.
+            if (item.ExplanationImageKey is not null
+                && request.ExplanationImage?.Remove != true
+                && string.IsNullOrWhiteSpace(request.Explanation))
             {
                 return Result.Failure<Response>(
                     Error.Validation("Item.ExplanationRequiredForImage", ItemImageReferenceHelper.ExplanationRequiredForUpdateMessage));
@@ -277,9 +290,72 @@ public static class UpdateItem
 
             (Keyword navK1, Keyword navK2) = navResult.Value!;
 
+            // Uploaded pictures (#400): seed-managed items and curated slots take no picture input.
+            if ((request.QuestionImage is not null || request.ExplanationImage is not null)
+                && (item.IsRepoManaged
+                    || (request.QuestionImage is not null && ItemImageSubmission.IsCurated(item.QuestionImageKey, item.QuestionImageAssetId))
+                    || (request.ExplanationImage is not null && ItemImageSubmission.IsCurated(item.ExplanationImageKey, item.ExplanationImageAssetId))))
+            {
+                return Result.Failure<Response>(ItemImageReviewRules.ManagedBySeed());
+            }
+
+            // Assets must belong to the item's creator, so an admin can keep, remove or re-describe a picture but not attach their own upload.
+            (PictureSlot? questionPicture, Error? questionPictureError) = await ItemImageSubmission.ResolveSlotAsync(
+                db, item.CreatedBy, item.QuestionImageAssetId, item.QuestionImageAlt, item.QuestionImageAttribution,
+                request.QuestionImage, cancellationToken);
+            if (questionPictureError is not null)
+            {
+                return Result.Failure<Response>(questionPictureError);
+            }
+
+            (PictureSlot? explanationPicture, Error? explanationPictureError) = await ItemImageSubmission.ResolveSlotAsync(
+                db, item.CreatedBy, item.ExplanationImageAssetId, item.ExplanationImageAlt, item.ExplanationImageAttribution,
+                request.ExplanationImage, cancellationToken);
+            if (explanationPictureError is not null)
+            {
+                return Result.Failure<Response>(explanationPictureError);
+            }
+
+            ItemSpeechSupport? questionSpeech = ItemSpeechSupportHelper.Normalize(request.QuestionSpeech, 1000);
+            bool hasUpload = questionPicture is not null || explanationPicture is not null;
+            string? contentHash = hasUpload
+                ? ItemImageReviewRules.ComputeContentHash(
+                    request.Question, request.CorrectAnswer, request.IncorrectAnswers, request.Explanation,
+                    questionSpeech, questionPicture, explanationPicture)
+                : null;
+            string? storedHash = hasUpload && item.ImageReviewState is not null
+                ? await db.ItemImageReviews.AsNoTracking()
+                    .Where(r => r.ItemId == itemId && r.Revision == item.ImageRevision)
+                    .Select(r => r.ContentHash)
+                    .FirstOrDefaultAsync(cancellationToken)
+                : null;
+            ImageReviewTransition transition = ItemImageReviewRules.Plan(
+                item.ImageReviewState, item.ImageRevision, hasUpload, contentHash, storedHash,
+                assetsChanged: questionPicture?.AssetId != item.QuestionImageAssetId || explanationPicture?.AssetId != item.ExplanationImageAssetId);
+            if (ItemImageReviewRules.BlocksPublish(item.IsPrivate, effectiveIsPrivate, transition.State))
+            {
+                return Result.Failure<Response>(ItemImageReviewRules.ReviewRequired());
+            }
+
+            // Claim the revision first (one conditional UPDATE), so a decision or another edit that got there first is a 409, not an overwrite.
+            transaction = await ItemImageSubmission.BeginAsync(db, cancellationToken);
+            if (transition.Changed)
+            {
+                Error? claimError = await ItemImageSubmission.ClaimRevisionAsync(
+                    db, item, transition, questionPicture, explanationPicture, contentHash, userId, cancellationToken);
+                if (claimError is not null)
+                {
+                    return Result.Failure<Response>(claimError);
+                }
+            }
+            else
+            {
+                ItemImageSubmission.ApplySlots(item, questionPicture, explanationPicture);
+            }
+
             // Update item properties
             item.Question = request.Question;
-            item.QuestionSpeech = ItemSpeechSupportHelper.Normalize(request.QuestionSpeech, 1000);
+            item.QuestionSpeech = questionSpeech;
             item.CorrectAnswer = request.CorrectAnswer;
             item.CorrectAnswerSpeech = ItemSpeechSupportHelper.Normalize(request.CorrectAnswerSpeech, 500);
             item.IncorrectAnswers = request.IncorrectAnswers;
@@ -378,6 +454,11 @@ public static class UpdateItem
 
             await db.SaveChangesAsync(cancellationToken);
 
+            if (transaction is not null)
+            {
+                await transaction.CommitAsync(cancellationToken);
+            }
+
             // Log audit entry
             if (!string.IsNullOrEmpty(userId) && Guid.TryParse(userId, out Guid userIdGuid))
             {
@@ -401,14 +482,28 @@ public static class UpdateItem
                 item.QuestionSpeech,
                 item.CorrectAnswerSpeech,
                 item.IncorrectAnswerSpeech.Count > 0 ? item.IncorrectAnswerSpeech : null,
-                item.GroupLabel);
+                item.GroupLabel,
+                ItemImageReferenceHelper.FromColumns(item.QuestionImageKey, item.QuestionImageAlt, item.QuestionImageAttribution),
+                ItemImageReferenceHelper.FromColumns(item.ExplanationImageKey, item.ExplanationImageAlt, item.ExplanationImageAttribution),
+                ItemImageReviewRules.InfoOf(item));
 
             return Result.Success(response);
+        }
+        catch (DbUpdateException ex) when (ItemImageReviewRules.IsRevisionConflict(ex))
+        {
+            return Result.Failure<Response>(ItemImageReviewRules.ReviewStale());
         }
         catch (Exception ex)
         {
             return Result.Failure<Response>(
                 Error.Problem("Item.UpdateFailed", "Failed to update item.", ex));
+        }
+        finally
+        {
+            if (transaction is not null)
+            {
+                await transaction.DisposeAsync();
+            }
         }
     }
 

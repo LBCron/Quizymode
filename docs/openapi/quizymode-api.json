@@ -4060,6 +4060,9 @@
           },
           "400": {
             "description": "Bad Request"
+          },
+          "409": {
+            "description": "Conflict"
           }
         }
       },
@@ -4297,6 +4300,9 @@
           },
           "404": {
             "description": "Not Found"
+          },
+          "409": {
+            "description": "Conflict"
           }
         }
       }
@@ -4340,6 +4346,62 @@
         }
       }
     },
+    "/admin/items/{id}/image-review": {
+      "put": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Approve or reject an item's uploaded pictures (Admin only)",
+        "description": "Decides one picture revision. 409 Item.ImageReviewStale (with currentRevision and currentState) when the item moved on; repeating the same decision is a 200 no-op; 409 Item.ImageAssetUnavailable when an approved picture is no longer readable. An admin may decide their own submission; the decision records who submitted and who decided.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/System.Guid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Quizymode.Api.Features.Items.ImageReview.SetItemImageReview.Request"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Quizymode.Api.Features.Items.ImageReview.SetItemImageReview.Response"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "409": {
+            "description": "Conflict"
+          }
+        }
+      }
+    },
     "/admin/items/{id}/approval": {
       "put": {
         "tags": [
@@ -4370,6 +4432,9 @@
           },
           "404": {
             "description": "Not Found"
+          },
+          "409": {
+            "description": "Conflict"
           }
         }
       }
@@ -4484,6 +4549,9 @@
           },
           "404": {
             "description": "Not Found"
+          },
+          "409": {
+            "description": "Conflict"
           }
         }
       }
@@ -4727,6 +4795,118 @@
           },
           "401": {
             "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/items/{id}/images/{slot}": {
+      "get": {
+        "tags": [
+          "Media"
+        ],
+        "summary": "Download an item's uploaded question or explanation picture",
+        "description": "slot is 'question' or 'explanation'. The creator and admins can read any state; everyone else, including anonymous callers, only an Approved picture of an item they can see. Everything else, including curated pictures, is 404. Responses are private and no-store.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/System.Guid"
+            }
+          },
+          {
+            "name": "slot",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/System.String"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "image/webp": {
+                "schema": {
+                  "$ref": "#/components/schemas/System.Byte[]"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/collections/{collectionId}/items/{itemId}/images/{slot}": {
+      "get": {
+        "tags": [
+          "Media"
+        ],
+        "summary": "Download an uploaded picture of an item through a collection that holds it",
+        "description": "Allowed when the caller can open the collection (public, share link, or owner), the item is in it, and the picture is Approved (or the caller created the item). Everything else is 404. Responses are private and no-store.",
+        "parameters": [
+          {
+            "name": "collectionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/System.Guid"
+            }
+          },
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/System.Guid"
+            }
+          },
+          {
+            "name": "slot",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/System.String"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "image/webp": {
+                "schema": {
+                  "$ref": "#/components/schemas/System.Byte[]"
+                }
+              }
+            }
           },
           "404": {
             "description": "Not Found"
@@ -13090,10 +13270,26 @@
             ]
           },
           "questionImage": {
-            "description": "Not supported; omit or send null. A non-null value is rejected with 400 (curated pictures are added through seed data)."
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "description": "Optional uploaded picture: `{ assetId, altText, attribution? }` from POST /media/images. Keys, URLs and `remove` are rejected with 400.",
+                "$ref": "#/components/schemas/Quizymode.Api.Shared.Models.ImageSlotInput"
+              }
+            ]
           },
           "explanationImage": {
-            "description": "Not supported; omit or send null. A non-null value is rejected with 400 (curated pictures are added through seed data)."
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "description": "Optional uploaded picture shown after the answer; requires explanation text. Same shape as QuestionImage.",
+                "$ref": "#/components/schemas/Quizymode.Api.Shared.Models.ImageSlotInput"
+              }
+            ]
           }
         }
       },
@@ -13192,6 +13388,36 @@
               },
               {
                 "$ref": "#/components/schemas/System.String"
+              }
+            ]
+          },
+          "questionImage": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Quizymode.Api.Shared.Models.ItemImageReference"
+              }
+            ]
+          },
+          "explanationImage": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Quizymode.Api.Shared.Models.ItemImageReference"
+              }
+            ]
+          },
+          "imageReview": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Quizymode.Api.Shared.Helpers.ItemImageReviewInfo"
               }
             ]
           }
@@ -13914,6 +14140,115 @@
                 "$ref": "#/components/schemas/Quizymode.Api.Shared.Models.ItemImageReference"
               }
             ]
+          },
+          "imageReview": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Quizymode.Api.Shared.Helpers.ItemImageReviewInfo"
+              }
+            ]
+          }
+        }
+      },
+      "Quizymode.Api.Features.Items.ImageReview.SetItemImageReview.Request": {
+        "required": [
+          "decision",
+          "expectedRevision"
+        ],
+        "type": "object",
+        "properties": {
+          "decision": {
+            "description": "`approve` or `reject`.",
+            "$ref": "#/components/schemas/System.String"
+          },
+          "expectedRevision": {
+            "description": "The `imageReview.revision` the reviewer looked at.",
+            "$ref": "#/components/schemas/System.Int32"
+          },
+          "reason": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "description": "Required (max 500) when rejecting; optional note when approving.",
+                "$ref": "#/components/schemas/System.String"
+              }
+            ]
+          }
+        }
+      },
+      "Quizymode.Api.Features.Items.ImageReview.SetItemImageReview.Response": {
+        "required": [
+          "id",
+          "imageReview"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/System.String"
+          },
+          "imageReview": {
+            "$ref": "#/components/schemas/Quizymode.Api.Features.Items.ImageReview.SetItemImageReview.ReviewResponse"
+          }
+        }
+      },
+      "Quizymode.Api.Features.Items.ImageReview.SetItemImageReview.ReviewResponse": {
+        "required": [
+          "state",
+          "revision",
+          "submittedBy",
+          "submittedAt",
+          "decidedBy",
+          "decidedAt",
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "state": {
+            "$ref": "#/components/schemas/System.String"
+          },
+          "revision": {
+            "$ref": "#/components/schemas/System.Int32"
+          },
+          "submittedBy": {
+            "$ref": "#/components/schemas/System.String"
+          },
+          "submittedAt": {
+            "$ref": "#/components/schemas/System.DateTime"
+          },
+          "decidedBy": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.String"
+              }
+            ]
+          },
+          "decidedAt": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.NullableOfSystem.DateTime"
+              }
+            ]
+          },
+          "reason": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.String"
+              }
+            ]
           }
         }
       },
@@ -14405,6 +14740,26 @@
                 "$ref": "#/components/schemas/System.String"
               }
             ]
+          },
+          "questionImage": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Quizymode.Api.Shared.Models.ImageSlotInput"
+              }
+            ]
+          },
+          "explanationImage": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Quizymode.Api.Shared.Models.ImageSlotInput"
+              }
+            ]
           }
         }
       },
@@ -14493,6 +14848,36 @@
               },
               {
                 "$ref": "#/components/schemas/System.String"
+              }
+            ]
+          },
+          "questionImage": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Quizymode.Api.Shared.Models.ItemImageReference"
+              }
+            ]
+          },
+          "explanationImage": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Quizymode.Api.Shared.Models.ItemImageReference"
+              }
+            ]
+          },
+          "imageReview": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Quizymode.Api.Shared.Helpers.ItemImageReviewInfo"
               }
             ]
           }
@@ -17070,6 +17455,68 @@
           }
         }
       },
+      "Quizymode.Api.Shared.Helpers.ItemImageReviewInfo": {
+        "required": [
+          "state",
+          "revision"
+        ],
+        "type": "object",
+        "properties": {
+          "state": {
+            "$ref": "#/components/schemas/System.String"
+          },
+          "revision": {
+            "$ref": "#/components/schemas/System.Int32"
+          }
+        },
+        "description": "Response shape for an item's picture review (AC 3.25.2). Shown to the creator and admins only."
+      },
+      "Quizymode.Api.Shared.Models.ImageSlotInput": {
+        "type": "object",
+        "properties": {
+          "assetId": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.NullableOfSystem.Guid"
+              }
+            ]
+          },
+          "altText": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.String"
+              }
+            ]
+          },
+          "attribution": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.String"
+              }
+            ]
+          },
+          "remove": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.NullableOfSystem.Boolean"
+              }
+            ]
+          }
+        },
+        "description": "Request shape for an uploaded picture on POST/PUT /items (AC 3.25.2). Set or replace with Guid? ImageSlotInput.AssetId\n(plus string? ImageSlotInput.AltText); on PUT, bool? ImageSlotInput.Remove clears the slot. POST rejects bool? ImageSlotInput.Remove."
+      },
       "Quizymode.Api.Shared.Models.ItemImageReference": {
         "required": [
           "key",
@@ -17082,9 +17529,19 @@
           },
           "altText": {
             "$ref": "#/components/schemas/System.String"
+          },
+          "attribution": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.String"
+              }
+            ]
           }
         },
-        "description": "Curated question picture (#407): a key resolved by the web build into a bundled image, plus its alt text."
+        "description": "Question or explanation picture: a curated key (#407) resolved by the web build into a bundled image, or `media:{assetId:N}` for an upload (#400), plus its alt text and optional attribution."
       },
       "Quizymode.Api.Shared.Models.ItemSpeechSupport": {
         "type": "object",

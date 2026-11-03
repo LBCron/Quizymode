@@ -164,7 +164,8 @@ public static class DailyQuiz
         Dictionary<Guid, Item> items = await db.Items.AsNoTracking()
             .Include(i => i.Category)
             .Include(i => i.ItemKeywords).ThenInclude(ik => ik.Keyword)
-            .Where(i => ids.Contains(i.Id) && !i.IsPrivate)
+            .Where(i => ids.Contains(i.Id))
+            .Where(ItemVisibility.PublicEligible)
             .ToDictionaryAsync(i => i.Id, cancellationToken);
         ItemResponseMapper mapper = new(userContext);
         List<GetItems.ItemResponse> responses = ids
@@ -351,7 +352,8 @@ public static class DailyQuiz
     {
         // IncorrectAnswers is a value-converted JSON column, so the playable check runs after projection.
         var rows = await db.Items.AsNoTracking()
-            .Where(i => !i.IsPrivate && i.Category != null && !i.Category.IsPrivate)
+            .Where(ItemVisibility.PublicEligible)
+            .Where(i => i.Category != null && !i.Category.IsPrivate)
             .Select(i => new { i.Id, i.CorrectAnswer, i.IncorrectAnswers })
             .ToListAsync(cancellationToken);
 

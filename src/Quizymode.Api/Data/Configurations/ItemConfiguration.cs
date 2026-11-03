@@ -120,6 +120,35 @@ internal sealed class ItemConfiguration : IEntityTypeConfiguration<Item>
         builder.Property(x => x.ExplanationImageAlt)
             .HasMaxLength(300);
 
+        // Uploaded pictures and their review state (#400, AC 3.25)
+        builder.Property(x => x.QuestionImageAttribution)
+            .HasMaxLength(300);
+
+        builder.Property(x => x.ExplanationImageAttribution)
+            .HasMaxLength(300);
+
+        builder.Property(x => x.ImageReviewState)
+            .HasConversion<string>()
+            .HasMaxLength(20);
+
+        builder.Property(x => x.ImageRevision)
+            .IsRequired()
+            .HasDefaultValue(0);
+
+        builder.HasOne<MediaAsset>()
+            .WithMany()
+            .HasForeignKey(x => x.QuestionImageAssetId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne<MediaAsset>()
+            .WithMany()
+            .HasForeignKey(x => x.ExplanationImageAssetId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasIndex(x => x.QuestionImageAssetId);
+        builder.HasIndex(x => x.ExplanationImageAssetId);
+        builder.HasIndex(x => x.ImageReviewState);
+
         builder.Property(x => x.CategoryId)
             .IsRequired(false);
 
@@ -172,6 +201,26 @@ internal sealed class ItemConfiguration : IEntityTypeConfiguration<Item>
         builder.ToTable(t => t.HasCheckConstraint(
             "CK_Items_ExplanationImage_Alt",
             "(\"ExplanationImageKey\" IS NULL) = (\"ExplanationImageAlt\" IS NULL)"));
+
+        // An uploaded picture's key is exactly media:{assetId:N}, and a curated/absent key never uses the media: prefix (#400)
+        builder.ToTable(t => t.HasCheckConstraint(
+            "CK_Items_QuestionImage_Asset",
+            "(\"QuestionImageAssetId\" IS NOT NULL AND \"QuestionImageKey\" = 'media:' || replace(\"QuestionImageAssetId\"::text, '-', '')) " +
+            "OR (\"QuestionImageAssetId\" IS NULL AND (\"QuestionImageKey\" IS NULL OR \"QuestionImageKey\" NOT LIKE 'media:%'))"));
+
+        builder.ToTable(t => t.HasCheckConstraint(
+            "CK_Items_ExplanationImage_Asset",
+            "(\"ExplanationImageAssetId\" IS NOT NULL AND \"ExplanationImageKey\" = 'media:' || replace(\"ExplanationImageAssetId\"::text, '-', '')) " +
+            "OR (\"ExplanationImageAssetId\" IS NULL AND (\"ExplanationImageKey\" IS NULL OR \"ExplanationImageKey\" NOT LIKE 'media:%'))"));
+
+        builder.ToTable(t => t.HasCheckConstraint(
+            "CK_Items_ImageReviewState",
+            "\"ImageReviewState\" IS NULL OR \"ImageReviewState\" IN ('PendingReview', 'Approved', 'Rejected', 'Withdrawn')"));
+
+        // A review state exists exactly when at least one picture slot holds an upload (#400)
+        builder.ToTable(t => t.HasCheckConstraint(
+            "CK_Items_ImageReviewState_Assets",
+            "(\"ImageReviewState\" IS NULL) = (\"QuestionImageAssetId\" IS NULL AND \"ExplanationImageAssetId\" IS NULL)"));
 
         // Indexes for common queries
         builder.HasIndex(x => x.FuzzyBucket);

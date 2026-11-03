@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Quizymode.Api.Data;
 using Quizymode.Api.Services;
 using Quizymode.Api.Services.Taxonomy;
@@ -20,6 +21,7 @@ internal static class AddItemHandler
         ITaxonomyRegistry taxonomyRegistry,
         CancellationToken cancellationToken)
     {
+        IDbContextTransaction? transaction = null;
         try
         {
             bool effectiveIsPrivate = userContext.IsAdmin ? request.IsPrivate : true;
@@ -78,17 +80,43 @@ internal static class AddItemHandler
 
             (Keyword navK1, Keyword navK2) = navResult.Value!;
 
-            List<Item> candidateItems = await db.Items
-                .Where(item =>
-                    item.CreatedBy == userId &&
-                    item.FuzzyBucket == fuzzyBucket &&
-                    item.CategoryId == category.Id)
+            (PictureSlot? questionPicture, Error? questionPictureError) = await ItemImageSubmission.ResolveSlotAsync(
+                db, userId, null, null, null, request.QuestionImage, cancellationToken);
+            if (questionPictureError is not null)
+            {
+                return Result.Failure<AddItem.Response>(questionPictureError);
+            }
+
+            (PictureSlot? explanationPicture, Error? explanationPictureError) = await ItemImageSubmission.ResolveSlotAsync(
+                db, userId, null, null, null, request.ExplanationImage, cancellationToken);
+            if (explanationPictureError is not null)
+            {
+                return Result.Failure<AddItem.Response>(explanationPictureError);
+            }
+
+            // Duplicate identity (AC 2.1.21): the curated key, or the picture bytes for an upload; the explanation picture is not part of it.
+            var candidateItems = await (
+                from existing in db.Items
+                where existing.CreatedBy == userId &&
+                    existing.FuzzyBucket == fuzzyBucket &&
+                    existing.CategoryId == category.Id
+                join asset in db.MediaAssets on existing.QuestionImageAssetId equals asset.Id into assets
+                from asset in assets.DefaultIfEmpty()
+                select new
+                {
+                    existing.Question,
+                    existing.FuzzySignature,
+                    existing.QuestionImageKey,
+                    existing.QuestionImageAssetId,
+                    AssetSha256 = asset == null ? null : asset.Sha256
+                })
                 .ToListAsync(cancellationToken);
 
-            // Write paths never set a question image (seed sync only), so a new item has no image key.
+            string? newImageIdentity = questionPicture is null ? null : ItemImageReviewRules.DuplicateIdentity(null, questionPicture.AssetId, questionPicture.Sha256);
             bool isDuplicate = candidateItems.Any(item => ItemDuplicateRules.IsDuplicate(
-                item.Question, item.FuzzySignature, item.QuestionImageKey,
-                request.Question, fuzzySignature, null));
+                item.Question, item.FuzzySignature,
+                ItemImageReviewRules.DuplicateIdentity(item.QuestionImageKey, item.QuestionImageAssetId, item.AssetSha256),
+                request.Question, fuzzySignature, newImageIdentity));
 
             if (isDuplicate)
             {
@@ -96,13 +124,28 @@ internal static class AddItemHandler
                     Error.Validation("Item.Duplicate", $"An item with the same question already exists in category '{category.Name}'. Questions are compared case-insensitively."));
             }
 
+            ItemSpeechSupport? questionSpeech = ItemSpeechSupportHelper.Normalize(request.QuestionSpeech, 1000);
+            bool hasUpload = questionPicture is not null || explanationPicture is not null;
+            string? contentHash = hasUpload
+                ? ItemImageReviewRules.ComputeContentHash(
+                    request.Question, request.CorrectAnswer, request.IncorrectAnswers, request.Explanation,
+                    questionSpeech, questionPicture, explanationPicture)
+                : null;
+            ImageReviewTransition transition = ItemImageReviewRules.Plan(null, 0, hasUpload, contentHash, null);
+            if (ItemImageReviewRules.BlocksPublish(true, effectiveIsPrivate, transition.State))
+            {
+                return Result.Failure<AddItem.Response>(ItemImageReviewRules.ReviewRequired());
+            }
+
+            transaction = await ItemImageSubmission.BeginAsync(db, cancellationToken);
+
             Item item = new Item
             {
                 Id = Guid.NewGuid(),
                 IsRepoManaged = false,
                 IsPrivate = effectiveIsPrivate,
                 Question = request.Question,
-                QuestionSpeech = ItemSpeechSupportHelper.Normalize(request.QuestionSpeech, 1000),
+                QuestionSpeech = questionSpeech,
                 CorrectAnswer = request.CorrectAnswer,
                 CorrectAnswerSpeech = ItemSpeechSupportHelper.Normalize(request.CorrectAnswerSpeech, 500),
                 IncorrectAnswers = request.IncorrectAnswers,
@@ -121,9 +164,18 @@ internal static class AddItemHandler
                 NavigationKeywordId2 = navK2.Id,
                 Source = string.IsNullOrWhiteSpace(request.Source) ? null : request.Source.Trim(),
                 GroupLabel = ItemGroupLabelHelper.Normalize(request.GroupLabel),
+                ImageReviewState = transition.State,
+                ImageRevision = transition.Revision,
             };
+            ItemImageSubmission.ApplySlots(item, questionPicture, explanationPicture);
 
             db.Items.Add(item);
+            if (transition.CreatesSubmission)
+            {
+                db.ItemImageReviews.Add(ItemImageSubmission.NewSubmission(
+                    item.Id, transition.Revision, contentHash!, questionPicture, explanationPicture, userId));
+            }
+
             await db.SaveChangesAsync(cancellationToken);
 
             List<string> orderedNames = [];
@@ -187,6 +239,11 @@ internal static class AddItemHandler
                 }
             }
 
+            if (transaction is not null)
+            {
+                await transaction.CommitAsync(cancellationToken);
+            }
+
             if (!string.IsNullOrEmpty(userId) && Guid.TryParse(userId, out Guid userIdGuid))
             {
                 await auditService.LogAsync(
@@ -210,14 +267,28 @@ internal static class AddItemHandler
                 item.QuestionSpeech,
                 item.CorrectAnswerSpeech,
                 item.IncorrectAnswerSpeech.Count > 0 ? item.IncorrectAnswerSpeech : null,
-                item.GroupLabel);
+                item.GroupLabel,
+                ItemImageReferenceHelper.FromColumns(item.QuestionImageKey, item.QuestionImageAlt, item.QuestionImageAttribution),
+                ItemImageReferenceHelper.FromColumns(item.ExplanationImageKey, item.ExplanationImageAlt, item.ExplanationImageAttribution),
+                ItemImageReviewRules.InfoOf(item));
 
             return Result.Success(response);
+        }
+        catch (DbUpdateException ex) when (ItemImageReviewRules.IsRevisionConflict(ex))
+        {
+            return Result.Failure<AddItem.Response>(ItemImageReviewRules.ReviewStale());
         }
         catch (Exception ex)
         {
             return Result.Failure<AddItem.Response>(
                 Error.Problem("Item.CreateFailed", "Failed to create item.", ex));
+        }
+        finally
+        {
+            if (transaction is not null)
+            {
+                await transaction.DisposeAsync();
+            }
         }
     }
 }

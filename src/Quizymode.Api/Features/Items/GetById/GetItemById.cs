@@ -32,7 +32,8 @@ public static class GetItemById
         Dictionary<int, ItemSpeechSupport>? IncorrectAnswerSpeech = null,
         string? GroupLabel = null,
         ItemImageReference? QuestionImage = null,
-        ItemImageReference? ExplanationImage = null);
+        ItemImageReference? ExplanationImage = null,
+        ItemImageReviewInfo? ImageReview = null);
 
     public sealed record KeywordResponse(
         string Id,
@@ -173,8 +174,12 @@ public static class GetItemById
                 item.CorrectAnswerSpeech,
                 item.IncorrectAnswerSpeech.Count > 0 ? item.IncorrectAnswerSpeech : null,
                 item.GroupLabel,
-                ItemImageReferenceHelper.FromColumns(item.QuestionImageKey, item.QuestionImageAlt),
-                ItemImageReferenceHelper.FromColumns(item.ExplanationImageKey, item.ExplanationImageAlt));
+                ItemImageReferenceHelper.FromColumns(item.QuestionImageKey, item.QuestionImageAlt, item.QuestionImageAttribution),
+                ItemImageReferenceHelper.FromColumns(item.ExplanationImageKey, item.ExplanationImageAlt, item.ExplanationImageAttribution),
+                // Review state is shown to the creator and admins only (AC 3.25.2).
+                userContext.IsAdmin || (userContext.IsAuthenticated && item.CreatedBy == userContext.UserId)
+                    ? ItemImageReviewRules.InfoOf(item)
+                    : null);
 
             return Result.Success(response);
         }

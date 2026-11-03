@@ -59,6 +59,27 @@ public sealed class Item
     /// <summary>Alt text for <see cref="ExplanationImageKey"/>; present exactly when the key is.</summary>
     public string? ExplanationImageAlt { get; set; }
 
+    /// <summary>Uploaded question picture (#400); when set, <see cref="QuestionImageKey"/> is <c>media:{assetId:N}</c>.</summary>
+    public Guid? QuestionImageAssetId { get; set; }
+
+    /// <summary>Uploaded explanation picture (#400); when set, <see cref="ExplanationImageKey"/> is <c>media:{assetId:N}</c>.</summary>
+    public Guid? ExplanationImageAssetId { get; set; }
+
+    /// <summary>Optional credit line for an uploaded question picture (max 300).</summary>
+    public string? QuestionImageAttribution { get; set; }
+
+    /// <summary>Optional credit line for an uploaded explanation picture (max 300).</summary>
+    public string? ExplanationImageAttribution { get; set; }
+
+    /// <summary>
+    /// Review state of the item's uploaded pictures (#400, AC 3.25); null exactly when neither picture slot holds an upload.
+    /// Pictures are shown to others only while this is null or <see cref="ItemImageReviewState.Approved"/>.
+    /// </summary>
+    public ItemImageReviewState? ImageReviewState { get; set; }
+
+    /// <summary>Monotonic counter of picture submissions and removals; never reset. Decisions bind to it.</summary>
+    public int ImageRevision { get; set; }
+
     /// <summary>
     /// Optional link to the Upload record that created this item (e.g. bulk upload from JSON).
     /// </summary>

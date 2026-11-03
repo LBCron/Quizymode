@@ -238,8 +238,8 @@ internal sealed class TopicSuggestionProfiles(
     {
         return db.Items
             .AsNoTracking()
-            .Where(item => !item.IsPrivate
-                && item.CategoryId != null
+            .Where(ItemVisibility.PublicEligible)
+            .Where(item => item.CategoryId != null
                 && !item.Category!.IsPrivate
                 && item.NavigationKeywordId1 != null
                 && item.NavigationKeywordId2 != null
@@ -260,7 +260,7 @@ internal sealed class TopicSuggestionProfiles(
     {
         var row = await db.Items
             .AsNoTracking()
-            .Where(item => !item.IsPrivate)
+            .Where(ItemVisibility.PublicEligible)
             .GroupBy(_ => 1)
             .Select(group => new { Count = group.Count(), Newest = group.Max(item => item.UpdatedAt ?? item.CreatedAt) })
             .FirstOrDefaultAsync(cancellationToken);
