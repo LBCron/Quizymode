@@ -49,6 +49,20 @@ public sealed class DailyQuizTests : DatabaseTestFixture
     }
 
     [Fact]
+    public async Task Get_NeverIncludesImageReview_EvenForAnApprovedPictureItem()
+    {
+        Category category = await LearningLoopTestData.AddCategoryAsync(DbContext, "trivia");
+        Item item = await LearningLoopTestData.AddItemAsync(DbContext, category);
+        item.ImageReviewState = ItemImageReviewState.Approved;
+        item.ImageRevision = 1;
+        await DbContext.SaveChangesAsync();
+
+        Daily.DailyQuizResponse response = await GetAsync();
+
+        response.Items.Should().ContainSingle().Which.ImageReview.Should().BeNull();
+    }
+
+    [Fact]
     public async Task Get_ExcludesPrivateItems_PrivateCategories_AndItemsWithoutWrongAnswers()
     {
         Category publicCategory = await LearningLoopTestData.AddCategoryAsync(DbContext, "trivia");

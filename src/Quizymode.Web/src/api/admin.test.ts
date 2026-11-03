@@ -28,6 +28,36 @@ describe("adminApi", () => {
     expect(result).toEqual(data);
   });
 
+  it("getImageReviewQueue calls GET /admin/items/image-review with state and paging", async () => {
+    const data = { items: [], totalCount: 0, page: 1, pageSize: 25, totalPages: 0 };
+    mockGet.mockResolvedValueOnce({ data });
+    const result = await adminApi.getImageReviewQueue("Rejected", 2, 10);
+    expect(mockGet).toHaveBeenCalledWith("/admin/items/image-review", {
+      params: { state: "Rejected", page: 2, pageSize: 10 },
+    });
+    expect(result).toEqual(data);
+  });
+
+  it("setImageReview calls PUT /admin/items/:id/image-review", async () => {
+    const data = { id: "i1", imageReview: { state: "Rejected", revision: 3 } };
+    mockPut.mockResolvedValueOnce({ data });
+    const result = await adminApi.setImageReview("i1", { decision: "reject", expectedRevision: 3, reason: "Blurry" });
+    expect(mockPut).toHaveBeenCalledWith("/admin/items/i1/image-review", {
+      decision: "reject",
+      expectedRevision: 3,
+      reason: "Blurry",
+    });
+    expect(result).toEqual(data);
+  });
+
+  it("fetchItemImageBlob fetches the slot as a blob", async () => {
+    const blob = new Blob(["x"]);
+    mockGet.mockResolvedValueOnce({ data: blob });
+    const result = await adminApi.fetchItemImageBlob("i1", "explanation");
+    expect(mockGet).toHaveBeenCalledWith("/items/i1/images/explanation", { responseType: "blob" });
+    expect(result).toBe(blob);
+  });
+
   it("approveItem calls PUT /admin/items/:id/approval", async () => {
     const data = { id: "i1" };
     mockPut.mockResolvedValueOnce({ data });

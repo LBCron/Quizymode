@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Quizymode.Api.Data;
 using Quizymode.Api.Services;
+using Quizymode.Api.Shared.Helpers;
 using Quizymode.Api.Shared.Kernel;
 using Quizymode.Api.Shared.Models;
 
@@ -48,11 +49,22 @@ internal static class GetItemsHandler
             Dictionary<Guid, List<GetItems.CollectionResponse>> itemCollectionsMap = 
                 await collectionLoader.LoadCollectionsAsync(itemIds);
 
+            // Picture review state is shown to the creator and admins only (AC 3.25.2); the rejection reason is
+            // loaded in one batched query for exactly those items.
+            List<Item> reviewVisibleRejected = items
+                .Where(i => i.ImageReviewState == ItemImageReviewState.Rejected && CanSeeImageReview(i, userContext))
+                .ToList();
+            Dictionary<Guid, string?> rejectionReasons =
+                await ItemImageReviewRules.LoadRejectionReasonsAsync(db, reviewVisibleRejected, cancellationToken);
+
             ItemResponseMapper responseMapper = new(userContext);
             List<GetItems.ItemResponse> itemResponses = items
                 .Select(item => responseMapper.MapToResponse(
                     item,
-                    itemCollectionsMap.GetValueOrDefault(item.Id, new List<GetItems.CollectionResponse>())))
+                    itemCollectionsMap.GetValueOrDefault(item.Id, new List<GetItems.CollectionResponse>()),
+                    CanSeeImageReview(item, userContext)
+                        ? ItemImageReviewRules.InfoOf(item, rejectionReasons.GetValueOrDefault(item.Id))
+                        : null))
                 .ToList();
 
             GetItems.Response response = new GetItems.Response(
@@ -70,4 +82,7 @@ internal static class GetItemsHandler
                 Error.Problem("Items.GetFailed", "Failed to get items.", ex));
         }
     }
+
+    private static bool CanSeeImageReview(Item item, IUserContext userContext) =>
+        userContext.IsAdmin || (userContext.IsAuthenticated && item.CreatedBy == userContext.UserId);
 }

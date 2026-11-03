@@ -39,6 +39,18 @@ export interface KeywordResponse {
 export interface ItemImageReference {
   key: string;
   altText: string;
+  /** Credit line for an uploaded picture (#400), when the author supplied one. */
+  attribution?: string | null;
+}
+
+export type ImageReviewState = "PendingReview" | "Approved" | "Rejected" | "Withdrawn";
+
+/** Picture review state of an item (AC 3.25.2, 3.26.5); returned to the creator and admins only. */
+export interface ItemImageReviewInfo {
+  state: ImageReviewState;
+  revision: number;
+  /** Why the pictures were rejected; only while state is Rejected. */
+  reason?: string | null;
 }
 
 export interface ItemSpeechSupport {
@@ -76,6 +88,8 @@ export interface ItemResponse {
   explanationImage?: ItemImageReference | null;
   /** Navigation path for breadcrumbs, e.g. [rank1, rank2] or ["other"]. Use "other" in URLs; display as "Others". */
   navigationBreadcrumb?: string[];
+  /** Picture review state (#401); present for the creator and admins only. */
+  imageReview?: ItemImageReviewInfo | null;
 }
 
 export interface ItemsResponse {

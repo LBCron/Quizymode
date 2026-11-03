@@ -15,7 +15,8 @@ internal sealed class ItemResponseMapper
 
     public GetItems.ItemResponse MapToResponse(
         Item item,
-        List<GetItems.CollectionResponse> collections)
+        List<GetItems.CollectionResponse> collections,
+        ItemImageReviewInfo? imageReview = null)
     {
         List<GetItems.KeywordResponse> visibleKeywords = FilterVisibleKeywords(item);
         string categoryName = item.Category?.Name ?? string.Empty;
@@ -40,7 +41,8 @@ internal sealed class ItemResponseMapper
             item.IncorrectAnswerSpeech.Count > 0 ? item.IncorrectAnswerSpeech : null,
             item.GroupLabel,
             ItemImageReferenceHelper.FromColumns(item.QuestionImageKey, item.QuestionImageAlt, item.QuestionImageAttribution),
-            ItemImageReferenceHelper.FromColumns(item.ExplanationImageKey, item.ExplanationImageAlt, item.ExplanationImageAttribution));
+            ItemImageReferenceHelper.FromColumns(item.ExplanationImageKey, item.ExplanationImageAlt, item.ExplanationImageAttribution),
+            imageReview);
     }
 
     private List<GetItems.KeywordResponse> FilterVisibleKeywords(Item item)

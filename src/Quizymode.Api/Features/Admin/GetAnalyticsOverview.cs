@@ -48,7 +48,9 @@ public static class GetAnalyticsOverview
         int ItemsAwaitingReview,
         int PendingPrivateKeywords,
         int IdeasAwaitingModeration,
-        int NewClientErrorGroups);
+        int NewClientErrorGroups,
+        int PicturesAwaitingReview = 0,
+        DateTime? OldestPictureSubmittedAt = null);
 
     public sealed record Response(
         int Days,
@@ -134,6 +136,15 @@ public static class GetAnalyticsOverview
         Result<GetClientErrors.Response> clientErrors = await GetClientErrors.HandleAsync(
             new GetClientErrors.QueryRequest(request.Days), db, cancellationToken);
 
+        int picturesAwaiting = await db.Items.CountAsync(
+            item => item.ImageReviewState == ItemImageReviewState.PendingReview, cancellationToken);
+        DateTime? oldestPictureSubmittedAt = picturesAwaiting == 0
+            ? null
+            : await (from review in db.ItemImageReviews
+                     join item in db.Items on review.ItemId equals item.Id
+                     where item.ImageReviewState == ItemImageReviewState.PendingReview && review.Revision == item.ImageRevision
+                     select (DateTime?)review.SubmittedAt).MinAsync(cancellationToken);
+
         WorkQueue workQueue = new(
             await db.Items.CountAsync(item => item.ReadyForReview, cancellationToken),
             await db.Keywords.CountAsync(
@@ -141,7 +152,9 @@ public static class GetAnalyticsOverview
                     && db.ItemKeywords.Any(itemKeyword => itemKeyword.KeywordId == keyword.Id),
                 cancellationToken),
             await db.Ideas.CountAsync(idea => idea.ModerationState == IdeaModerationState.PendingReview, cancellationToken),
-            clientErrors.IsSuccess ? clientErrors.Value.NewGroups : 0);
+            clientErrors.IsSuccess ? clientErrors.Value.NewGroups : 0,
+            picturesAwaiting,
+            oldestPictureSubmittedAt);
 
         return Result.Success(new Response(
             request.Days,

@@ -3,6 +3,7 @@ using FluentAssertions;
 using Quizymode.Api.Features.Admin;
 using Quizymode.Api.Shared.Kernel;
 using Quizymode.Api.Shared.Models;
+using Quizymode.Api.Tests.Features.LearningLoop;
 using Quizymode.Api.Tests.TestFixtures;
 using Xunit;
 
@@ -89,6 +90,35 @@ public sealed class GetAnalyticsOverviewTests : DatabaseTestFixture, IAsyncLifet
         response.Daily.Sum(point => point.HumanSessions).Should().Be(2);
         response.Daily.Count(point => point.HumanSessions == 0).Should().Be(5);
         response.Daily[^1].Day.Should().Be(DateOnly.FromDateTime(Now));
+    }
+
+    [Fact]
+    public async Task Overview_CountsPendingPicturesAndReportsTheOldestSubmission()
+    {
+        Category category = await LearningLoopTestData.AddCategoryAsync(DbContext, "trivia");
+        Item older = PictureSeed.AddPictureItem(DbContext, category, "u", false, ItemImageReviewState.PendingReview, PictureSeed.AddAsset(DbContext, "u"));
+        Item newer = PictureSeed.AddPictureItem(DbContext, category, "u", true, ItemImageReviewState.PendingReview, PictureSeed.AddAsset(DbContext, "u"));
+        PictureSeed.AddPictureItem(DbContext, category, "u", false, ItemImageReviewState.Approved, PictureSeed.AddAsset(DbContext, "u"));
+        PictureSeed.AddPictureItem(DbContext, category, "u", false, ItemImageReviewState.Rejected, PictureSeed.AddAsset(DbContext, "u"));
+        await DbContext.SaveChangesAsync();
+        DateTime oldest = Now.AddDays(-4);
+        DbContext.ItemImageReviews.Single(r => r.ItemId == older.Id).SubmittedAt = oldest;
+        DbContext.ItemImageReviews.Single(r => r.ItemId == newer.Id).SubmittedAt = Now.AddDays(-1);
+        await DbContext.SaveChangesAsync();
+
+        Result<GetAnalyticsOverview.Response> result = await Run();
+
+        result.Value.WorkQueue.PicturesAwaitingReview.Should().Be(2);
+        result.Value.WorkQueue.OldestPictureSubmittedAt.Should().Be(oldest);
+    }
+
+    [Fact]
+    public async Task Overview_WithNoPendingPictures_ReportsZeroAndNoOldest()
+    {
+        Result<GetAnalyticsOverview.Response> result = await Run();
+
+        result.Value.WorkQueue.PicturesAwaitingReview.Should().Be(0);
+        result.Value.WorkQueue.OldestPictureSubmittedAt.Should().BeNull();
     }
 
     [Fact]

@@ -8,6 +8,7 @@ import { SpeakButton } from "@/components/SpeakButton";
 import { useSpeech } from "@/hooks/useSpeech";
 import { PronunciationHint } from "@/components/items/PronunciationHint";
 import { QuestionImage } from "@/components/study/QuestionImage";
+import { ImageReviewStatus } from "@/components/items/ImageReviewStatus";
 import { ForeignPhraseText } from "@/components/ForeignPhraseText";
 
 interface ItemListCardProps {
@@ -58,6 +59,7 @@ const ItemListCard = ({
             <p className="text-sm text-gray-500">
               {item.category}{item.isPrivate ? " (p)" : ""}
             </p>
+            <ImageReviewStatus itemId={item.id} imageReview={item.imageReview} />
             <ItemAverageStars itemId={item.id} />
           </div>
           {actions && <div className="flex flex-wrap items-center justify-end gap-1 sm:gap-2">{actions}</div>}

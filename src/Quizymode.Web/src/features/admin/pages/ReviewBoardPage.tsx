@@ -2,17 +2,43 @@ import * as React from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminApi } from "@/api/admin";
 import { useAuth } from "@/contexts/AuthContext";
-import { Navigate } from "react-router-dom";
+import { Navigate, useSearchParams } from "react-router-dom";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import ErrorMessage from "@/components/ErrorMessage";
 import { PronunciationHint } from "@/components/items/PronunciationHint";
 import { QuestionImage } from "@/components/study/QuestionImage";
 import { getIndexedSpeech } from "@/utils/itemSpeech";
+import { ImageReviewQueue } from "../components/ImageReviewQueue";
+import { useImageReviewQueue } from "../hooks/useImageReviewQueue";
 import type { ItemImageReference, ItemSpeechSupport } from "@/types/api";
+
+type ReviewTab = "items" | "pictures";
+const TABS: ReviewTab[] = ["items", "pictures"];
 
 const ReviewBoardPage = () => {
   const { isAuthenticated, isAdmin } = useAuth();
   const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab: ReviewTab = searchParams.get("tab") === "pictures" ? "pictures" : "items";
+  const pictureQueue = useImageReviewQueue(isAuthenticated && isAdmin);
+  const pictureCount = pictureQueue.data?.totalCount;
+
+  const selectTab = (tab: ReviewTab) => {
+    setSearchParams(tab === "pictures" ? { tab: "pictures" } : {}, { replace: true });
+  };
+
+  const handleTabKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    const current = TABS.indexOf(activeTab);
+    let next = current;
+    if (event.key === "ArrowRight") next = (current + 1) % TABS.length;
+    else if (event.key === "ArrowLeft") next = (current + TABS.length - 1) % TABS.length;
+    else if (event.key === "Home") next = 0;
+    else if (event.key === "End") next = TABS.length - 1;
+    else return;
+    event.preventDefault();
+    selectTab(TABS[next]);
+    document.getElementById(`review-board-tab-${TABS[next]}`)?.focus();
+  };
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["reviewBoard"],
@@ -39,41 +65,72 @@ const ReviewBoardPage = () => {
     return <Navigate to="/" replace />;
   }
 
-  if (isLoading) return <LoadingSpinner />;
-  if (error)
-    return (
-      <ErrorMessage
-        message="Failed to load review board items"
-        onRetry={() => refetch()}
-      />
-    );
+  const tabLabel = (tab: ReviewTab): string =>
+    tab === "items" ? "Items" : pictureCount === undefined ? "Pictures" : `Pictures (${pictureCount})`;
 
   return (
     <div className="px-4 py-6 sm:px-0">
       <h1 className="text-3xl font-bold text-gray-900 mb-2">Review Board</h1>
       <p className="text-gray-600 text-sm mb-6">
-        Review, approve, or reject items that are pending review. Items marked as "Ready for Review" will appear here for admin review before being made available to users.
+        Review, approve, or reject items that are pending review. Items marked as "Ready for Review" will appear here for admin review before being made available to users. Uploaded pictures are reviewed separately on the Pictures tab.
       </p>
-      {data?.items && data.items.length > 0 ? (
-        <div className="space-y-4">
-          {data.items.map((item) => (
-            <ReviewBoardItemCard
-              key={item.id}
-              item={item}
-              onApprove={() => approveMutation.mutate(item.id)}
-              isApproving={approveMutation.isPending}
-              onReject={(reason) =>
-                rejectMutation.mutate({ id: item.id, reason })
-              }
-              isRejecting={rejectMutation.isPending}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-12">
-          <p className="text-gray-500">No items pending review.</p>
-        </div>
-      )}
+      <div role="tablist" aria-label="Review board sections" className="mb-6 flex border-b border-gray-200">
+        {TABS.map((tab) => (
+          <button
+            key={tab}
+            type="button"
+            role="tab"
+            id={`review-board-tab-${tab}`}
+            aria-selected={activeTab === tab}
+            aria-controls={`review-board-panel-${tab}`}
+            tabIndex={activeTab === tab ? 0 : -1}
+            onClick={() => selectTab(tab)}
+            onKeyDown={handleTabKeyDown}
+            className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium ${
+              activeTab === tab
+                ? "border-indigo-600 text-indigo-700"
+                : "border-transparent text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            {tabLabel(tab)}
+          </button>
+        ))}
+      </div>
+      <div
+        role="tabpanel"
+        id={`review-board-panel-${activeTab}`}
+        aria-labelledby={`review-board-tab-${activeTab}`}
+      >
+        {activeTab === "pictures" ? (
+          <ImageReviewQueue />
+        ) : isLoading ? (
+          <LoadingSpinner />
+        ) : error ? (
+          <ErrorMessage
+            message="Failed to load review board items"
+            onRetry={() => refetch()}
+          />
+        ) : data?.items && data.items.length > 0 ? (
+          <div className="space-y-4">
+            {data.items.map((item) => (
+              <ReviewBoardItemCard
+                key={item.id}
+                item={item}
+                onApprove={() => approveMutation.mutate(item.id)}
+                isApproving={approveMutation.isPending}
+                onReject={(reason) =>
+                  rejectMutation.mutate({ id: item.id, reason })
+                }
+                isRejecting={rejectMutation.isPending}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-gray-500">No items pending review.</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

@@ -43,7 +43,14 @@ const populated = {
     activeRegisteredUsers: 0,
   })),
   releaseMarkers: [{ version: "3.64.0", day: "2026-10-11" }],
-  workQueue: { itemsAwaitingReview: 4, pendingPrivateKeywords: 2, ideasAwaitingModeration: 1, newClientErrorGroups: 3 },
+  workQueue: {
+    itemsAwaitingReview: 4,
+    pendingPrivateKeywords: 2,
+    ideasAwaitingModeration: 1,
+    newClientErrorGroups: 3,
+    picturesAwaitingReview: 5,
+    oldestPictureSubmittedAt: new Date(Date.now() - 3 * 24 * 3600 * 1000).toISOString(),
+  },
 };
 
 function renderPanel() {
@@ -88,8 +95,23 @@ describe("AdminOverviewPanel", () => {
     expect(screen.getAllByTestId("release-marker")).toHaveLength(1);
     expect(screen.getByText("v3.64.0")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /items awaiting review/i })).toHaveAttribute("href", "/admin/review-board");
+    const pictures = screen.getByRole("link", { name: /pictures awaiting review/i });
+    expect(pictures).toHaveAttribute("href", "/admin/review-board?tab=pictures");
+    expect(pictures).toHaveTextContent("5");
+    expect(pictures).toHaveTextContent("Oldest submitted 3 days ago");
     expect(screen.getByRole("link", { name: /pending private keywords/i })).toHaveAttribute("href", "/admin/keyword-review");
     expect(screen.getByRole("link", { name: /ideas awaiting moderation/i })).toHaveAttribute("href", "/admin/ideas");
+  });
+
+  it("omits the oldest-submitted line when no pictures are waiting", async () => {
+    mockAdminApi.getAnalyticsOverview.mockResolvedValue({
+      ...populated,
+      workQueue: { ...populated.workQueue, picturesAwaitingReview: 0, oldestPictureSubmittedAt: null },
+    });
+    renderPanel();
+
+    const pictures = await screen.findByRole("link", { name: /pictures awaiting review/i });
+    expect(pictures).not.toHaveTextContent(/oldest submitted/i);
   });
 
   it("shows an empty state when there is no traffic", async () => {

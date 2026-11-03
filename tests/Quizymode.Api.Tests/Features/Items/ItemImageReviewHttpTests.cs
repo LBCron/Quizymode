@@ -1264,4 +1264,126 @@ public sealed class ItemImageReviewHttpTests : ItemTestFixture, IAsyncLifetime
             .Should().Be("curated:flags/fr");
         body.Should().NotContain("media:");
     }
+
+    // ---- #401: rejection reason on owner/admin item reads --------------------------------------------------------------
+
+    private const string RejectionReason = "Unclear source";
+
+    private async Task SetRejectionReasonAsync(Guid itemId, string reason)
+    {
+        await using ApplicationDbContext db = CreateDbContext();
+        await db.ItemImageReviews.Where(r => r.ItemId == itemId).ExecuteUpdateAsync(s => s.SetProperty(r => r.Reason, reason));
+    }
+
+    [Theory]
+    [InlineData("owner")]
+    [InlineData("admin")]
+    public async Task GetItems_RejectedItem_ShowsStateAndReasonToItsCreator_OwnerOrAdmin(string caller)
+    {
+        // The existing read gate hides unapproved items from everyone but their creator, so an admin sees the state in the list for their own items.
+        string creator = caller == "owner" ? Owner : _adminId.ToString();
+        Item rejected = await SeedPictureItemAsync(ItemImageReviewState.Rejected, isPrivate: false, creator: creator);
+        await SetRejectionReasonAsync(rejected.Id, RejectionReason);
+
+        (HttpStatusCode status, string body) = await SendAsync(HttpMethod.Get, "/items?category=geography&pageSize=50", token: TokenOf(caller));
+
+        status.Should().Be(HttpStatusCode.OK, body);
+        JsonElement review = Json(body).GetProperty("items").EnumerateArray().Single().GetProperty("imageReview");
+        review.GetProperty("state").GetString().Should().Be("Rejected");
+        review.GetProperty("revision").GetInt32().Should().Be(1);
+        review.GetProperty("reason").GetString().Should().Be(RejectionReason);
+    }
+
+    [Fact]
+    public async Task GetItems_ReasonIsBatched_AndOnlyTheCurrentRevisionsReasonIsShown()
+    {
+        Item first = await SeedPictureItemAsync(ItemImageReviewState.Rejected);
+        Item second = await SeedPictureItemAsync(ItemImageReviewState.Rejected);
+        await SetRejectionReasonAsync(first.Id, "reason one");
+        await SetRejectionReasonAsync(second.Id, "reason two");
+        // A stale rejection of an earlier revision must never surface on the current revision.
+        await using (ApplicationDbContext db = CreateDbContext())
+        {
+            db.ItemImageReviews.Add(new ItemImageReview
+            {
+                Id = Guid.NewGuid(), ItemId = first.Id, Revision = 0, ContentHash = new string('d', 64), SubmittedBy = Owner,
+                SubmittedAt = DateTime.UtcNow, Decision = "Rejected", DecidedBy = "x", DecidedAt = DateTime.UtcNow, Reason = "old revision"
+            });
+            await db.SaveChangesAsync();
+        }
+
+        (HttpStatusCode status, string body) = await SendAsync(HttpMethod.Get, "/items?category=geography&pageSize=50", token: OwnerToken);
+
+        status.Should().Be(HttpStatusCode.OK, body);
+        Dictionary<string, string?> reasons = Json(body).GetProperty("items").EnumerateArray().ToDictionary(
+            i => i.GetProperty("id").GetString()!,
+            i => i.GetProperty("imageReview").GetProperty("reason").GetString());
+        reasons[first.Id.ToString()].Should().Be("reason one");
+        reasons[second.Id.ToString()].Should().Be("reason two");
+        body.Should().NotContain("old revision");
+    }
+
+    [Fact]
+    public async Task GetItems_ReasonAndStateAreNotShownToOthers_IncludingTheCollectionIdPath()
+    {
+        Item approved = await SeedPictureItemAsync(ItemImageReviewState.Approved);
+        Item rejected = await SeedPictureItemAsync(ItemImageReviewState.Rejected);
+        await SetRejectionReasonAsync(rejected.Id, RejectionReason);
+        await SetRejectionReasonAsync(approved.Id, RejectionReason);
+        Collection collection = VisibilitySeed.AddCollection(DbContext, Owner, true);
+        VisibilitySeed.Link(DbContext, collection, approved);
+        VisibilitySeed.Link(DbContext, collection, rejected);
+        await DbContext.SaveChangesAsync();
+
+        foreach (string? token in new[] { null, OtherToken })
+        {
+            foreach (string path in new[] { "/items?category=geography&pageSize=50", $"/items?collectionId={collection.Id}&pageSize=50" })
+            {
+                (HttpStatusCode status, string body) = await SendAsync(HttpMethod.Get, path, token: token);
+                status.Should().Be(HttpStatusCode.OK, body);
+                body.Should().NotContain(RejectionReason);
+                foreach (JsonElement item in Json(body).GetProperty("items").EnumerateArray())
+                {
+                    item.GetProperty("imageReview").ValueKind.Should().Be(JsonValueKind.Null);
+                }
+            }
+        }
+
+        (HttpStatusCode byId, string byIdBody) = await SendAsync(HttpMethod.Get, $"/items/{approved.Id}", token: OtherToken);
+        byId.Should().Be(HttpStatusCode.OK, byIdBody);
+        byIdBody.Should().NotContain(RejectionReason);
+    }
+
+    [Fact]
+    public async Task GetItemById_RejectedItem_ShowsReasonToOwnerAndAdminOnly()
+    {
+        Item rejected = await SeedPictureItemAsync(ItemImageReviewState.Rejected);
+        await SetRejectionReasonAsync(rejected.Id, RejectionReason);
+
+        foreach (string caller in new[] { "owner", "admin" })
+        {
+            (HttpStatusCode status, string body) = await SendAsync(HttpMethod.Get, $"/items/{rejected.Id}", token: TokenOf(caller));
+            status.Should().Be(HttpStatusCode.OK, body);
+            Json(body).GetProperty("imageReview").GetProperty("reason").GetString().Should().Be(RejectionReason);
+        }
+
+        (HttpStatusCode other, string otherBody) = await SendAsync(HttpMethod.Get, $"/items/{rejected.Id}", token: OtherToken);
+        other.Should().Be(HttpStatusCode.NotFound);
+        otherBody.Should().NotContain(RejectionReason);
+    }
+
+    [Fact]
+    public async Task Put_ItemWhoseRejectedPicturesAreUnchanged_ReturnsTheReason()
+    {
+        MediaAsset asset = await AssetAsync();
+        Guid id = await CreateAsync(Body(questionImage: Pic(asset)));
+        await DecideAsync(id, "reject", 1, "Wrong subject");
+
+        (HttpStatusCode status, string body) = await SendAsync(HttpMethod.Put, $"/items/{id}", Body(questionImage: Pic(asset)), OwnerToken);
+
+        status.Should().Be(HttpStatusCode.OK, body);
+        JsonElement review = Json(body).GetProperty("imageReview");
+        review.GetProperty("state").GetString().Should().Be("Rejected");
+        review.GetProperty("reason").GetString().Should().Be("Wrong subject");
+    }
 }
