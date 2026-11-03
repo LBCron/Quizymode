@@ -1,3 +1,4 @@
+using Quizymode.Api.Shared.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Quizymode.Api.Data;
 using Quizymode.Api.Shared.Http;
@@ -112,7 +113,8 @@ public static class GetFeatured
 
                 IQueryable<Item> query = db.Items
                     .AsNoTracking()
-                    .Where(i => !i.IsPrivate && i.CategoryId == categoryId);
+                    .Where(ItemVisibility.PublicEligible)
+                    .Where(i => i.CategoryId == categoryId);
 
                 if (fi.NavKeyword1 is not null && keywordIdByName.TryGetValue(fi.NavKeyword1.ToLower(), out Guid kw1Id))
                 {
@@ -145,10 +147,10 @@ public static class GetFeatured
                 DateTime? lastMod = await db.CollectionItems
                     .AsNoTracking()
                     .Where(ci => ci.CollectionId == fi.CollectionId.Value)
-                    .Join(db.Items.AsNoTracking(), ci => ci.ItemId, i => i.Id, (_, i) => (DateTime?)(i.UpdatedAt ?? i.CreatedAt))
+                    .Join(db.Items.AsNoTracking().Where(ItemVisibility.MediaEligible), ci => ci.ItemId, i => i.Id, (_, i) => (DateTime?)(i.UpdatedAt ?? i.CreatedAt))
                     .MaxAsync(cancellationToken);
 
-                int itemCount = await db.CollectionItems
+                int itemCount = await ItemVisibility.EligibleCollectionItems(db, null)
                     .AsNoTracking()
                     .CountAsync(ci => ci.CollectionId == fi.CollectionId.Value, cancellationToken);
 

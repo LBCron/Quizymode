@@ -21,7 +21,7 @@ using Xunit;
 
 namespace Quizymode.Api.Tests.Features.Items;
 
-/// <summary>#407/#403: import paths reject non-null picture fields (AC 2.1.20); PUT keeps pictures; export includes both (AC 2.2.7.10).</summary>
+/// <summary>#407/#403/#400: bulk and upload paths reject non-null picture fields (AC 2.1.20); POST and PUT take only asset ids (AC 3.25.2); PUT keeps omitted pictures; export includes curated ones (AC 2.2.7.10).</summary>
 public sealed class QuestionImageHttpTests : ItemTestFixture, IAsyncLifetime
 {
     private static readonly string[] AdminGroups = ["Admins"];
@@ -115,7 +115,8 @@ public sealed class QuestionImageHttpTests : ItemTestFixture, IAsyncLifetime
         (HttpStatusCode status, string body) = await CreateAsync(path, BaseItemJson + "," + pictureJson);
 
         status.Should().Be(HttpStatusCode.BadRequest, body);
-        body.Should().Contain(field).And.Contain("Pictures can't be imported");
+        // POST /items takes uploaded asset ids only (AC 3.25.2); the import paths take no pictures at all (AC 2.1.20).
+        body.Should().Contain(field).And.Contain(path == "add" ? "assetId is required" : "Pictures can't be imported");
         using ApplicationDbContext db = CreateDbContext();
         (await db.Items.CountAsync()).Should().Be(0);
     }
@@ -148,11 +149,16 @@ public sealed class QuestionImageHttpTests : ItemTestFixture, IAsyncLifetime
 
         string Put(string explanation) =>
             "{\"category\":\"geography\",\"navigationKeyword1\":\"capitals\",\"navigationKeyword2\":\"europe\",\"isPrivate\":false," +
-            "\"question\":\"Which flag?\",\"correctAnswer\":\"France\",\"incorrectAnswers\":[\"Italy\"],\"explanation\":\"" + explanation + "\"," +
-            QuestionImageJson.Replace("fr", "xx") + "," + ExplanationImageJson.Replace("diagrams/x", "diagrams/y") + "}";
+            "\"question\":\"Which flag?\",\"correctAnswer\":\"France\",\"incorrectAnswers\":[\"Italy\"],\"explanation\":\"" + explanation + "\"}";
 
         (HttpStatusCode edited, string editedBody) = await SendAsync(HttpMethod.Put, $"/items/{picture.Id}", Put("Edited"), UserToken);
         edited.Should().Be(HttpStatusCode.OK, editedBody);
+
+        // A curated key object is not an uploaded picture: PUT refuses it instead of silently ignoring it (AC 3.25.2).
+        (HttpStatusCode keyed, string keyedBody) = await SendAsync(HttpMethod.Put, $"/items/{picture.Id}",
+            Put("Edited").TrimEnd('}') + "," + QuestionImageJson.Replace("fr", "xx") + "}", UserToken);
+        keyed.Should().Be(HttpStatusCode.BadRequest, keyedBody);
+        keyedBody.Should().Contain("QuestionImage").And.Contain("assetId is required");
 
         (HttpStatusCode cleared, string clearedBody) = await SendAsync(HttpMethod.Put, $"/items/{picture.Id}", Put("   "), UserToken);
         cleared.Should().Be(HttpStatusCode.BadRequest, clearedBody);

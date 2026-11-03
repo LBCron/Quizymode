@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Quizymode.Api.Data;
+using Quizymode.Api.Shared.Helpers;
 using Quizymode.Api.Shared.Http;
 using Quizymode.Api.Shared.Kernel;
 using Quizymode.Api.Shared.Models;
@@ -25,7 +26,8 @@ public static class SetItemVisibility
                 .RequireAuthorization("Admin")
                 .Produces<Response>(StatusCodes.Status200OK)
                 .Produces(StatusCodes.Status400BadRequest)
-                .Produces(StatusCodes.Status404NotFound);
+                .Produces(StatusCodes.Status404NotFound)
+                .Produces(StatusCodes.Status409Conflict);
         }
 
         private static async Task<IResult> Handler(
@@ -65,6 +67,12 @@ public static class SetItemVisibility
             {
                 return Result.Failure<Response>(
                     Error.NotFound("Item.NotFound", $"Item with id {id} not found"));
+            }
+
+            // Pictures must be approved before a private item is published (AC 3.25.6).
+            if (ItemImageReviewRules.BlocksPublish(item.IsPrivate, request.IsPrivate, item.ImageReviewState))
+            {
+                return Result.Failure<Response>(ItemImageReviewRules.ReviewRequired());
             }
 
             item.IsPrivate = request.IsPrivate;

@@ -34,7 +34,8 @@ public static class ApproveItem
                 .WithDescription("No request body. Approves the item (makes it public and removes from review board).")
                 .RequireAuthorization("Admin")
                 .Produces<ApproveItemResponse>(StatusCodes.Status200OK)
-                .Produces(StatusCodes.Status404NotFound);
+                .Produces(StatusCodes.Status404NotFound)
+                .Produces(StatusCodes.Status409Conflict);
         }
 
         private static async Task<IResult> Handler(
@@ -68,6 +69,12 @@ public static class ApproveItem
                 return Result.Failure<ApproveItemResponse>(Error.NotFound("Item.NotFound", "Item not found"));
             }
 
+            // Pictures must be approved before a private item is published (AC 3.25.6); this is policy, the access gate is the security boundary.
+            if (ItemImageReviewRules.BlocksPublish(item.IsPrivate, false, item.ImageReviewState))
+            {
+                return Result.Failure<ApproveItemResponse>(ItemImageReviewRules.ReviewRequired());
+            }
+
             // Approve: make it global and remove from review board
             item.IsPrivate = false;
             item.ReadyForReview = false;
@@ -90,8 +97,8 @@ public static class ApproveItem
                 item.QuestionSpeech,
                 item.CorrectAnswerSpeech,
                 item.IncorrectAnswerSpeech.Count > 0 ? item.IncorrectAnswerSpeech : null,
-                ItemImageReferenceHelper.FromColumns(item.QuestionImageKey, item.QuestionImageAlt),
-                ItemImageReferenceHelper.FromColumns(item.ExplanationImageKey, item.ExplanationImageAlt));
+                ItemImageReferenceHelper.FromColumns(item.QuestionImageKey, item.QuestionImageAlt, item.QuestionImageAttribution),
+                ItemImageReferenceHelper.FromColumns(item.ExplanationImageKey, item.ExplanationImageAlt, item.ExplanationImageAttribution));
 
             return Result.Success(response);
         }

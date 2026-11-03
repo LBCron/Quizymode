@@ -61,8 +61,13 @@ internal sealed class ItemQueryBuilder
 
         IQueryable<Item> query = _db.Items.AsQueryable();
 
-        // When loading by collectionId, allow only if collection is public or user is owner/shared; then bypass item visibility so all items in collection are visible
+        // When loading by collectionId, allow only if collection is public or user is owner/shared; then bypass item visibility so all items in collection are visible.
+        // Media eligibility still applies: items with unapproved uploaded pictures show only to their creator (#400).
         bool skipVisibilityForCollection = request.CollectionId.HasValue;
+        if (skipVisibilityForCollection)
+        {
+            query = query.Where(ItemVisibility.EligibleFor(_userContext.IsAuthenticated ? _userContext.UserId : null));
+        }
 
         if (!skipVisibilityForCollection)
         {
@@ -110,6 +115,7 @@ internal sealed class ItemQueryBuilder
     /// Visibility rules:
     /// - If IsPrivate=true: user must be authenticated and only sees their own private items
     /// - If IsPrivate=false: only global (non-private) items are returned
+    /// Public items whose uploaded pictures are not Approved are excluded for everyone but their creator (#400).
     /// - If IsPrivate=null (all items):
     ///   - Anonymous users: only global items
     ///   - Authenticated users: global items + their own private items
@@ -130,18 +136,18 @@ internal sealed class ItemQueryBuilder
             }
             else
             {
-                query = query.Where(i => !i.IsPrivate);
+                query = query.Where(ItemVisibility.PublicEligible);
             }
         }
         else
         {
             if (!_userContext.IsAuthenticated)
             {
-                query = query.Where(i => !i.IsPrivate);
+                query = query.Where(ItemVisibility.PublicEligible);
             }
             else if (!string.IsNullOrEmpty(_userContext.UserId))
             {
-                query = query.Where(i => !i.IsPrivate || (i.IsPrivate && i.CreatedBy == _userContext.UserId));
+                query = query.Where(ItemVisibility.VisibleTo(_userContext.UserId));
             }
         }
 

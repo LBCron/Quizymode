@@ -1030,6 +1030,13 @@ namespace Quizymode.Api.Migrations
                         .HasMaxLength(300)
                         .HasColumnType("character varying(300)");
 
+                    b.Property<Guid?>("ExplanationImageAssetId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ExplanationImageAttribution")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
                     b.Property<string>("ExplanationImageKey")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
@@ -1049,6 +1056,15 @@ namespace Quizymode.Api.Migrations
                     b.Property<string>("GroupLabel")
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)");
+
+                    b.Property<string>("ImageReviewState")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<int>("ImageRevision")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
 
                     b.Property<string>("IncorrectAnswerSpeech")
                         .IsRequired()
@@ -1085,6 +1101,13 @@ namespace Quizymode.Api.Migrations
                         .HasMaxLength(300)
                         .HasColumnType("character varying(300)");
 
+                    b.Property<Guid?>("QuestionImageAssetId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("QuestionImageAttribution")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
                     b.Property<string>("QuestionImageKey")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
@@ -1117,13 +1140,19 @@ namespace Quizymode.Api.Migrations
 
                     b.HasIndex("CreatedAt");
 
+                    b.HasIndex("ExplanationImageAssetId");
+
                     b.HasIndex("FuzzyBucket");
+
+                    b.HasIndex("ImageReviewState");
 
                     b.HasIndex("IsRepoManaged");
 
                     b.HasIndex("NavigationKeywordId1");
 
                     b.HasIndex("NavigationKeywordId2");
+
+                    b.HasIndex("QuestionImageAssetId");
 
                     b.HasIndex("UploadId");
 
@@ -1135,10 +1164,86 @@ namespace Quizymode.Api.Migrations
                         {
                             t.HasCheckConstraint("CK_Items_ExplanationImage_Alt", "(\"ExplanationImageKey\" IS NULL) = (\"ExplanationImageAlt\" IS NULL)");
 
+                            t.HasCheckConstraint("CK_Items_ExplanationImage_Asset", "(\"ExplanationImageAssetId\" IS NOT NULL AND \"ExplanationImageKey\" = 'media:' || replace(\"ExplanationImageAssetId\"::text, '-', '')) OR (\"ExplanationImageAssetId\" IS NULL AND (\"ExplanationImageKey\" IS NULL OR \"ExplanationImageKey\" NOT LIKE 'media:%'))");
+
+                            t.HasCheckConstraint("CK_Items_ImageReviewState", "\"ImageReviewState\" IS NULL OR \"ImageReviewState\" IN ('PendingReview', 'Approved', 'Rejected', 'Withdrawn')");
+
+                            t.HasCheckConstraint("CK_Items_ImageReviewState_Assets", "(\"ImageReviewState\" IS NULL) = (\"QuestionImageAssetId\" IS NULL AND \"ExplanationImageAssetId\" IS NULL)");
+
                             t.HasCheckConstraint("CK_Items_IncorrectAnswers_Length", "jsonb_array_length(\"IncorrectAnswers\"::jsonb) >= 0 AND jsonb_array_length(\"IncorrectAnswers\"::jsonb) <= 4");
 
                             t.HasCheckConstraint("CK_Items_QuestionImage_Alt", "(\"QuestionImageKey\" IS NULL) = (\"QuestionImageAlt\" IS NULL)");
+
+                            t.HasCheckConstraint("CK_Items_QuestionImage_Asset", "(\"QuestionImageAssetId\" IS NOT NULL AND \"QuestionImageKey\" = 'media:' || replace(\"QuestionImageAssetId\"::text, '-', '')) OR (\"QuestionImageAssetId\" IS NULL AND (\"QuestionImageKey\" IS NULL OR \"QuestionImageKey\" NOT LIKE 'media:%'))");
                         });
+                });
+
+            modelBuilder.Entity("Quizymode.Api.Shared.Models.ItemImageReview", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ContentHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character(64)")
+                        .IsFixedLength();
+
+                    b.Property<DateTime?>("DecidedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DecidedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Decision")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<Guid?>("ExplanationAssetId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ExplanationSha256")
+                        .HasMaxLength(64)
+                        .HasColumnType("character(64)")
+                        .IsFixedLength();
+
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("PolicyVersion")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<Guid?>("QuestionAssetId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("QuestionSha256")
+                        .HasMaxLength(64)
+                        .HasColumnType("character(64)")
+                        .IsFixedLength();
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("Revision")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("SubmittedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("SubmittedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ItemId", "Revision")
+                        .IsUnique();
+
+                    b.ToTable("ItemImageReviews", (string)null);
                 });
 
             modelBuilder.Entity("Quizymode.Api.Shared.Models.ItemKeyword", b =>
@@ -2478,6 +2583,11 @@ namespace Quizymode.Api.Migrations
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("Quizymode.Api.Shared.Models.MediaAsset", null)
+                        .WithMany()
+                        .HasForeignKey("ExplanationImageAssetId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Quizymode.Api.Shared.Models.Keyword", "NavigationKeyword1")
                         .WithMany()
                         .HasForeignKey("NavigationKeywordId1")
@@ -2486,6 +2596,11 @@ namespace Quizymode.Api.Migrations
                     b.HasOne("Quizymode.Api.Shared.Models.Keyword", "NavigationKeyword2")
                         .WithMany()
                         .HasForeignKey("NavigationKeywordId2")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Quizymode.Api.Shared.Models.MediaAsset", null)
+                        .WithMany()
+                        .HasForeignKey("QuestionImageAssetId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Category");

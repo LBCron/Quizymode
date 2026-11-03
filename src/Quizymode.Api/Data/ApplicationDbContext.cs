@@ -102,6 +102,8 @@ public sealed class ApplicationDbContext : DbContext
 
     public DbSet<MediaAsset> MediaAssets => Set<MediaAsset>();
 
+    public DbSet<ItemImageReview> ItemImageReviews => Set<ItemImageReview>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);

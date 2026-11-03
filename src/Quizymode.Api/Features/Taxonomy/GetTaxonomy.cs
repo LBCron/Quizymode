@@ -181,12 +181,11 @@ public static class GetTaxonomy
 
         if (!userContext.IsAuthenticated || string.IsNullOrEmpty(userContext.UserId))
         {
-            query = query.Where(item => !item.IsPrivate);
+            query = query.Where(ItemVisibility.PublicEligible);
         }
         else
         {
-            string currentUserId = userContext.UserId;
-            query = query.Where(item => !item.IsPrivate || item.CreatedBy == currentUserId);
+            query = query.Where(ItemVisibility.VisibleTo(userContext.UserId));
         }
 
         return await query
@@ -212,12 +211,11 @@ public static class GetTaxonomy
 
         if (!userContext.IsAuthenticated || string.IsNullOrEmpty(userContext.UserId))
         {
-            visibleItems = visibleItems.Where(item => !item.IsPrivate);
+            visibleItems = visibleItems.Where(ItemVisibility.PublicEligible);
         }
         else
         {
-            string currentUserId = userContext.UserId;
-            visibleItems = visibleItems.Where(item => !item.IsPrivate || item.CreatedBy == currentUserId);
+            visibleItems = visibleItems.Where(ItemVisibility.VisibleTo(userContext.UserId));
         }
 
         List<Rank1NavigationKeywordCountRow> nav1Counts = await visibleItems

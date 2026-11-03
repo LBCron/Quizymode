@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Quizymode.Api.Data;
+using Quizymode.Api.Shared.Helpers;
 using Quizymode.Api.Shared.Http;
 using Quizymode.Api.Services;
 using Quizymode.Api.Shared.Kernel;
@@ -73,7 +74,7 @@ public static class GetBookmarks
                 .Where(c => bookmarks.Contains(c.Id) && (c.IsPublic || c.CreatedBy == userId))
                 .ToListAsync(cancellationToken);
 
-            var itemCounts = await db.CollectionItems
+            var itemCounts = await ItemVisibility.EligibleCollectionItems(db, userId)
                 .Where(ci => bookmarks.Contains(ci.CollectionId))
                 .GroupBy(ci => ci.CollectionId)
                 .Select(g => new { CollectionId = g.Key, Count = g.Count() })

@@ -39,8 +39,8 @@ internal sealed class ItemResponseMapper
             item.CorrectAnswerSpeech,
             item.IncorrectAnswerSpeech.Count > 0 ? item.IncorrectAnswerSpeech : null,
             item.GroupLabel,
-            ItemImageReferenceHelper.FromColumns(item.QuestionImageKey, item.QuestionImageAlt),
-            ItemImageReferenceHelper.FromColumns(item.ExplanationImageKey, item.ExplanationImageAlt));
+            ItemImageReferenceHelper.FromColumns(item.QuestionImageKey, item.QuestionImageAlt, item.QuestionImageAttribution),
+            ItemImageReferenceHelper.FromColumns(item.ExplanationImageKey, item.ExplanationImageAlt, item.ExplanationImageAttribution));
     }
 
     private List<GetItems.KeywordResponse> FilterVisibleKeywords(Item item)

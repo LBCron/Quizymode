@@ -304,7 +304,8 @@ public static class ReviewQueue
     {
         var rows = await (from entry in db.ReviewQueueEntries.AsNoTracking()
                           join item in db.Items.AsNoTracking() on entry.ItemId equals item.Id
-                          where entry.UserId == userId && (!item.IsPrivate || item.CreatedBy == userId)
+                          where entry.UserId == userId
+                                && ((!item.IsPrivate && (item.ImageReviewState == null || item.ImageReviewState == ItemImageReviewState.Approved)) || item.CreatedBy == userId)
                           select new { entry.DueAt, item.CorrectAnswer, item.IncorrectAnswers })
             .ToListAsync(cancellationToken);
         // #250: unplayable legacy items (no usable distractor) are never counted or served.

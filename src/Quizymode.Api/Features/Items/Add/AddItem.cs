@@ -15,8 +15,8 @@ public static class AddItem
         string Name,
         bool IsPrivate);
 
-    /// <param name="QuestionImage">Not supported; omit or send null. A non-null value is rejected with 400 (curated pictures are added through seed data).</param>
-    /// <param name="ExplanationImage">Not supported; omit or send null. A non-null value is rejected with 400 (curated pictures are added through seed data).</param>
+    /// <param name="QuestionImage">Optional uploaded picture: <c>{ assetId, altText, attribution? }</c> from POST /media/images. Keys, URLs and <c>remove</c> are rejected with 400.</param>
+    /// <param name="ExplanationImage">Optional uploaded picture shown after the answer; requires explanation text. Same shape as <paramref name="QuestionImage"/>.</param>
     public sealed record Request(
         string Category,
         string NavigationKeyword1,
@@ -34,8 +34,8 @@ public static class AddItem
         ItemSpeechSupport? CorrectAnswerSpeech = null,
         Dictionary<int, ItemSpeechSupport>? IncorrectAnswerSpeech = null,
         string? GroupLabel = null,
-        System.Text.Json.JsonElement? QuestionImage = null,
-        System.Text.Json.JsonElement? ExplanationImage = null);
+        ImageSlotInput? QuestionImage = null,
+        ImageSlotInput? ExplanationImage = null);
 
     public sealed record Response(
         string Id,
@@ -51,7 +51,10 @@ public static class AddItem
         ItemSpeechSupport? QuestionSpeech = null,
         ItemSpeechSupport? CorrectAnswerSpeech = null,
         Dictionary<int, ItemSpeechSupport>? IncorrectAnswerSpeech = null,
-        string? GroupLabel = null);
+        string? GroupLabel = null,
+        ItemImageReference? QuestionImage = null,
+        ItemImageReference? ExplanationImage = null,
+        ItemImageReviewInfo? ImageReview = null);
 
     public sealed class Validator : AbstractValidator<Request>
     {
@@ -80,7 +83,9 @@ public static class AddItem
                 .WithMessage("Question must not exceed 1000 characters");
 
             this.AddSpeechSupportRules(x => x.QuestionSpeech, 1000, "QuestionSpeech");
-            this.AddPictureImportRejectionRules(x => x.QuestionImage, x => x.ExplanationImage);
+            this.AddImageSlotRules(x => x.QuestionImage, "QuestionImage", allowRemove: false);
+            this.AddImageSlotRules(x => x.ExplanationImage, "ExplanationImage", allowRemove: false);
+            this.AddExplanationPictureRequiresTextRule(x => x.ExplanationImage, x => x.Explanation);
 
             RuleFor(x => x.CorrectAnswer)
                 .NotEmpty()
@@ -141,7 +146,8 @@ public static class AddItem
                 .WithSummary("Create a new quiz item")
                 .RequireAuthorization()
                 .Produces<Response>(StatusCodes.Status201Created)
-                .Produces(StatusCodes.Status400BadRequest);
+                .Produces(StatusCodes.Status400BadRequest)
+                .Produces(StatusCodes.Status409Conflict);
         }
 
         private static async Task<IResult> Handler(

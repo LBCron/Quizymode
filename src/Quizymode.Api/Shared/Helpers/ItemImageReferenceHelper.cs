@@ -49,8 +49,8 @@ internal static partial class ItemImageReferenceHelper
     /// <summary>The stored image key, or null when the item has no picture.</summary>
     internal static string? KeyOf(ItemImageReference? image) => image?.Key;
 
-    internal static ItemImageReference? FromColumns(string? key, string? altText) =>
-        key is null ? null : new ItemImageReference(key, altText ?? string.Empty);
+    internal static ItemImageReference? FromColumns(string? key, string? altText, string? attribution = null) =>
+        key is null ? null : new ItemImageReference(key, altText ?? string.Empty, attribution);
 
     /// <summary>Adds key format and alt text rules for an optional image reference.</summary>
     internal static void AddQuestionImageRules<T>(

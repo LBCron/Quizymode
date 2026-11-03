@@ -326,7 +326,7 @@ public static class GlobalSearch
                 SELECT c."Id", c."Name", c."Description",
                     (SELECT count(*)::int FROM "CollectionItems" ci
                         JOIN "Items" it ON it."Id" = ci."ItemId"
-                        WHERE ci."CollectionId" = c."Id" AND it."IsPrivate" = false) AS "ItemCount",
+                        WHERE ci."CollectionId" = c."Id" AND it."IsPrivate" = false AND {ItemVisibility.MediaEligibleSql("it")}) AS "ItemCount",
                     ts_rank_cd(c."SearchVector", {tsq}, 32) AS "Rank",
                     word_similarity(lower(@Q), lower(c."Name")) AS "Similarity"
                 FROM "Collections" c
@@ -358,7 +358,7 @@ public static class GlobalSearch
                 SELECT i0."Id", i0."Question", i0."CategoryId", i0."NavigationKeywordId1", i0."NavigationKeywordId2",
                     ts_rank_cd(i0."SearchVector", {tsq}, 32) AS "Rank"
                 FROM "Items" i0
-                WHERE i0."IsPrivate" = false AND i0."SearchVector" @@ {tsq}
+                WHERE i0."IsPrivate" = false AND {ItemVisibility.MediaEligibleSql("i0")} AND i0."SearchVector" @@ {tsq}
                 ORDER BY "Rank" DESC, i0."Id"
                 LIMIT @Limit1 OFFSET @Offset
             ) i

@@ -111,8 +111,8 @@ public static class GetCategories
                 LEFT JOIN ""Items"" i
                     ON i.""CategoryId"" = c.""Id""
                     AND (
-                        (@IsAuthenticated = 0 AND i.""IsPrivate"" = false)
-                        OR (@IsAuthenticated = 1 AND (i.""IsPrivate"" = false OR (i.""IsPrivate"" = true AND i.""CreatedBy"" = @CurrentUserId)))
+                        (@IsAuthenticated = 0 AND i.""IsPrivate"" = false AND (i.""ImageReviewState"" IS NULL OR i.""ImageReviewState"" = 'Approved'))
+                        OR (@IsAuthenticated = 1 AND ((i.""IsPrivate"" = false AND (i.""ImageReviewState"" IS NULL OR i.""ImageReviewState"" = 'Approved')) OR i.""CreatedBy"" = @CurrentUserId))
                     )
                 LEFT JOIN ""Ratings"" r ON r.""ItemId"" = i.""Id"" AND r.""Stars"" IS NOT NULL
                 WHERE (

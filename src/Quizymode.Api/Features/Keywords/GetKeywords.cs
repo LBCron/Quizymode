@@ -4,6 +4,7 @@ using Quizymode.Api.Data;
 using Quizymode.Api.Shared.Http;
 using Quizymode.Api.Services;
 using Quizymode.Api.Shared.Kernel;
+using Quizymode.Api.Shared.Helpers;
 using Quizymode.Api.Shared.Models;
 using Microsoft.Extensions.Logging;
 
@@ -347,11 +348,11 @@ public static class GetKeywords
 
         if (!isAuthenticated)
         {
-            visibleItems = visibleItems.Where(item => !item.IsPrivate);
+            visibleItems = visibleItems.Where(ItemVisibility.PublicEligible);
         }
         else
         {
-            visibleItems = visibleItems.Where(item => !item.IsPrivate || item.CreatedBy == safeCurrentUserId);
+            visibleItems = visibleItems.Where(ItemVisibility.VisibleTo(safeCurrentUserId));
         }
 
         IQueryable<Item> countedItems = targetRank == 1
@@ -475,9 +476,9 @@ public static class GetKeywords
         // Item IDs in category with visibility: match by NavigationKeywordId1/2 when path length 1 or 2, else by ItemKeywords
         IQueryable<Item> itemsQuery = db.Items.Where(i => i.CategoryId == categoryId);
         if (!userContext.IsAuthenticated || string.IsNullOrEmpty(userContext.UserId))
-            itemsQuery = itemsQuery.Where(i => !i.IsPrivate);
+            itemsQuery = itemsQuery.Where(ItemVisibility.PublicEligible);
         else
-            itemsQuery = itemsQuery.Where(i => !i.IsPrivate || (i.IsPrivate && i.CreatedBy == userContext.UserId));
+            itemsQuery = itemsQuery.Where(ItemVisibility.VisibleTo(userContext.UserId));
 
         if (pathKeywordIds.Count == 1)
             itemsQuery = itemsQuery.Where(i => i.NavigationKeywordId1 == pathKeywordIds[0]);
@@ -566,9 +567,9 @@ public static class GetKeywords
         IQueryable<Item> query = db.Items.Where(i => i.CategoryId == categoryId);
 
         if (!isAuthenticated || string.IsNullOrEmpty(currentUserId))
-            query = query.Where(i => !i.IsPrivate);
+            query = query.Where(ItemVisibility.PublicEligible);
         else
-            query = query.Where(i => !i.IsPrivate || (i.IsPrivate && i.CreatedBy == currentUserId));
+            query = query.Where(ItemVisibility.VisibleTo(currentUserId));
 
         if (rank1KeywordIds.Count > 0)
             query = query.Where(i => i.NavigationKeywordId1 == null || !rank1KeywordIds.Contains(i.NavigationKeywordId1.Value));
