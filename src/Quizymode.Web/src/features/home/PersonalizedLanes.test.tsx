@@ -35,7 +35,7 @@ vi.mock("@/api/studyPlans", () => ({ studyPlansApi: { list: vi.fn(), upsert: vi.
 vi.mock("@/api/collections", () => ({ collectionsApi: { getById: vi.fn().mockResolvedValue({ name: "Tennis Trivia" }) } }));
 
 const featured: FeaturedSetDto[] = [
-  { id: "f1", displayName: "World Cup Starter", categorySlug: "trivia", navKeyword1: "sports", navKeyword2: null, itemCount: 10, lastModifiedAt: null, sortOrder: 1 },
+  { id: "f1", displayName: "Guess the Flag", categorySlug: "geography", navKeyword1: "flags", navKeyword2: "countries", itemCount: 10, lastModifiedAt: null, sortOrder: 1 },
   { id: "f2", displayName: "Solar System Sprint", categorySlug: "science", navKeyword1: "space", navKeyword2: null, itemCount: 10, lastModifiedAt: null, sortOrder: 2 },
 ];
 
@@ -56,7 +56,7 @@ describe("PersonalizedLanes", () => {
     expect(await screen.findByText("Popular right now")).toBeInTheDocument();
     // Before the popular list arrives the catalog order is shown; popular categories then move to the front.
     await waitFor(() =>
-      expect(screen.getAllByRole("link", { name: /Solar System Sprint|World Cup Starter/ })[0]).toHaveTextContent("Solar System Sprint"),
+      expect(screen.getAllByRole("link", { name: /Solar System Sprint|Guess the Flag/ })[0]).toHaveTextContent("Solar System Sprint"),
     );
 
     fireEvent.click(screen.getByRole("button", { name: "Change topics" }));
@@ -171,13 +171,13 @@ describe("PersonalizedLanes", () => {
   });
 
   it("focused: every chosen topic is listed and no recommended sets come from the catalog", async () => {
-    writeLocalInterests(["history", "geography", "tech", "exams"]);
+    writeLocalInterests(["history", "languages", "tech", "exams"]);
     renderWithProviders(<PersonalizedLanes featuredSets={featured} focused />);
     await waitFor(() => expect(interestsApi.popularCategories).toHaveBeenCalled());
-    for (const name of ["History", "Geography", "Tech", "Exams"]) {
+    for (const name of ["History", "Languages", "Tech", "Exams"]) {
       expect(screen.getByRole("link", { name })).toBeInTheDocument();
     }
-    expect(screen.queryByRole("link", { name: /World Cup Starter|Solar System Sprint/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /Guess the Flag|Solar System Sprint/ })).not.toBeInTheDocument();
   });
 });
 

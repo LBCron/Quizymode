@@ -386,17 +386,17 @@ internal sealed class DatabaseSeederHostedService(
         _logger.LogInformation("Ensured {Count} seeder ratings (5 stars) for Science items.", ratingsToAdd.Count);
     }
 
+    internal static readonly (string CategorySlug, string Kw1, string? Kw2, string DisplayName, int SortOrder)[] DefaultFeaturedSets =
+    [
+        ("geography", "flags",     "countries",       "Guess the Flag",          0),
+        ("exams",     "aws",       "saa-c03",         "AWS SAA-C03",             1),
+        ("nature",    "survival",  "tropical-island", "Tropical Island Survival", 2),
+        ("science",   "astronomy", "solar-system",    "Solar System Sprint",     3),
+    ];
+
     private async Task EnsureFeaturedSetsAsync(ApplicationDbContext db, CancellationToken cancellationToken)
     {
-        var seeds = new[]
-        {
-            (CategorySlug: "exams",    Kw1: "aws",       Kw2: (string?)"saa-c03",        DisplayName: "AWS SAA-C03",               SortOrder: 0),
-            (CategorySlug: "sports",   Kw1: "soccer",    Kw2: (string?)"world-cup",       DisplayName: "World Cup Starter",         SortOrder: 1),
-            (CategorySlug: "nature",   Kw1: "survival",  Kw2: (string?)"tropical-island", DisplayName: "Tropical Island Survival",  SortOrder: 2),
-            (CategorySlug: "science",  Kw1: "astronomy", Kw2: (string?)"solar-system",    DisplayName: "Solar System Sprint",       SortOrder: 3),
-        };
-
-        foreach (var seed in seeds)
+        foreach (var seed in DefaultFeaturedSets)
         {
             bool exists = await db.FeaturedItems.AnyAsync(
                 f => f.Type == FeaturedItemType.Set
