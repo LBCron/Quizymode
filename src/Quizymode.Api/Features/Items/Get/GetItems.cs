@@ -1,4 +1,5 @@
 using Quizymode.Api.Data;
+using Quizymode.Api.Shared.Helpers;
 using Quizymode.Api.Shared.Http;
 using Quizymode.Api.Services;
 using Quizymode.Api.Shared.Kernel;
@@ -59,7 +60,8 @@ public static class GetItems
         Dictionary<int, ItemSpeechSupport>? IncorrectAnswerSpeech = null,
         string? GroupLabel = null,
         ItemImageReference? QuestionImage = null,
-        ItemImageReference? ExplanationImage = null);
+        ItemImageReference? ExplanationImage = null,
+        ItemImageReviewInfo? ImageReview = null);
 
     public sealed record KeywordResponse(
         string Id,

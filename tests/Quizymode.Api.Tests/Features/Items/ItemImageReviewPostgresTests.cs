@@ -639,4 +639,34 @@ public sealed class ItemImageReviewPostgresTests(PostgresContainerFixture fixtur
             outcomes.Count(o => o.Status == HttpStatusCode.Conflict).Should().Be(1);
         }
     }
+
+    [SkippableFact]
+    public async Task ImageReviewQueue_OnPostgres_ListsMissingAuditRowFirst_ThenOldestFirst_WithCorrectOldest()
+    {
+        RequireDatabase();
+        string owner = Guid.NewGuid().ToString();
+        DateTime now = DateTime.UtcNow;
+        await using ApplicationDbContext db = fixture.CreateDbContext();
+        Category category = VisibilitySeed.AddCategory(db);
+        Item newer = PictureSeed.AddPictureItem(db, category, owner, false, ItemImageReviewState.PendingReview, PictureSeed.AddAsset(db, owner));
+        Item older = PictureSeed.AddPictureItem(db, category, owner, false, ItemImageReviewState.PendingReview, PictureSeed.AddAsset(db, owner));
+        Item missingRow = PictureSeed.AddPictureItem(db, category, owner, false, ItemImageReviewState.PendingReview, PictureSeed.AddAsset(db, owner));
+        await db.SaveChangesAsync();
+        DateTime olderAt = now.AddDays(-3);
+        await db.ItemImageReviews.Where(r => r.ItemId == newer.Id).ExecuteUpdateAsync(s => s.SetProperty(r => r.SubmittedAt, now.AddHours(-1)));
+        await db.ItemImageReviews.Where(r => r.ItemId == older.Id).ExecuteUpdateAsync(s => s.SetProperty(r => r.SubmittedAt, olderAt));
+        await db.ItemImageReviews.Where(r => r.ItemId == missingRow.Id).ExecuteDeleteAsync();
+
+        await using ApplicationDbContext read = fixture.CreateDbContext();
+        Quizymode.Api.Shared.Kernel.Result<GetImageReviewQueue.Response> result = await GetImageReviewQueue.HandleAsync(
+            new GetImageReviewQueue.QueryRequest(null, 1, 100), read, now, CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+        List<string> ids = result.Value.Items.Select(i => i.Id).ToList();
+        List<string> mine = new[] { missingRow.Id, older.Id, newer.Id }.Select(g => g.ToString()).ToList();
+        ids.Where(mine.Contains).Should().Equal(mine);
+        result.Value.OldestSubmittedAt.Should().BeCloseTo(
+            result.Value.Items.Where(i => i.ImageReview.SubmittedAt != null).Min(i => i.ImageReview.SubmittedAt)!.Value, TimeSpan.FromMilliseconds(1));
+        result.Value.OldestSubmittedAt.Should().BeOnOrBefore(olderAt.AddSeconds(1));
+    }
 }

@@ -469,6 +469,13 @@ public static class UpdateItem
                     cancellationToken: cancellationToken);
             }
 
+            string? rejectionReason = null;
+            if (item.ImageReviewState == ItemImageReviewState.Rejected)
+            {
+                Dictionary<Guid, string?> reasons = await ItemImageReviewRules.LoadRejectionReasonsAsync(db, [item], cancellationToken);
+                rejectionReason = reasons.GetValueOrDefault(item.Id);
+            }
+
             Response response = new(
                 item.Id.ToString(),
                 category.Name,
@@ -485,7 +492,7 @@ public static class UpdateItem
                 item.GroupLabel,
                 ItemImageReferenceHelper.FromColumns(item.QuestionImageKey, item.QuestionImageAlt, item.QuestionImageAttribution),
                 ItemImageReferenceHelper.FromColumns(item.ExplanationImageKey, item.ExplanationImageAlt, item.ExplanationImageAttribution),
-                ItemImageReviewRules.InfoOf(item));
+                ItemImageReviewRules.InfoOf(item, rejectionReason));
 
             return Result.Success(response);
         }

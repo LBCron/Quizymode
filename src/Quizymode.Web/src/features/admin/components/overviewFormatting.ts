@@ -47,3 +47,19 @@ export function layoutReleaseLabels(
   }
   return labels;
 }
+
+/** "less than a minute" / "5 minutes" / "1 hour" / "3 days" for an elapsed number of seconds. */
+export function formatAge(seconds: number): string {
+  const plural = (n: number, unit: string): string => `${n} ${unit}${n === 1 ? "" : "s"}`;
+  if (seconds < 60) return "less than a minute";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return plural(minutes, "minute");
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return plural(hours, "hour");
+  return plural(Math.floor(hours / 24), "day");
+}
+
+/** Seconds elapsed since an ISO timestamp (never negative). */
+export function secondsSince(iso: string, now: number = Date.now()): number {
+  return Math.max(0, Math.floor((now - new Date(iso).getTime()) / 1000));
+}

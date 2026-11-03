@@ -9,7 +9,7 @@ import {
 } from "@/api/admin";
 import ErrorMessage from "@/components/ErrorMessage";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import { formatChange, layoutReleaseLabels } from "./overviewFormatting";
+import { formatAge, formatChange, layoutReleaseLabels, secondsSince } from "./overviewFormatting";
 
 type OverviewDays = 7 | 30 | 90;
 const RANGES: OverviewDays[] = [7, 30, 90];
@@ -206,8 +206,18 @@ const AdminOverviewPanel = () => {
             <DailyChart data={data} />
           </div>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
             <WorkQueueLink to="/admin/review-board" label="Items awaiting review" count={data.workQueue.itemsAwaitingReview} />
+            <WorkQueueLink
+              to="/admin/review-board?tab=pictures"
+              label="Pictures awaiting review"
+              count={data.workQueue.picturesAwaitingReview ?? 0}
+              sublabel={
+                (data.workQueue.picturesAwaitingReview ?? 0) > 0 && data.workQueue.oldestPictureSubmittedAt
+                  ? `Oldest submitted ${formatAge(secondsSince(data.workQueue.oldestPictureSubmittedAt))} ago`
+                  : undefined
+              }
+            />
             <WorkQueueLink to="/admin/keyword-review" label="Pending private keywords" count={data.workQueue.pendingPrivateKeywords} />
             <WorkQueueLink to="/admin/ideas" label="Ideas awaiting moderation" count={data.workQueue.ideasAwaitingModeration} />
             <WorkQueueLink to="/admin/client-errors" label="New front-end error groups" count={data.workQueue.newClientErrorGroups} />
@@ -218,12 +228,25 @@ const AdminOverviewPanel = () => {
   );
 };
 
-const WorkQueueLink = ({ to, label, count }: { to: string; label: string; count: number }) => (
+const WorkQueueLink = ({
+  to,
+  label,
+  count,
+  sublabel,
+}: {
+  to: string;
+  label: string;
+  count: number;
+  sublabel?: string;
+}) => (
   <Link
     to={to}
-    className="flex items-center justify-between rounded-lg bg-white p-4 shadow hover:shadow-lg transition-shadow"
+    className="flex items-center justify-between gap-3 rounded-lg bg-white p-4 shadow hover:shadow-lg transition-shadow"
   >
-    <span className="text-sm font-medium text-gray-900">{label}</span>
+    <span>
+      <span className="block text-sm font-medium text-gray-900">{label}</span>
+      {sublabel ? <span className="block text-xs text-gray-500">{sublabel}</span> : null}
+    </span>
     <span className="text-xl font-semibold text-indigo-700">{count}</span>
   </Link>
 );

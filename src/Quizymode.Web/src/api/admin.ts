@@ -251,7 +251,55 @@ export interface AnalyticsOverviewResponse {
     ideasAwaitingModeration: number;
     /** Front-end error groups first seen in the window (OBS-001). */
     newClientErrorGroups: number;
+    /** Items whose uploaded pictures await a decision (#401). */
+    picturesAwaitingReview: number;
+    /** When the oldest pending picture submission was made; null when none. */
+    oldestPictureSubmittedAt?: string | null;
   };
+}
+
+export type ImageReviewQueueState = "PendingReview" | "Approved" | "Rejected" | "Withdrawn";
+
+export interface ImageReviewQueueReview {
+  state: ImageReviewQueueState;
+  revision: number;
+  submittedBy?: string | null;
+  submittedByDisplay?: string | null;
+  submittedAt?: string | null;
+  decidedBy?: string | null;
+  decidedAt?: string | null;
+  reason?: string | null;
+}
+
+export interface ImageReviewQueueItem {
+  id: string;
+  category: string;
+  isPrivate: boolean;
+  readyForReview: boolean;
+  question: string;
+  correctAnswer: string;
+  incorrectAnswers: string[];
+  explanation: string;
+  createdBy: string;
+  questionImage?: ItemImageReference | null;
+  explanationImage?: ItemImageReference | null;
+  imageReview: ImageReviewQueueReview;
+  ageSeconds?: number | null;
+}
+
+export interface ImageReviewQueueResponse {
+  items: ImageReviewQueueItem[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  oldestSubmittedAt?: string | null;
+}
+
+export interface SetImageReviewRequest {
+  decision: "approve" | "reject";
+  expectedRevision: number;
+  reason?: string;
 }
 
 /**
@@ -912,6 +960,37 @@ export interface ClientErrorsResponse {
 }
 
 export const adminApi = {
+  getImageReviewQueue: async (
+    state: ImageReviewQueueState = "PendingReview",
+    page: number = 1,
+    pageSize: number = 25
+  ): Promise<ImageReviewQueueResponse> => {
+    const response = await apiClient.get<ImageReviewQueueResponse>(
+      "/admin/items/image-review",
+      { params: { state, page, pageSize } }
+    );
+    return response.data;
+  },
+
+  setImageReview: async (
+    id: string,
+    request: SetImageReviewRequest
+  ): Promise<{ id: string; imageReview: ImageReviewQueueReview }> => {
+    const response = await apiClient.put<{ id: string; imageReview: ImageReviewQueueReview }>(
+      `/admin/items/${id}/image-review`,
+      request
+    );
+    return response.data;
+  },
+
+  /** Fetches an uploaded picture with the admin bearer token (an <img> tag cannot send it). */
+  fetchItemImageBlob: async (id: string, slot: "question" | "explanation"): Promise<Blob> => {
+    const response = await apiClient.get<Blob>(`/items/${id}/images/${slot}`, {
+      responseType: "blob",
+    });
+    return response.data;
+  },
+
   getReviewBoardItems: async (): Promise<ReviewBoardResponse> => {
     const response = await apiClient.get<ReviewBoardResponse>(
       "/admin/items/review-board"

@@ -50,6 +50,18 @@ function buildItem(overrides: Partial<ItemResponse> = {}): ItemResponse {
 }
 
 describe("ItemListCard", () => {
+  it("shows the picture review status line when the item has imageReview", () => {
+    render(<ItemListCard item={buildItem({ imageReview: { state: "PendingReview", revision: 1 } })} showAnswer />);
+
+    expect(screen.getByText("Pictures: Pending review")).toBeInTheDocument();
+  });
+
+  it("shows no picture review status without imageReview", () => {
+    render(<ItemListCard item={buildItem()} showAnswer />);
+
+    expect(screen.queryByText(/^Pictures:/)).not.toBeInTheDocument();
+  });
+
   it("shows explanation when answers are visible", () => {
     render(<ItemListCard item={buildItem()} showAnswer />);
 

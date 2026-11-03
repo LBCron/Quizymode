@@ -153,6 +153,15 @@ public static class GetItemById
             // Build navigation breadcrumb: rank1, rank2 (or "other" when item has no nav keyword for that level)
             List<string> navigationBreadcrumb = await GetNavigationBreadcrumbAsync(db, item, cancellationToken);
 
+            // Review state is shown to the creator and admins only (AC 3.25.2); so is the rejection reason.
+            bool canSeeImageReview = userContext.IsAdmin || (userContext.IsAuthenticated && item.CreatedBy == userContext.UserId);
+            string? rejectionReason = null;
+            if (canSeeImageReview && item.ImageReviewState == ItemImageReviewState.Rejected)
+            {
+                Dictionary<Guid, string?> reasons = await ItemImageReviewRules.LoadRejectionReasonsAsync(db, [item], cancellationToken);
+                rejectionReason = reasons.GetValueOrDefault(item.Id);
+            }
+
             Response response = new(
                 item.Id.ToString(),
                 categoryName,
@@ -176,10 +185,7 @@ public static class GetItemById
                 item.GroupLabel,
                 ItemImageReferenceHelper.FromColumns(item.QuestionImageKey, item.QuestionImageAlt, item.QuestionImageAttribution),
                 ItemImageReferenceHelper.FromColumns(item.ExplanationImageKey, item.ExplanationImageAlt, item.ExplanationImageAttribution),
-                // Review state is shown to the creator and admins only (AC 3.25.2).
-                userContext.IsAdmin || (userContext.IsAuthenticated && item.CreatedBy == userContext.UserId)
-                    ? ItemImageReviewRules.InfoOf(item)
-                    : null);
+                canSeeImageReview ? ItemImageReviewRules.InfoOf(item, rejectionReason) : null);
 
             return Result.Success(response);
         }
