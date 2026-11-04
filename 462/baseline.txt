@@ -1,0 +1,3 @@
+Baseline 2026-11-03 (prod, last 28d, non-bot, non-internal, contextType=home contextId=8f9b8c14-...):
+started_runs=11 completed_runs=7 (64%) completers=7 with_second_quick_quiz_same_session=1 (14%)
+7-day return: not measurable (no visitor id beyond SessionId)

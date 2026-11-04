@@ -1,0 +1,14 @@
+GET /starter-pool (prod, 2026-11-04, after seed sync 0346bbfe)
+HTTP 200; Cache-Control: public, max-age=300; payload 56,130 bytes
+version 7bb4fa889ff2; items 52
+by world: {"animals": 7, "body": 5, "flags": 9, "food": 6, "genai": 8, "places": 6, "space": 6, "time": 5}
+max wowLine length: 105
+private items: 0
+
+Before seed sync (same deploy): {"version":"e3b0c44298fc","items":[]}
+Seed source starter count: 52 (animals 7, body 5, flags 9, food 6, genai 8, places 6, space 6, time 5) - all 52 served.
+
+Seed sync (admin UI, GitHub ref 0054c412ec3372dfdb74f870c130f878af90d3d6, incremental from e769d6843752):
+preview: 312 in scope; affected 53 = 29 created + 24 updated; 0 deleted; 259 unchanged; collections 0 affected
+apply:   run 0346bbfe-4800-4f52-8045-9a7ce6f32631, Nov 4 2026 9:09 AM; same counts as preview
+updated changedFields: starterWorld, wowLine (+ question/source/explanation rewrites on curated trivia/space/animal items)
