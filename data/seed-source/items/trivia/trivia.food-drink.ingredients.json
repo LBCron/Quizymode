@@ -188,5 +188,95 @@
       "chemistry"
     ],
     "source": "https://www.britannica.com/science/sodium-bicarbonate"
+  },
+  {
+    "itemId": "0dc8f94e-c2b6-4ae1-a52f-39775d93c030",
+    "category": "trivia",
+    "navigationKeyword1": "food-drink",
+    "navigationKeyword2": "ingredients",
+    "question": "Botanically, a banana is a kind of what?",
+    "correctAnswer": "Berry",
+    "incorrectAnswers": [
+      "Nut",
+      "Vegetable",
+      "Herb"
+    ],
+    "explanation": "Botanists define a berry as a fleshy fruit with seeds inside that grows from a single flower. Bananas fit; strawberries do not.",
+    "keywords": [],
+    "source": "https://en.wikipedia.org/wiki/Berry_(botany)",
+    "starterWorld": "food",
+    "wowLine": "Botanically a banana is a berry, but a strawberry isn't."
+  },
+  {
+    "itemId": "3bcac323-6e61-4e4a-96ae-2679e569d483",
+    "category": "trivia",
+    "navigationKeyword1": "food-drink",
+    "navigationKeyword2": "ingredients",
+    "question": "Botanically, a peanut is a kind of what?",
+    "correctAnswer": "Legume",
+    "incorrectAnswers": [
+      "Nut",
+      "Root",
+      "Berry"
+    ],
+    "explanation": "Peanuts are legumes, related to beans and peas. The pods ripen underground.",
+    "keywords": [],
+    "source": "https://en.wikipedia.org/wiki/Peanut",
+    "starterWorld": "food",
+    "wowLine": "Peanuts grow underground and are related to beans and peas, not to tree nuts."
+  },
+  {
+    "itemId": "6496ede3-6dd5-4dba-ae69-248cfd9bb462",
+    "category": "trivia",
+    "navigationKeyword1": "food-drink",
+    "navigationKeyword2": "ingredients",
+    "question": "Which spice is usually the most expensive by weight?",
+    "correctAnswer": "Saffron",
+    "incorrectAnswers": [
+      "Black pepper",
+      "Cinnamon",
+      "Paprika"
+    ],
+    "explanation": "Saffron is made from the dried stigmas of crocus flowers, which are picked by hand.",
+    "keywords": [],
+    "source": "https://en.wikipedia.org/wiki/Saffron",
+    "starterWorld": "food",
+    "wowLine": "Each crocus flower gives only three thin red threads, and all of them are picked by hand."
+  },
+  {
+    "itemId": "76b3a580-d154-4af9-8e5c-c2601268befd",
+    "category": "trivia",
+    "navigationKeyword1": "food-drink",
+    "navigationKeyword2": "ingredients",
+    "question": "Chocolate is made from the seeds of which tree?",
+    "correctAnswer": "Cacao",
+    "incorrectAnswers": [
+      "Coffee",
+      "Cashew",
+      "Vanilla"
+    ],
+    "explanation": "Chocolate comes from roasted, ground seeds of the cacao tree. The Aztecs also used cacao beans as money.",
+    "keywords": [],
+    "source": "https://en.wikipedia.org/wiki/Cocoa_bean",
+    "starterWorld": "food",
+    "wowLine": "The Aztecs used cacao beans as money."
+  },
+  {
+    "itemId": "7e8b4f84-5964-497f-9d41-db0a523c3fa6",
+    "category": "trivia",
+    "navigationKeyword1": "food-drink",
+    "navigationKeyword2": "ingredients",
+    "question": "An almond is the seed of a fruit related to which fruit?",
+    "correctAnswer": "Peach",
+    "incorrectAnswers": [
+      "Pear",
+      "Grape",
+      "Mango"
+    ],
+    "explanation": "The almond tree belongs to the same genus as peaches and plums. We eat the seed inside the fruit, so the almond is not a true nut.",
+    "keywords": [],
+    "source": "https://en.wikipedia.org/wiki/Almond",
+    "starterWorld": "food",
+    "wowLine": "An almond is the seed of a fruit related to peaches and plums, not a true nut."
   }
 ]

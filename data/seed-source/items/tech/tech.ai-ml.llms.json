@@ -112,5 +112,149 @@
       "rag"
     ],
     "source": "https://arxiv.org/abs/2005.11401"
+  },
+  {
+    "itemId": "e7e8eb01-8ae0-467a-b5e4-927c6a653c69",
+    "category": "tech",
+    "navigationKeyword1": "ai-ml",
+    "navigationKeyword2": "llms",
+    "question": "ChatGPT reads and writes text in small chunks called what?",
+    "correctAnswer": "Tokens",
+    "incorrectAnswers": [
+      "Pixels",
+      "Syllables",
+      "Bytes"
+    ],
+    "explanation": "AI chatbots split text into chunks called tokens. In English, one token is about 4 characters, or roughly three-quarters of a word.",
+    "keywords": [],
+    "source": "https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them",
+    "starterWorld": "genai",
+    "wowLine": "In English, one token is about 4 characters, or roughly three-quarters of a word."
+  },
+  {
+    "itemId": "57724bac-d46e-46b3-a036-ec6ec520f08a",
+    "category": "tech",
+    "navigationKeyword1": "ai-ml",
+    "navigationKeyword2": "llms",
+    "question": "A \"7B\" AI model has 7 billion of what?",
+    "correctAnswer": "Parameters",
+    "incorrectAnswers": [
+      "Users",
+      "Web pages",
+      "Languages"
+    ],
+    "explanation": "Parameters are the numbers a model learns during training. At 16-bit precision each takes 2 bytes, so 7 billion parameters need about 14 GB of memory.",
+    "keywords": [],
+    "source": "https://huggingface.co/docs/transformers/en/llm_tutorial_optimization",
+    "starterWorld": "genai",
+    "wowLine": "Stored at 16-bit precision, 7 billion parameters take about 14 GB of memory just to load."
+  },
+  {
+    "itemId": "41a6951c-712a-4e2f-a875-6a39e13a4810",
+    "category": "tech",
+    "navigationKeyword1": "ai-ml",
+    "navigationKeyword2": "llms",
+    "question": "When a chatbot confidently states something false, it is called what?",
+    "correctAnswer": "A hallucination",
+    "incorrectAnswers": [
+      "A reboot",
+      "A firewall",
+      "A cache hit"
+    ],
+    "explanation": "Language models predict likely words rather than look facts up, so they can produce fluent statements that are wrong.",
+    "keywords": [],
+    "source": "https://en.wikipedia.org/wiki/Hallucination_(artificial_intelligence)",
+    "starterWorld": "genai",
+    "wowLine": "Chatbots predict likely words instead of looking facts up, so they can sound sure and still be wrong."
+  },
+  {
+    "itemId": "94937873-ae1e-40ec-b1d3-492bfd68afc3",
+    "category": "tech",
+    "navigationKeyword1": "ai-ml",
+    "navigationKeyword2": "llms",
+    "question": "What does the T in GPT stand for?",
+    "correctAnswer": "Transformer",
+    "incorrectAnswers": [
+      "Tensor",
+      "Translator",
+      "Token"
+    ],
+    "explanation": "GPT stands for Generative Pre-trained Transformer. The Transformer design comes from the 2017 paper Attention Is All You Need.",
+    "keywords": [],
+    "source": "https://arxiv.org/abs/1706.03762",
+    "starterWorld": "genai",
+    "wowLine": "The Transformer design was introduced in a 2017 Google paper titled \"Attention Is All You Need\"."
+  },
+  {
+    "itemId": "f5ce94c5-fd5a-4806-b363-86fa96c0a4c6",
+    "category": "tech",
+    "navigationKeyword1": "ai-ml",
+    "navigationKeyword2": "llms",
+    "question": "What does LLM stand for in AI?",
+    "correctAnswer": "Large language model",
+    "incorrectAnswers": [
+      "Long learning machine",
+      "Linked language module",
+      "Local logic map"
+    ],
+    "explanation": "An LLM is a language model with a very large number of parameters, trained on huge amounts of text. GPT-3 had 175 billion parameters.",
+    "keywords": [],
+    "source": "https://arxiv.org/abs/2005.14165",
+    "starterWorld": "genai",
+    "wowLine": "The 2020 model GPT-3 had 175 billion parameters, far more than any earlier language model."
+  },
+  {
+    "itemId": "d13327a4-7cda-4227-86d2-b94baf19a83d",
+    "category": "tech",
+    "navigationKeyword1": "ai-ml",
+    "navigationKeyword2": "llms",
+    "question": "How much text an AI model can consider at once is called its what?",
+    "correctAnswer": "Context window",
+    "incorrectAnswers": [
+      "Screen size",
+      "Memory card",
+      "Chat history"
+    ],
+    "explanation": "The context window is measured in tokens and covers your prompt, any documents you add and the reply. Some models accept about 200,000 tokens.",
+    "keywords": [],
+    "source": "https://docs.anthropic.com/en/docs/build-with-claude/context-windows",
+    "starterWorld": "genai",
+    "wowLine": "Some models can take in about 200,000 tokens at once, roughly the length of a long novel."
+  },
+  {
+    "itemId": "017a87a1-fd3e-4420-9057-9e74791dae4c",
+    "category": "tech",
+    "navigationKeyword1": "ai-ml",
+    "navigationKeyword2": "llms",
+    "question": "Turning an AI's temperature setting up makes its answers more what?",
+    "correctAnswer": "Varied",
+    "incorrectAnswers": [
+      "Accurate",
+      "Polite",
+      "Short"
+    ],
+    "explanation": "Temperature controls randomness when the model picks each next token. Low values give focused, repeatable answers and high values give more variety.",
+    "keywords": [],
+    "source": "https://platform.openai.com/docs/api-reference/chat/create",
+    "starterWorld": "genai",
+    "wowLine": "At temperature 0 a model gives nearly the same answer every time. Higher settings add variety."
+  },
+  {
+    "itemId": "8c6adcb5-a5e2-41e4-9002-40ed2bab01bf",
+    "category": "tech",
+    "navigationKeyword1": "ai-ml",
+    "navigationKeyword2": "llms",
+    "question": "Which company launched ChatGPT in November 2022?",
+    "correctAnswer": "OpenAI",
+    "incorrectAnswers": [
+      "Google",
+      "Meta",
+      "Apple"
+    ],
+    "explanation": "OpenAI released ChatGPT as a free research preview on 30 November 2022.",
+    "keywords": [],
+    "source": "https://en.wikipedia.org/wiki/ChatGPT",
+    "starterWorld": "genai",
+    "wowLine": "ChatGPT reached an estimated 100 million users within about two months of launch."
   }
 ]

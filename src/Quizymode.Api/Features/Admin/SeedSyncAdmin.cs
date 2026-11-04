@@ -24,7 +24,9 @@ public static class SeedSyncAdmin
         ItemSpeechSupport? CorrectAnswerSpeech = null,
         Dictionary<int, ItemSpeechSupport>? IncorrectAnswerSpeech = null,
         ItemImageReference? QuestionImage = null,
-        ItemImageReference? ExplanationImage = null);
+        ItemImageReference? ExplanationImage = null,
+        string? StarterWorld = null,
+        string? WowLine = null);
 
     public sealed record SeedCollectionRequest(
         Guid CollectionId,
@@ -329,6 +331,26 @@ public static class SeedSyncAdmin
             this.AddSpeechSupportRules(x => x.CorrectAnswerSpeech, 500, "CorrectAnswerSpeech");
             this.AddQuestionImageRules(x => x.QuestionImage);
             this.AddExplanationImageRules(x => x.ExplanationImage, x => x.Explanation);
+
+            RuleFor(x => x.StarterWorld)
+                .Must(world => Starter.StarterWorlds.IsValid(world!.Trim()))
+                .When(x => !string.IsNullOrWhiteSpace(x.StarterWorld))
+                .WithMessage($"StarterWorld must be one of: {string.Join(", ", Starter.StarterWorlds.All)}.");
+
+            RuleFor(x => x.WowLine)
+                .Must(line => line!.Trim().Length <= Starter.StarterWorlds.MaxWowLineLength)
+                .When(x => !string.IsNullOrWhiteSpace(x.WowLine))
+                .WithMessage($"WowLine must not exceed {Starter.StarterWorlds.MaxWowLineLength} characters.");
+
+            RuleFor(x => x.WowLine)
+                .Must(line => !line!.Any(char.IsControl))
+                .When(x => !string.IsNullOrWhiteSpace(x.WowLine))
+                .WithMessage("WowLine must be a single line without control characters.");
+
+            RuleFor(x => x)
+                .Must(x => string.IsNullOrWhiteSpace(x.StarterWorld) == string.IsNullOrWhiteSpace(x.WowLine))
+                .WithName("StarterWorld")
+                .WithMessage("StarterWorld and WowLine must be provided together.");
 
             RuleFor(x => x.IncorrectAnswers)
                 .NotNull()

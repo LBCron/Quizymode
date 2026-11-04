@@ -238,5 +238,95 @@
       "afterlife"
     ],
     "source": "https://www.britannica.com/topic/Book-of-the-Dead-ancient-Egyptian-text"
+  },
+  {
+    "itemId": "fa6c1a27-fd3a-4900-a4c2-506bedeab535",
+    "category": "history",
+    "navigationKeyword1": "ancient",
+    "navigationKeyword2": "egypt",
+    "question": "Cleopatra lived closer in time to which of these events?",
+    "correctAnswer": "The Moon landing",
+    "incorrectAnswers": [
+      "Building the Great Pyramid",
+      "The first Stonehenge",
+      "The invention of writing"
+    ],
+    "explanation": "Cleopatra VII died in 30 BC. The Great Pyramid was finished around 2560 BC, about 2,500 years earlier, while the Moon landing in 1969 came about 2,000 years later.",
+    "keywords": [],
+    "source": "https://en.wikipedia.org/wiki/Cleopatra",
+    "starterWorld": "time",
+    "wowLine": "Cleopatra lived about 2,000 years before the Moon landing, but about 2,500 years after the Great Pyramid."
+  },
+  {
+    "itemId": "55f5284c-950c-44c5-87ad-e7599be1c06d",
+    "category": "history",
+    "navigationKeyword1": "ancient",
+    "navigationKeyword2": "egypt",
+    "question": "For about how long was the Great Pyramid the tallest building on Earth?",
+    "correctAnswer": "About 3,800 years",
+    "incorrectAnswers": [
+      "About 300 years",
+      "About 1,000 years",
+      "About 10,000 years"
+    ],
+    "explanation": "The Great Pyramid of Giza was the tallest human-made structure from around 2600 BC until a medieval cathedral spire passed it, a reign of roughly 3,800 years.",
+    "keywords": [],
+    "source": "https://en.wikipedia.org/wiki/Great_Pyramid_of_Giza",
+    "starterWorld": "time",
+    "wowLine": "Nothing built by people was taller for about 3,800 years, until a medieval cathedral spire."
+  },
+  {
+    "itemId": "cddfef48-46b3-43de-b53e-e0d16123123a",
+    "category": "history",
+    "navigationKeyword1": "ancient",
+    "navigationKeyword2": "egypt",
+    "question": "Who mostly built the Great Pyramid?",
+    "correctAnswer": "Organized Egyptian crews",
+    "incorrectAnswers": [
+      "Foreign slaves",
+      "Roman soldiers",
+      "Greek engineers"
+    ],
+    "explanation": "Excavations near Giza found towns for the workers, with bakeries, breweries and tombs. They show crews of Egyptian laborers, not slaves.",
+    "keywords": [],
+    "source": "https://en.wikipedia.org/wiki/Great_Pyramid_of_Giza",
+    "starterWorld": "time",
+    "wowLine": "Digs at Giza found worker towns with bakeries and tombs, so the builders were crews, not slaves."
+  },
+  {
+    "itemId": "112aaa0c-8594-4f6d-914e-ec4241632386",
+    "category": "history",
+    "navigationKeyword1": "ancient",
+    "navigationKeyword2": "egypt",
+    "question": "Tutankhamun became pharaoh at about what age?",
+    "correctAnswer": "About 9",
+    "incorrectAnswers": [
+      "About 25",
+      "About 40",
+      "About 60"
+    ],
+    "explanation": "Tutankhamun came to the throne as a child, ruled for about nine years and died around the age of 18 or 19.",
+    "keywords": [],
+    "source": "https://en.wikipedia.org/wiki/Tutankhamun",
+    "starterWorld": "time",
+    "wowLine": "King Tut took the throne at about 9 and died when he was around 18 or 19."
+  },
+  {
+    "itemId": "11ef4af5-6596-4329-861f-f6361c82309a",
+    "category": "history",
+    "navigationKeyword1": "ancient",
+    "navigationKeyword2": "egypt",
+    "question": "Our 365-day year goes back to a calendar used in which ancient land?",
+    "correctAnswer": "Egypt",
+    "incorrectAnswers": [
+      "Sumer",
+      "Persia",
+      "China"
+    ],
+    "explanation": "Ancient Egyptians used a calendar of 365 days. Julius Caesar's Julian calendar added a leap day to a year of that length.",
+    "keywords": [],
+    "source": "https://en.wikipedia.org/wiki/Egyptian_calendar",
+    "starterWorld": "time",
+    "wowLine": "Egypt used a 365-day year, and Julius Caesar's calendar added a leap day to it."
   }
 ]

@@ -218,5 +218,113 @@
       "micronesia"
     ],
     "source": "https://www.britannica.com/place/Marshall-Islands"
+  },
+  {
+    "itemId": "eed9eceb-f658-49eb-a533-d7e80a2833db",
+    "category": "geography",
+    "navigationKeyword1": "countries",
+    "navigationKeyword2": "smallest",
+    "question": "The world's smallest country sits entirely inside which city?",
+    "correctAnswer": "Rome",
+    "incorrectAnswers": [
+      "Paris",
+      "Vienna",
+      "Madrid"
+    ],
+    "explanation": "Vatican City is an independent state surrounded by Rome. It covers less than one square kilometer.",
+    "keywords": [],
+    "source": "https://en.wikipedia.org/wiki/Vatican_City",
+    "starterWorld": "places",
+    "wowLine": "Vatican City covers about 0.5 square kilometers, smaller than many city parks such as Central Park."
+  },
+  {
+    "itemId": "ba4208c8-67e4-4ab2-8645-2ce3d036372b",
+    "category": "geography",
+    "navigationKeyword1": "countries",
+    "navigationKeyword2": "smallest",
+    "question": "Which tiny coastal country is the most densely populated in the world?",
+    "correctAnswer": "Monaco",
+    "incorrectAnswers": [
+      "Malta",
+      "Singapore",
+      "Bahrain"
+    ],
+    "explanation": "Monaco covers about 2 square kilometers and has roughly 38,000 residents, which makes it the most densely populated country.",
+    "keywords": [],
+    "source": "https://en.wikipedia.org/wiki/Monaco",
+    "starterWorld": "places",
+    "wowLine": "Monaco is smaller than New York's Central Park."
+  },
+  {
+    "itemId": "be088cf1-2e0f-4d04-8b8f-65f2f714e549",
+    "category": "geography",
+    "navigationKeyword1": "countries",
+    "navigationKeyword2": "smallest",
+    "question": "Which tiny Pacific country has no official capital city?",
+    "correctAnswer": "Nauru",
+    "incorrectAnswers": [
+      "Fiji",
+      "Samoa",
+      "Tonga"
+    ],
+    "explanation": "Nauru has no official capital. The district of Yaren is where the government offices are, so it serves as the capital in practice.",
+    "keywords": [],
+    "source": "https://en.wikipedia.org/wiki/Nauru",
+    "starterWorld": "places",
+    "wowLine": "Nauru is the world's smallest island nation, and it has no official capital."
+  },
+  {
+    "itemId": "c1279928-f7df-4dc8-a356-6e6260b0b7ef",
+    "category": "geography",
+    "navigationKeyword1": "countries",
+    "navigationKeyword2": "smallest",
+    "question": "Which tiny Alpine country is one of only two doubly landlocked nations?",
+    "correctAnswer": "Liechtenstein",
+    "incorrectAnswers": [
+      "Monaco",
+      "Andorra",
+      "San Marino"
+    ],
+    "explanation": "A doubly landlocked country is surrounded only by landlocked countries. Liechtenstein and Uzbekistan are the only two.",
+    "keywords": [],
+    "source": "https://en.wikipedia.org/wiki/Liechtenstein",
+    "starterWorld": "places",
+    "wowLine": "From Liechtenstein you must cross two borders to reach the sea. Only Uzbekistan is like that too."
+  },
+  {
+    "itemId": "779bcd24-b965-45d1-b977-9e10af5bdaa9",
+    "category": "geography",
+    "navigationKeyword1": "countries",
+    "navigationKeyword2": "smallest",
+    "question": "Which microstate inside Italy says it is the world's oldest republic?",
+    "correctAnswer": "San Marino",
+    "incorrectAnswers": [
+      "Monaco",
+      "Andorra",
+      "Malta"
+    ],
+    "explanation": "San Marino traces its founding to the year 301, which would make it the oldest republic still in existence.",
+    "keywords": [],
+    "source": "https://www.britannica.com/place/San-Marino",
+    "starterWorld": "places",
+    "wowLine": "San Marino says it was founded in the year 301, which would make it the oldest republic still going."
+  },
+  {
+    "itemId": "5985e875-e11b-45de-89c1-3b90e21e3251",
+    "category": "geography",
+    "navigationKeyword1": "countries",
+    "navigationKeyword2": "smallest",
+    "question": "Which Indian Ocean country is the lowest-lying on Earth?",
+    "correctAnswer": "Maldives",
+    "incorrectAnswers": [
+      "Sri Lanka",
+      "Mauritius",
+      "Seychelles"
+    ],
+    "explanation": "Almost all of the Maldives is just above sea level, and its highest natural point is only about 5 meters up.",
+    "keywords": [],
+    "source": "https://www.britannica.com/place/Maldives",
+    "starterWorld": "places",
+    "wowLine": "The highest natural point in the Maldives is only about 5 meters above sea level."
   }
 ]

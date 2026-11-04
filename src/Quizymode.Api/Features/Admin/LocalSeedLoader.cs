@@ -129,7 +129,9 @@ internal sealed class LocalSeedLoader(
                     item.CorrectAnswerSpeech,
                     item.IncorrectAnswerSpeech,
                     item.QuestionImage,
-                    item.ExplanationImage));
+                    item.ExplanationImage,
+                    item.StarterWorld,
+                    item.WowLine));
             }
         }
 

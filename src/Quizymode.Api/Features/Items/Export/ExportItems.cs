@@ -24,7 +24,9 @@ public static class ExportItems
         [property: JsonPropertyName("keywords")] List<string> Keywords,
         [property: JsonPropertyName("source")] string? Source,
         [property: JsonPropertyName("questionImage")] ItemImageReference? QuestionImage = null,
-        [property: JsonPropertyName("explanationImage")] ItemImageReference? ExplanationImage = null);
+        [property: JsonPropertyName("explanationImage")] ItemImageReference? ExplanationImage = null,
+        [property: JsonPropertyName("starterWorld")] string? StarterWorld = null,
+        [property: JsonPropertyName("wowLine")] string? WowLine = null);
 
     public sealed class Endpoint : IEndpoint
     {
@@ -98,7 +100,9 @@ public static class ExportItems
                     item.Source,
                     // Uploaded pictures are never exported (AC 3.25.8); the export carries curated pictures only.
                     item.QuestionImageAssetId is null ? ItemImageReferenceHelper.FromColumns(item.QuestionImageKey, item.QuestionImageAlt) : null,
-                    item.ExplanationImageAssetId is null ? ItemImageReferenceHelper.FromColumns(item.ExplanationImageKey, item.ExplanationImageAlt) : null);
+                    item.ExplanationImageAssetId is null ? ItemImageReferenceHelper.FromColumns(item.ExplanationImageKey, item.ExplanationImageAlt) : null,
+                    item.StarterWorld,
+                    item.WowLine);
             }).ToList();
 
             return Results.Ok(result);

@@ -173,6 +173,53 @@ public sealed class QuestionImageHttpTests : ItemTestFixture, IAsyncLifetime
     }
 
     [Fact]
+    public async Task Export_IncludesStarterFields_AndNullWhenAbsent()
+    {
+        Item starter = await CreateItemWithCategoryAsync(
+            Guid.NewGuid(), "geography", "Which flag?", "Nepal", ["Bhutan"], "x", false, _ownerId.ToString());
+        starter.StarterWorld = "flags";
+        starter.WowLine = "Not a rectangle.";
+        await CreateItemWithCategoryAsync(
+            Guid.NewGuid(), "geography", "Capital of France?", "Paris", ["Lyon"], "x", false, _ownerId.ToString());
+        await DbContext.SaveChangesAsync();
+
+        (HttpStatusCode status, string body) = await SendAsync(HttpMethod.Get, "/items/export?category=geography", null, UserToken);
+
+        status.Should().Be(HttpStatusCode.OK, body);
+        using JsonDocument doc = JsonDocument.Parse(body);
+        JsonElement[] items = doc.RootElement.EnumerateArray().ToArray();
+        JsonElement withStarter = items.Single(i => i.GetProperty("question").GetString() == "Which flag?");
+        withStarter.GetProperty("starterWorld").GetString().Should().Be("flags");
+        withStarter.GetProperty("wowLine").GetString().Should().Be("Not a rectangle.");
+        JsonElement without = items.Single(i => i.GetProperty("question").GetString() == "Capital of France?");
+        without.GetProperty("starterWorld").ValueKind.Should().Be(JsonValueKind.Null);
+        without.GetProperty("wowLine").ValueKind.Should().Be(JsonValueKind.Null);
+    }
+
+    [Fact]
+    public async Task Update_IgnoresStarterFields_AndKeepsTheSeededOnes()
+    {
+        Item starter = await CreateItemWithCategoryAsync(
+            Guid.NewGuid(), "geography", "Which flag?", "Nepal", ["Bhutan"], "Because", false, _ownerId.ToString());
+        starter.StarterWorld = "flags";
+        starter.WowLine = "Not a rectangle.";
+        await DbContext.SaveChangesAsync();
+
+        string put =
+            "{\"category\":\"geography\",\"navigationKeyword1\":\"capitals\",\"navigationKeyword2\":\"europe\",\"isPrivate\":false," +
+            "\"question\":\"Which flag?\",\"correctAnswer\":\"Nepal\",\"incorrectAnswers\":[\"Bhutan\"],\"explanation\":\"Edited\"," +
+            "\"starterWorld\":\"space\",\"wowLine\":\"Hijacked.\"}";
+        (HttpStatusCode status, string body) = await SendAsync(HttpMethod.Put, $"/items/{starter.Id}", put, UserToken);
+
+        status.Should().Be(HttpStatusCode.OK, body);
+        using ApplicationDbContext db = CreateDbContext();
+        Item saved = await db.Items.AsNoTracking().SingleAsync(i => i.Id == starter.Id);
+        saved.Explanation.Should().Be("Edited");
+        saved.StarterWorld.Should().Be("flags");
+        saved.WowLine.Should().Be("Not a rectangle.");
+    }
+
+    [Fact]
     public async Task Export_IncludesQuestionImage_AndNullWhenAbsent()
     {
         Item picture = await CreateItemWithCategoryAsync(

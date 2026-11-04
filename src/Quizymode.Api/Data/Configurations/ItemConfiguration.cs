@@ -114,6 +114,12 @@ internal sealed class ItemConfiguration : IEntityTypeConfiguration<Item>
         builder.Property(x => x.QuestionImageAlt)
             .HasMaxLength(300);
 
+        builder.Property(x => x.StarterWorld)
+            .HasMaxLength(24);
+
+        builder.Property(x => x.WowLine)
+            .HasMaxLength(140);
+
         builder.Property(x => x.ExplanationImageKey)
             .HasMaxLength(100);
 

@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-11-01T03:58:24.891011+00:00",
-  "totalItems": 13815,
+  "generatedAt": "2026-11-03T17:01:37.805423+00:00",
+  "totalItems": 13844,
   "files": [
     {
       "path": "data/seed-source/items/business/business.accounting.audit.json",
@@ -1735,8 +1735,8 @@
       "category": "geography",
       "nav1": "countries",
       "nav2": "smallest",
-      "itemCount": 11,
-      "modifiedAt": "2026-04-05T10:34:42-05:00"
+      "itemCount": 17,
+      "modifiedAt": "2026-11-03T17:01:37.805423+00:00"
     },
     {
       "path": "data/seed-source/items/geography/geography.countries.sovereignty.json",
@@ -1760,7 +1760,7 @@
       "nav1": "flags",
       "nav2": "countries",
       "itemCount": 100,
-      "modifiedAt": "2026-11-01T03:58:24.891011+00:00"
+      "modifiedAt": "2026-11-03T17:01:37.805423+00:00"
     },
     {
       "path": "data/seed-source/items/geography/geography.flags.countries.002.json",
@@ -1768,7 +1768,7 @@
       "nav1": "flags",
       "nav2": "countries",
       "itemCount": 100,
-      "modifiedAt": "2026-11-01T03:58:24.891011+00:00"
+      "modifiedAt": "2026-11-03T17:01:37.805423+00:00"
     },
     {
       "path": "data/seed-source/items/geography/geography.flags.countries.003.json",
@@ -2183,8 +2183,8 @@
       "category": "history",
       "nav1": "ancient",
       "nav2": "egypt",
-      "itemCount": 12,
-      "modifiedAt": "2026-04-05T10:34:42-05:00"
+      "itemCount": 17,
+      "modifiedAt": "2026-11-03T17:01:37.805423+00:00"
     },
     {
       "path": "data/seed-source/items/history/history.ancient.greece.json",
@@ -4167,8 +4167,8 @@
       "category": "science",
       "nav1": "anatomy",
       "nav2": "cardio",
-      "itemCount": 12,
-      "modifiedAt": "2026-04-05T10:34:42-05:00"
+      "itemCount": 17,
+      "modifiedAt": "2026-11-03T17:01:37.805423+00:00"
     },
     {
       "path": "data/seed-source/items/science/science.anatomy.digestive.json",
@@ -4280,7 +4280,7 @@
       "nav1": "astronomy",
       "nav2": "solar-system",
       "itemCount": 17,
-      "modifiedAt": "2026-04-07T22:49:56-05:00"
+      "modifiedAt": "2026-11-03T17:01:37.805423+00:00"
     },
     {
       "path": "data/seed-source/items/science/science.astronomy.space-missions.json",
@@ -5743,8 +5743,8 @@
       "category": "tech",
       "nav1": "ai-ml",
       "nav2": "llms",
-      "itemCount": 6,
-      "modifiedAt": "2026-04-05T10:34:42-05:00"
+      "itemCount": 14,
+      "modifiedAt": "2026-11-03T17:01:37.805423+00:00"
     },
     {
       "path": "data/seed-source/items/tech/tech.ai-ml.ml-basics.json",
@@ -6400,7 +6400,7 @@
       "nav1": "animals",
       "nav2": "weird",
       "itemCount": 10,
-      "modifiedAt": "2026-04-05T10:34:42-05:00"
+      "modifiedAt": "2026-11-03T17:01:37.805423+00:00"
     },
     {
       "path": "data/seed-source/items/trivia/trivia.animals.wildlife.json",
@@ -6543,8 +6543,8 @@
       "category": "trivia",
       "nav1": "food-drink",
       "nav2": "ingredients",
-      "itemCount": 10,
-      "modifiedAt": "2026-04-05T10:34:42-05:00"
+      "itemCount": 15,
+      "modifiedAt": "2026-11-03T17:01:37.805423+00:00"
     },
     {
       "path": "data/seed-source/items/trivia/trivia.food-drink.restaurants.json",
@@ -6608,7 +6608,7 @@
       "nav1": "general",
       "nav2": "mixed",
       "itemCount": 5,
-      "modifiedAt": "2026-04-05T10:34:42-05:00"
+      "modifiedAt": "2026-11-03T17:01:37.805423+00:00"
     },
     {
       "path": "data/seed-source/items/trivia/trivia.internet.apps.json",

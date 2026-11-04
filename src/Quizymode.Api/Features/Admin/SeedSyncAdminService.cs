@@ -658,6 +658,8 @@ internal sealed class SeedSyncAdminService(
         item.QuestionImageAlt = change.Item.QuestionImage?.AltText;
         item.ExplanationImageKey = change.Item.ExplanationImage?.Key;
         item.ExplanationImageAlt = change.Item.ExplanationImage?.AltText;
+        item.StarterWorld = change.Item.StarterWorld;
+        item.WowLine = change.Item.WowLine;
         item.CategoryId = change.Navigation.Category.Id;
         item.NavigationKeywordId1 = change.Navigation.Nav1.Id;
         item.NavigationKeywordId2 = change.Navigation.Nav2.Id;
@@ -907,6 +909,8 @@ internal sealed class SeedSyncAdminService(
         List<string> keywords = NormalizeKeywords(item.Keywords, category, nav1, nav2);
         ItemImageReference? questionImage = ItemImageReferenceHelper.Normalize(item.QuestionImage);
         ItemImageReference? explanationImage = ItemImageReferenceHelper.Normalize(item.ExplanationImage);
+        string? starterWorld = string.IsNullOrWhiteSpace(item.StarterWorld) ? null : item.StarterWorld.Trim();
+        string? wowLine = string.IsNullOrWhiteSpace(item.WowLine) ? null : item.WowLine.Trim();
 
         return new NormalizedSeedItem(
             item.ItemId,
@@ -923,7 +927,9 @@ internal sealed class SeedSyncAdminService(
             keywords,
             source,
             questionImage,
-            explanationImage);
+            explanationImage,
+            starterWorld,
+            wowLine);
     }
 
     private static NormalizedSeedCollection NormalizeCollection(SeedSyncAdmin.SeedCollectionRequest collection)
@@ -1058,6 +1064,16 @@ internal sealed class SeedSyncAdminService(
             changed.Add("explanationImage");
         }
 
+        if (!string.Equals(existing.StarterWorld, incoming.StarterWorld, StringComparison.Ordinal))
+        {
+            changed.Add("starterWorld");
+        }
+
+        if (!string.Equals(existing.WowLine, incoming.WowLine, StringComparison.Ordinal))
+        {
+            changed.Add("wowLine");
+        }
+
         return changed;
     }
 
@@ -1127,7 +1143,9 @@ internal sealed class SeedSyncAdminService(
             string.IsNullOrWhiteSpace(item.Source) ? null : item.Source.Trim(),
             extras,
             ItemImageReferenceHelper.FromColumns(item.QuestionImageKey, item.QuestionImageAlt),
-            ItemImageReferenceHelper.FromColumns(item.ExplanationImageKey, item.ExplanationImageAlt));
+            ItemImageReferenceHelper.FromColumns(item.ExplanationImageKey, item.ExplanationImageAlt),
+            item.StarterWorld,
+            item.WowLine);
     }
 
     private static async Task TryRollbackAsync(
@@ -1163,7 +1181,9 @@ internal sealed class SeedSyncAdminService(
         List<string> Keywords,
         string? Source,
         ItemImageReference? QuestionImage,
-        ItemImageReference? ExplanationImage);
+        ItemImageReference? ExplanationImage,
+        string? StarterWorld,
+        string? WowLine);
 
     private sealed record ExistingItemState(
         string Category,
@@ -1179,7 +1199,9 @@ internal sealed class SeedSyncAdminService(
         string? Source,
         List<string> Keywords,
         ItemImageReference? QuestionImage,
-        ItemImageReference? ExplanationImage);
+        ItemImageReference? ExplanationImage,
+        string? StarterWorld,
+        string? WowLine);
 
     private sealed record NormalizedSeedCollection(
         Guid CollectionId,

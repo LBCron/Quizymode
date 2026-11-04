@@ -267,3 +267,28 @@ EXTRA_EXPLANATION: dict[str, str] = {
         "It replaces the earlier red, white and black flag with two green stars."
     ),
 }
+
+# Starter quiz (#462): well-known flags that open the home "Play a 5-question quiz" run, with the one-line "wow"
+# fact shown after the answer (max 140 characters). iso2 -> wowLine. Each fact's source is the URL in the comment.
+# The emitter marks these items starterWorld "flags". Pick only flags whose generated wrong answers are all
+# 30 characters or fewer (the starter content test enforces this).
+STARTER: dict[str, str] = {
+    # Nepal - https://en.wikipedia.org/wiki/Flag_of_Nepal
+    "np": "Nepal's is the only national flag that isn't a rectangle or a square.",
+    # Japan - https://en.wikipedia.org/wiki/Flag_of_Japan
+    "jp": "In Japan this flag is called the Hinomaru, which means 'circle of the sun'.",
+    # Canada - https://en.wikipedia.org/wiki/Flag_of_Canada
+    "ca": "The red maple leaf on Canada's flag has 11 points.",
+    # Brazil - https://en.wikipedia.org/wiki/Flag_of_Brazil
+    "br": "The stars show the sky over Rio de Janeiro on 15 November 1889, the day Brazil became a republic.",
+    # Switzerland - https://en.wikipedia.org/wiki/Flag_of_Switzerland
+    "ch": "Switzerland's is one of only two square national flags. The other belongs to Vatican City.",
+    # Denmark - https://en.wikipedia.org/wiki/Flag_of_Denmark
+    "dk": "Denmark's Dannebrog holds the Guinness record as the oldest national flag in continuous use, since 1625.",
+    # Mozambique - https://en.wikipedia.org/wiki/Flag_of_Mozambique
+    "mz": "Mozambique's is the only national flag with a modern firearm on it: an AK-47.",
+    # India - https://en.wikipedia.org/wiki/Flag_of_India
+    "in": "The blue wheel in the middle of India's flag, the Ashoka Chakra, has 24 spokes.",
+    # Bhutan - https://en.wikipedia.org/wiki/Flag_of_Bhutan
+    "bt": "Bhutan's flag shows a dragon. Its local name means 'Land of the Thunder Dragon'.",
+}

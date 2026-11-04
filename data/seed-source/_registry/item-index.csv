@@ -2173,7 +2173,9 @@ dbb4e37a-6e13-4aba-96e7-ea16f81eb247,geography,countries,largest,Which Southeast
 dcfc3b5b-10b3-4c7f-85dc-9a5e5a83dffd,geography,countries,largest,Which country is the second largest in South Ameri,data/seed-source/items/geography/geography.countries.largest.json
 efd2ab3f-14dd-4f95-b255-3e837ba6d3ac,geography,countries,largest,Which country is the second largest in the world b,data/seed-source/items/geography/geography.countries.largest.json
 e3769725-8c44-4ab9-a30e-2eb045d737ad,geography,countries,largest,Which is the largest country in South Asia by area,data/seed-source/items/geography/geography.countries.largest.json
+eed9eceb-f658-49eb-a533-d7e80a2833db,geography,countries,smallest,The world's smallest country sits entirely inside ,data/seed-source/items/geography/geography.countries.smallest.json
 f0902d21-1e45-4c9f-89b7-ba505e9753b3,geography,countries,smallest,Which Caribbean federation of two main islands is ,data/seed-source/items/geography/geography.countries.smallest.json
+5985e875-e11b-45de-89c1-3b90e21e3251,geography,countries,smallest,Which Indian Ocean country is the lowest-lying on ,data/seed-source/items/geography/geography.countries.smallest.json
 0af833cb-a65f-4fc1-ae2a-417426096d73,geography,countries,smallest,Which Indian Ocean island nation is one of the sma,data/seed-source/items/geography/geography.countries.smallest.json
 3b36eae4-d127-47ee-830a-c75460b9fac6,geography,countries,smallest,Which Mediterranean island country lies south of S,data/seed-source/items/geography/geography.countries.smallest.json
 33ab4d45-1788-4ca2-8506-5f2173690969,geography,countries,smallest,Which Pacific island republic is among the world’s,data/seed-source/items/geography/geography.countries.smallest.json
@@ -2182,7 +2184,11 @@ ccba48a5-003d-49ec-b4aa-93728baa7128,geography,countries,smallest,Which Polynesi
 39982e1e-4c2a-4656-82ac-5621465ec972,geography,countries,smallest,Which doubly landlocked Alpine country lies betwee,data/seed-source/items/geography/geography.countries.smallest.json
 705771a3-dd94-4035-89d4-0f01cd358520,geography,countries,smallest,Which independent city-state in Rome is the world’,data/seed-source/items/geography/geography.countries.smallest.json
 ef9f24cd-8a92-44b7-a6dd-e3d81144541a,geography,countries,smallest,Which landlocked microstate is entirely surrounded,data/seed-source/items/geography/geography.countries.smallest.json
+779bcd24-b965-45d1-b977-9e10af5bdaa9,geography,countries,smallest,Which microstate inside Italy says it is the world,data/seed-source/items/geography/geography.countries.smallest.json
+c1279928-f7df-4dc8-a356-6e6260b0b7ef,geography,countries,smallest,Which tiny Alpine country is one of only two doubl,data/seed-source/items/geography/geography.countries.smallest.json
 68623f6b-3643-436e-b579-7266bcab59d6,geography,countries,smallest,Which tiny Mediterranean principality borders Fran,data/seed-source/items/geography/geography.countries.smallest.json
+be088cf1-2e0f-4d04-8b8f-65f2f714e549,geography,countries,smallest,Which tiny Pacific country has no official capital,data/seed-source/items/geography/geography.countries.smallest.json
+ba4208c8-67e4-4ab2-8645-2ce3d036372b,geography,countries,smallest,Which tiny coastal country is the most densely pop,data/seed-source/items/geography/geography.countries.smallest.json
 01f74184-2e1d-42d6-8ae9-bc72bbb479bf,geography,countries,smallest,Which western Pacific island country’s land area i,data/seed-source/items/geography/geography.countries.smallest.json
 15c58be1-6608-4869-a547-e48df3bb5f08,geography,countries,sovereignty,Eritrea became an internationally recognized sover,data/seed-source/items/geography/geography.countries.sovereignty.json
 66cf3f9b-c784-4420-9020-ebd0a10c99a2,geography,countries,sovereignty,"In 2011, which new African state became widely rec",data/seed-source/items/geography/geography.countries.sovereignty.json
@@ -2989,13 +2995,18 @@ c734dc8d-48ff-4d33-b6ca-bc53cbce1899,history,ancient,china,Zhou rulers justified
 547ec3e9-2268-4300-9d19-a3b77da67332,history,ancient,egypt,A visitor sailing upriver from the Mediterranean t,data/seed-source/items/history/history.ancient.egypt.json
 dbd7d792-f1ce-4016-97c5-aeaed8f1144d,history,ancient,egypt,"At Giza, the largest pyramid of the classic Old Ki",data/seed-source/items/history/history.ancient.egypt.json
 afc749ea-0c5b-4a79-9282-04ecc58c9b18,history,ancient,egypt,"Cleopatra VII, who dealt with Rome’s late republic",data/seed-source/items/history/history.ancient.egypt.json
+fa6c1a27-fd3a-4900-a4c2-506bedeab535,history,ancient,egypt,Cleopatra lived closer in time to which of these e,data/seed-source/items/history/history.ancient.egypt.json
 0b6c7ff5-b833-40ae-a628-fcd394fc5579,history,ancient,egypt,"During much of the Old Kingdom, which city near th",data/seed-source/items/history/history.ancient.egypt.json
+55f5284c-950c-44c5-87ad-e7599be1c06d,history,ancient,egypt,For about how long was the Great Pyramid the talle,data/seed-source/items/history/history.ancient.egypt.json
 07bd5533-ebd0-431f-ac06-493af87c09fa,history,ancient,egypt,Howard Carter’s 1922 discovery drew worldwide atte,data/seed-source/items/history/history.ancient.egypt.json
 b2e8b35e-fb11-4494-aa52-48096e5cbdb7,history,ancient,egypt,"Official letters, accounts, and everyday records i",data/seed-source/items/history/history.ancient.egypt.json
+11ef4af5-6596-4329-861f-f6361c82309a,history,ancient,egypt,Our 365-day year goes back to a calendar used in w,data/seed-source/items/history/history.ancient.egypt.json
 fc7fab02-6dd0-41d2-91f0-68d40cefc570,history,ancient,egypt,Scribes in temple workshops pressed reed pens onto,data/seed-source/items/history/history.ancient.egypt.json
 1b7aa157-9f3b-4d20-8d2e-472ede3a7ac6,history,ancient,egypt,"Standing by the Giza plateau beside the pyramids, ",data/seed-source/items/history/history.ancient.egypt.json
+112aaa0c-8594-4f6d-914e-ec4241632386,history,ancient,egypt,Tutankhamun became pharaoh at about what age?,data/seed-source/items/history/history.ancient.egypt.json
 652245fd-e5e5-47e7-b18f-bb19fd79ccba,history,ancient,egypt,Which Egyptian funerary tradition compiled spells ,data/seed-source/items/history/history.ancient.egypt.json
 efd48b13-febe-4546-89a4-3a6bd9a45d70,history,ancient,egypt,Which female pharaoh of the 18th dynasty is famous,data/seed-source/items/history/history.ancient.egypt.json
+cddfef48-46b3-43de-b53e-e0d16123123a,history,ancient,egypt,Who mostly built the Great Pyramid?,data/seed-source/items/history/history.ancient.egypt.json
 b62f25f7-770e-4471-9827-67d2c9cc14fa,history,ancient,egypt,You are farming wheat along the Nile before modern,data/seed-source/items/history/history.ancient.egypt.json
 f347cc4c-b1f1-48fe-b6fa-1bd40dd0a3f3,history,ancient,greece,"After the Persian Wars, Athens organized allies ar",data/seed-source/items/history/history.ancient.greece.json
 7ebf2e8e-7a63-4f98-bd9a-6cd0179f802f,history,ancient,greece,Citizens gathering on the Pnyx to debate war and t,data/seed-source/items/history/history.ancient.greece.json
@@ -10387,12 +10398,17 @@ f4880890-8df3-491e-a518-606d7f9c0730,science,algebra,systems,"In substitution, w
 c4436a66-3121-45a7-84c1-537db797e591,science,algebra,systems,What does it mean when a system is “inconsistent”?,data/seed-source/items/science/science.algebra.systems.json
 f855b097-5faf-47c7-ab83-5ebdbc6004d7,science,algebra,systems,What is a “system of equations”?,data/seed-source/items/science/science.algebra.systems.json
 9dae02f9-6477-488f-9b1a-b32732a7c0fc,science,algebra,systems,Which approach is usually easiest when one equatio,data/seed-source/items/science/science.algebra.systems.json
+a6f37f13-d664-4188-8916-88aab37e6624,science,anatomy,cardio,About how many times does your heart beat in one d,data/seed-source/items/science/science.anatomy.cardio.json
+077de0f6-c191-4832-9732-bc53644405f6,science,anatomy,cardio,About how much blood does an adult body hold?,data/seed-source/items/science/science.anatomy.cardio.json
 c1d765e8-102a-431d-8d07-bc7d687525cc,science,anatomy,cardio,How does pulmonary circulation differ from systemi,data/seed-source/items/science/science.anatomy.cardio.json
+1c48ea8a-2ef3-4b88-ba4d-3d8597a83ab0,science,anatomy,cardio,How long does a red blood cell live?,data/seed-source/items/science/science.anatomy.cardio.json
 3e69b7cc-5f0b-4737-a358-67557e259f36,science,anatomy,cardio,"In general, which blood vessels carry blood away f",data/seed-source/items/science/science.anatomy.cardio.json
 c79bfc4e-95eb-4d48-a7e6-4b75b58f2d09,science,anatomy,cardio,"In one heartbeat, which phase is the heart muscle ",data/seed-source/items/science/science.anatomy.cardio.json
 eb92b370-a327-4e90-8dc0-09dee8976028,science,anatomy,cardio,What are capillaries best known for?,data/seed-source/items/science/science.anatomy.cardio.json
+7fb1fa16-cc89-4fdc-bf11-d61ddda1baa2,science,anatomy,cardio,What color is the blood inside your veins?,data/seed-source/items/science/science.anatomy.cardio.json
 a5e71baa-29eb-4ceb-8cfc-5fe450406767,science,anatomy,cardio,What does hemoglobin mainly do?,data/seed-source/items/science/science.anatomy.cardio.json
 502fd8df-ebe9-495e-a998-98b55d8751cd,science,anatomy,cardio,What is the purpose of the heart’s valves?,data/seed-source/items/science/science.anatomy.cardio.json
+90e317aa-75e6-4277-8968-8aab2b229c5f,science,anatomy,cardio,Which blood type is called the universal red-cell ,data/seed-source/items/science/science.anatomy.cardio.json
 9fbe70f0-1f2f-4a97-b96b-6275a7531b11,science,anatomy,cardio,Which blood vessels carry blood back toward the he,data/seed-source/items/science/science.anatomy.cardio.json
 8524748c-a04a-43da-adf8-f6bd51d92e8b,science,anatomy,cardio,Which chambers of the heart do most of the pumping,data/seed-source/items/science/science.anatomy.cardio.json
 10de86a0-a5e1-48bd-9e0b-8b72848906e0,science,anatomy,cardio,Which organ’s main job in the cardiovascular syste,data/seed-source/items/science/science.anatomy.cardio.json
@@ -10568,7 +10584,7 @@ c6c99fac-cb1c-4281-8071-0b965902daa6,science,astronomy,solar-system,What is the 
 f8623c7c-a2cf-4eb8-b6f3-b248417d1261,science,astronomy,solar-system,What is the asteroid belt mostly between?,data/seed-source/items/science/science.astronomy.solar-system.json
 3d676c60-8f31-49ef-989c-097257b80a0b,science,astronomy,solar-system,Which icy moon is thought to hide an ocean that ma,data/seed-source/items/science/science.astronomy.solar-system.json
 60e42a7f-3c48-46f9-a9e3-3c8fba1b3519,science,astronomy,solar-system,Which planet has the largest mass in the solar sys,data/seed-source/items/science/science.astronomy.solar-system.json
-21b2fd34-a8f6-4d1c-9689-b574a7bd58bd,science,astronomy,solar-system,Which planet is less dense than water and would fl,data/seed-source/items/science/science.astronomy.solar-system.json
+21b2fd34-a8f6-4d1c-9689-b574a7bd58bd,science,astronomy,solar-system,"Which planet is less dense than water, so it would",data/seed-source/items/science/science.astronomy.solar-system.json
 5219a5cb-6635-4371-b8d0-c89bf9fecf7b,science,astronomy,solar-system,Which planet is third from the Sun?,data/seed-source/items/science/science.astronomy.solar-system.json
 b2c12168-eaf5-4ecd-a63f-a561a1065928,science,astronomy,solar-system,Why do planets stay in orbit around the Sun?,data/seed-source/items/science/science.astronomy.solar-system.json
 614466b0-552d-4e66-bb12-c5ba034f9877,science,astronomy,solar-system,Why does Venus appear very bright from Earth?,data/seed-source/items/science/science.astronomy.solar-system.json
@@ -12609,12 +12625,20 @@ e46fa40e-1267-4b42-93d1-8e4f4b6fd7b4,tech,ai-ml,deep-learning,What does batch no
 b1e9333e-2bca-4048-a4fe-514a1081c1e1,tech,ai-ml,deep-learning,What is the main role of convolutional layers in i,data/seed-source/items/tech/tech.ai-ml.deep-learning.json
 0976d70d-9d6a-4a68-9ae7-cb7b77ce836b,tech,ai-ml,deep-learning,Why is ReLU often preferred over a saturating sigm,data/seed-source/items/tech/tech.ai-ml.deep-learning.json
 74fce50c-8980-4622-8480-bd65a2a356e8,tech,ai-ml,deep-learning,Why is dropout applied during training?,data/seed-source/items/tech/tech.ai-ml.deep-learning.json
+57724bac-d46e-46b3-a036-ec6ec520f08a,tech,ai-ml,llms,"A ""7B"" AI model has 7 billion of what?",data/seed-source/items/tech/tech.ai-ml.llms.json
 3b176527-c8fd-4fd3-9fd0-312c735b9991,tech,ai-ml,llms,"At decoding time, raising the softmax temperature ",data/seed-source/items/tech/tech.ai-ml.llms.json
+e7e8eb01-8ae0-467a-b5e4-927c6a653c69,tech,ai-ml,llms,ChatGPT reads and writes text in small chunks call,data/seed-source/items/tech/tech.ai-ml.llms.json
 df280155-0537-4de5-97be-e0ef14d76cc4,tech,ai-ml,llms,"Compared with only prompting, what does supervised",data/seed-source/items/tech/tech.ai-ml.llms.json
+d13327a4-7cda-4227-86d2-b94baf19a83d,tech,ai-ml,llms,How much text an AI model can consider at once is ,data/seed-source/items/tech/tech.ai-ml.llms.json
 43223986-9ad7-4a85-8711-fe6b68ef307d,tech,ai-ml,llms,"In retrieval-augmented generation, what extra step",data/seed-source/items/tech/tech.ai-ml.llms.json
+017a87a1-fd3e-4420-9057-9e74791dae4c,tech,ai-ml,llms,Turning an AI's temperature setting up makes its a,data/seed-source/items/tech/tech.ai-ml.llms.json
+f5ce94c5-fd5a-4806-b363-86fa96c0a4c6,tech,ai-ml,llms,What does LLM stand for in AI?,data/seed-source/items/tech/tech.ai-ml.llms.json
+94937873-ae1e-40ec-b1d3-492bfd68afc3,tech,ai-ml,llms,What does the T in GPT stand for?,data/seed-source/items/tech/tech.ai-ml.llms.json
 6bc41ca6-89c2-4c24-8a1e-b1d6e8f2eb08,tech,ai-ml,llms,What does the context window of an LLM limit?,data/seed-source/items/tech/tech.ai-ml.llms.json
 90098c87-ec29-4eca-bdcc-4ef046b6e400,tech,ai-ml,llms,What is the usual next-token objective when traini,data/seed-source/items/tech/tech.ai-ml.llms.json
+41a6951c-712a-4e2f-a875-6a39e13a4810,tech,ai-ml,llms,"When a chatbot confidently states something false,",data/seed-source/items/tech/tech.ai-ml.llms.json
 4b763260-7fe7-4190-b02d-f0575ab8d9fb,tech,ai-ml,llms,Which architecture introduced scaled dot-product s,data/seed-source/items/tech/tech.ai-ml.llms.json
+8c6adcb5-a5e2-41e4-9002-40ed2bab01bf,tech,ai-ml,llms,Which company launched ChatGPT in November 2022?,data/seed-source/items/tech/tech.ai-ml.llms.json
 fe962c6c-7029-4527-bbba-37a4140e9c2b,tech,ai-ml,ml-basics,"In classification, what does cross-entropy loss co",data/seed-source/items/tech/tech.ai-ml.ml-basics.json
 db4e6d55-d52a-4557-b963-a18fc7f670ea,tech,ai-ml,ml-basics,"In supervised learning, what kind of data does the",data/seed-source/items/tech/tech.ai-ml.ml-basics.json
 70aba5b2-e61e-4892-888c-20f4e3993fa0,tech,ai-ml,ml-basics,"In the bias–variance view, what does high variance",data/seed-source/items/tech/tech.ai-ml.ml-basics.json
@@ -13385,8 +13409,12 @@ af27cf88-ff52-4951-ae64-f4a4196ebdad,trivia,food-drink,drinks,Sparkling water wi
 24fe2754-d542-4477-bcc3-61ced97badf3,trivia,food-drink,drinks,Tea is made from leaves of which plant species?,data/seed-source/items/trivia/trivia.food-drink.drinks.json
 aecc2bee-2352-4ee8-8113-1f07990fe785,trivia,food-drink,drinks,Water is the principal component of most beverages,data/seed-source/items/trivia/trivia.food-drink.drinks.json
 0315b44a-04ec-4ef8-be20-d3239f217dec,trivia,food-drink,drinks,Wine to fermentation of sugars in what fruit?,data/seed-source/items/trivia/trivia.food-drink.drinks.json
+7e8b4f84-5964-497f-9d41-db0a523c3fa6,trivia,food-drink,ingredients,An almond is the seed of a fruit related to which ,data/seed-source/items/trivia/trivia.food-drink.ingredients.json
 5b055b97-e5de-47e5-b0d0-e9385f71861e,trivia,food-drink,ingredients,Baking soda is common name for which compound?,data/seed-source/items/trivia/trivia.food-drink.ingredients.json
+0dc8f94e-c2b6-4ae1-a52f-39775d93c030,trivia,food-drink,ingredients,"Botanically, a banana is a kind of what?",data/seed-source/items/trivia/trivia.food-drink.ingredients.json
+3bcac323-6e61-4e4a-96ae-2679e569d483,trivia,food-drink,ingredients,"Botanically, a peanut is a kind of what?",data/seed-source/items/trivia/trivia.food-drink.ingredients.json
 019a30a3-82df-4c89-a733-887919257632,trivia,food-drink,ingredients,Capsaicin provides heat in which plant family’s pe,data/seed-source/items/trivia/trivia.food-drink.ingredients.json
+76b3a580-d154-4af9-8e5c-c2601268befd,trivia,food-drink,ingredients,Chocolate is made from the seeds of which tree?,data/seed-source/items/trivia/trivia.food-drink.ingredients.json
 4e092a79-20e5-490f-b437-c740d9dfc89b,trivia,food-drink,ingredients,Citric acid gives the sour taste to which fruit fa,data/seed-source/items/trivia/trivia.food-drink.ingredients.json
 d57da44d-4c9b-466f-8f77-84dcb62ab348,trivia,food-drink,ingredients,Cornstarch thickens mainly because of what carbohy,data/seed-source/items/trivia/trivia.food-drink.ingredients.json
 470f253d-e4f8-4dea-ab6d-2a62710b0777,trivia,food-drink,ingredients,Olive oil is extracted from which fruit?,data/seed-source/items/trivia/trivia.food-drink.ingredients.json
@@ -13394,6 +13422,7 @@ b832f06b-f902-4b87-ab3f-1fba4c1994b8,trivia,food-drink,ingredients,Table salt is
 fada0921-528f-4a4f-ad72-08b5a4ef7740,trivia,food-drink,ingredients,Vanilla flavoring comes from orchid pods of which ,data/seed-source/items/trivia/trivia.food-drink.ingredients.json
 b4a239de-11ea-4bf5-8eb1-5731105923aa,trivia,food-drink,ingredients,Which gas-releasing leavening action is associated,data/seed-source/items/trivia/trivia.food-drink.ingredients.json
 7a5a0079-f80a-4dfe-a93c-edc7fdaffe6a,trivia,food-drink,ingredients,Which proteins forming gluten is most closely asso,data/seed-source/items/trivia/trivia.food-drink.ingredients.json
+6496ede3-6dd5-4dba-ae69-248cfd9bb462,trivia,food-drink,ingredients,Which spice is usually the most expensive by weigh,data/seed-source/items/trivia/trivia.food-drink.ingredients.json
 61753348-efaf-465b-b2e8-ce4e3c6943c2,trivia,food-drink,ingredients,Yeast bread rise fermentation produces alcohol and,data/seed-source/items/trivia/trivia.food-drink.ingredients.json
 163dd7e9-b5e4-483e-bec6-1d5468c04283,trivia,food-drink,restaurants,Brasserie belongs to an informal restaurant tradit,data/seed-source/items/trivia/trivia.food-drink.restaurants.json
 45454192-9073-4752-bbd0-941fce20bfc8,trivia,food-drink,restaurants,Diners are known for casual American meals often s,data/seed-source/items/trivia/trivia.food-drink.restaurants.json
@@ -13465,11 +13494,11 @@ be77ff9d-4423-43eb-9f07-31ee351112f8,trivia,games,video-games,Tetris as stacking
 a3158a8c-7f05-48d0-8c97-dd90303b3e5f,trivia,games,video-games,Which genre is most closely associated with World ,data/seed-source/items/trivia/trivia.games.video-games.json
 6f9fc340-d557-42d5-8f0b-59f48e7dc97f,trivia,games,video-games,Which online play format popularized in its battle,data/seed-source/items/trivia/trivia.games.video-games.json
 825c2c7b-109e-498e-a8ea-eed29c72cd89,trivia,games,video-games,Which platform category first is associated with C,data/seed-source/items/trivia/trivia.games.video-games.json
-b9aaa60d-33ec-4b02-b313-3720665a01f9,trivia,general,mixed,What animal's fingerprints are so close to humans ,data/seed-source/items/trivia/trivia.general.mixed.json
-8fa4a171-1328-4e98-9048-c98edddaff2f,trivia,general,mixed,"What color is the ""black box"" recorder on most com",data/seed-source/items/trivia/trivia.general.mixed.json
-365b5b12-6803-48e9-b907-2b40c1d487f5,trivia,general,mixed,What everyday food never really spoils when stored,data/seed-source/items/trivia/trivia.general.mixed.json
-9c536e25-e9e7-4356-b675-52d729469441,trivia,general,mixed,What is the national animal of Scotland?,data/seed-source/items/trivia/trivia.general.mixed.json
-ab50d87c-eb2a-4953-a34b-f2c6facaa139,trivia,general,mixed,Which planet has a day longer than its year?,data/seed-source/items/trivia/trivia.general.mixed.json
+8fa4a171-1328-4e98-9048-c98edddaff2f,trivia,general,mixed,"What color is the ""black box"" flight recorder on m",data/seed-source/items/trivia/trivia.general.mixed.json
+9c536e25-e9e7-4356-b675-52d729469441,trivia,general,mixed,What is Scotland's national animal?,data/seed-source/items/trivia/trivia.general.mixed.json
+b9aaa60d-33ec-4b02-b313-3720665a01f9,trivia,general,mixed,Which animal's fingerprints are so like ours they ,data/seed-source/items/trivia/trivia.general.mixed.json
+365b5b12-6803-48e9-b907-2b40c1d487f5,trivia,general,mixed,Which of these keeps for years in a sealed jar wit,data/seed-source/items/trivia/trivia.general.mixed.json
+ab50d87c-eb2a-4953-a34b-f2c6facaa139,trivia,general,mixed,Which planet takes longer to spin once than to orb,data/seed-source/items/trivia/trivia.general.mixed.json
 2c6afe1c-a2e7-4bea-b8ef-6090416e134b,trivia,internet,apps,A URL is used to locate what on the internet?,data/seed-source/items/trivia/trivia.internet.apps.json
 68746170-2dfa-4e05-a51e-0a013361f934,trivia,internet,apps,An API lets one program request what from another?,data/seed-source/items/trivia/trivia.internet.apps.json
 76f98216-015f-4554-8cc1-2f679b96537f,trivia,internet,apps,Browser cookies are mainly used for what?,data/seed-source/items/trivia/trivia.internet.apps.json

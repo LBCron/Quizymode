@@ -59,6 +59,12 @@ public sealed class Item
     /// <summary>Alt text for <see cref="ExplanationImageKey"/>; present exactly when the key is.</summary>
     public string? ExplanationImageAlt { get; set; }
 
+    /// <summary>Starter-quiz "world" (#462), one of <c>StarterWorlds.All</c>. Set by seed sync only; null exactly when <see cref="WowLine"/> is.</summary>
+    public string? StarterWorld { get; set; }
+
+    /// <summary>One-line "wow" fact (max 140) shown after a starter answer (#462). Set by seed sync only.</summary>
+    public string? WowLine { get; set; }
+
     /// <summary>Uploaded question picture (#400); when set, <see cref="QuestionImageKey"/> is <c>media:{assetId:N}</c>.</summary>
     public Guid? QuestionImageAssetId { get; set; }
 
