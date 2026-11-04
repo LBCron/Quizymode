@@ -16,14 +16,16 @@
       "weird-animals",
       "animal-trivia"
     ],
-    "source": "https://www.britannica.com/animal/axolotl"
+    "source": "https://www.britannica.com/animal/axolotl",
+    "starterWorld": "animals",
+    "wowLine": "Axolotls can regrow lost limbs, and even parts of their heart and brain."
   },
   {
     "itemId": "373d0b76-e430-4689-b552-f271347a9291",
     "category": "trivia",
     "navigationKeyword1": "animals",
     "navigationKeyword2": "weird",
-    "question": "What unusual thing does a platypus do for a mammal?",
+    "question": "What does a platypus do that most mammals don't?",
     "correctAnswer": "lays eggs",
     "incorrectAnswers": [
       "changes color",
@@ -35,7 +37,9 @@
       "weird-animals",
       "animal-trivia"
     ],
-    "source": "https://www.britannica.com/animal/platypus"
+    "source": "https://www.britannica.com/animal/platypus",
+    "starterWorld": "animals",
+    "wowLine": "Platypuses and echidnas are the only mammals that lay eggs."
   },
   {
     "itemId": "bf186d2a-73a6-4fb8-b0dc-1aa6ab51f464",
@@ -111,7 +115,9 @@
       "weird-animals",
       "animal-trivia"
     ],
-    "source": "https://www.britannica.com/animal/mantis-shrimp"
+    "source": "https://www.britannica.com/animal/mantis-shrimp",
+    "starterWorld": "animals",
+    "wowLine": "A mantis shrimp punches so fast it makes tiny bubbles that collapse with a flash of light."
   },
   {
     "itemId": "264b2b45-f072-4ed0-a606-22e59a7bba9f",
@@ -130,7 +136,9 @@
       "weird-animals",
       "animal-trivia"
     ],
-    "source": "https://www.britannica.com/science/tardigrade"
+    "source": "https://www.britannica.com/science/tardigrade",
+    "starterWorld": "animals",
+    "wowLine": "Tardigrades have survived being exposed to the vacuum of space."
   },
   {
     "itemId": "0f6487a2-26b5-4d5e-b96d-3eb75ac26766",
@@ -149,7 +157,9 @@
       "weird-animals",
       "animal-trivia"
     ],
-    "source": "https://www.britannica.com/animal/pangolin"
+    "source": "https://www.britannica.com/animal/pangolin",
+    "starterWorld": "animals",
+    "wowLine": "Pangolins are the only mammals covered in true scales, and they curl into a ball when scared."
   },
   {
     "itemId": "bc4c9292-26d7-4c4c-adac-b70b3cf6ec30",

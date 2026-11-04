@@ -318,7 +318,9 @@ internal sealed class DatabaseSeederHostedService(
                     item.CorrectAnswerSpeech,
                     item.IncorrectAnswerSpeech,
                     item.QuestionImage,
-                    item.ExplanationImage));
+                    item.ExplanationImage,
+                    item.StarterWorld,
+                    item.WowLine));
             }
         }
 
@@ -708,6 +710,8 @@ internal sealed class RepoManagedItemSeedData
     public Dictionary<int, ItemSpeechSupport>? IncorrectAnswerSpeech { get; set; }
     public ItemImageReference? QuestionImage { get; set; }
     public ItemImageReference? ExplanationImage { get; set; }
+    public string? StarterWorld { get; set; }
+    public string? WowLine { get; set; }
 
     [JsonPropertyName("navigationKeyword1")]
     public string NavigationKeyword1 { get; set; } = string.Empty;

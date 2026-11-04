@@ -5467,6 +5467,27 @@
         }
       }
     },
+    "/starter-pool": {
+      "get": {
+        "tags": [
+          "Starter"
+        ],
+        "summary": "Get the curated starter quiz pool",
+        "description": "Public, repo-managed, playable items that carry a starter world and a one-line wow line, excluding items flagged by the question-quality report. Identical for every caller (private keywords are never included). Cached for 5 minutes.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Quizymode.Api.Features.Starter.StarterPool.StarterPoolResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/study-guides/documents/{id}/accept": {
       "post": {
         "tags": [
@@ -13788,6 +13809,26 @@
                 "$ref": "#/components/schemas/Quizymode.Api.Shared.Models.ItemImageReference"
               }
             ]
+          },
+          "starterWorld": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.String"
+              }
+            ]
+          },
+          "wowLine": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.String"
+              }
+            ]
           }
         }
       },
@@ -16086,6 +16127,44 @@
           },
           "itemCount": {
             "$ref": "#/components/schemas/System.Int32"
+          }
+        }
+      },
+      "Quizymode.Api.Features.Starter.StarterPool.StarterItemResponse": {
+        "required": [
+          "item",
+          "world",
+          "wowLine"
+        ],
+        "type": "object",
+        "properties": {
+          "item": {
+            "$ref": "#/components/schemas/Quizymode.Api.Features.Items.Get.GetItems.ItemResponse"
+          },
+          "world": {
+            "description": "One of flags, genai, space, animals, food, time, body, places.",
+            "$ref": "#/components/schemas/System.String"
+          },
+          "wowLine": {
+            "description": "One-line fact shown after the answer (max 140 characters).",
+            "$ref": "#/components/schemas/System.String"
+          }
+        }
+      },
+      "Quizymode.Api.Features.Starter.StarterPool.StarterPoolResponse": {
+        "required": [
+          "version",
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "description": "Short content hash of the pool; changes whenever membership or a wow line changes.",
+            "$ref": "#/components/schemas/System.String"
+          },
+          "items": {
+            "description": "The starter items in a stable order.",
+            "$ref": "#/components/schemas/System.Collections.Generic.ListOfQuizymode.Api.Features.Starter.StarterPool.StarterItemResponse"
           }
         }
       },
@@ -18420,6 +18499,12 @@
           "$ref": "#/components/schemas/Quizymode.Api.Features.Keywords.GetKeywords.KeywordResponse"
         }
       },
+      "System.Collections.Generic.ListOfQuizymode.Api.Features.Starter.StarterPool.StarterItemResponse": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Quizymode.Api.Features.Starter.StarterPool.StarterItemResponse"
+        }
+      },
       "System.Collections.Generic.ListOfQuizymode.Api.Features.StudyGuideDocuments.AcceptStudyGuideCandidates.CandidateEdit": {
         "type": "array",
         "items": {
@@ -18650,6 +18735,9 @@
     },
     {
       "name": "Search"
+    },
+    {
+      "name": "Starter"
     },
     {
       "name": "StudyGuideDocuments"

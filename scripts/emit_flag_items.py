@@ -23,7 +23,7 @@ from pathlib import Path
 SCRIPTS_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPTS_DIR))
 
-from flag_country_data import COUNTRIES, EXTRA_EXPLANATION, SIMILAR_GROUPS  # noqa: E402
+from flag_country_data import COUNTRIES, EXTRA_EXPLANATION, SIMILAR_GROUPS, STARTER  # noqa: E402
 from seed_source_common import (  # noqa: E402
     ROOT,
     SOURCE_ITEMS_ROOT,
@@ -81,6 +81,10 @@ def build_flag_items() -> list[dict]:
     names = {row[0]: row[1] for row in COUNTRIES}
     regions = {row[0]: row[2] for row in COUNTRIES}
 
+    unknown_starter = set(STARTER) - set(names)
+    if unknown_starter:
+        raise SystemExit(f"STARTER has unknown iso2 codes: {sorted(unknown_starter)}")
+
     items: list[dict] = []
     for iso2, name, region, _commons_file, design in sorted(COUNTRIES, key=lambda row: row[1].casefold()):
         entry = by_iso.get(iso2)
@@ -95,21 +99,26 @@ def build_flag_items() -> list[dict]:
         if iso2 in EXTRA_EXPLANATION:
             explanation = f"{explanation} {EXTRA_EXPLANATION[iso2]}"
 
-        items.append(
-            {
-                "itemId": item_id_for(iso2),
-                "category": "geography",
-                "navigationKeyword1": "flags",
-                "navigationKeyword2": "countries",
-                "question": QUESTION,
-                "correctAnswer": name,
-                "incorrectAnswers": [names[code] for code in choose_wrong_answers(iso2, region, regions)],
-                "explanation": explanation,
-                "keywords": [region],
-                "source": entry["sourcePageUrl"],
-                "questionImage": {"key": f"curated:flags/{iso2}", "altText": design},
-            }
-        )
+        item = {
+            "itemId": item_id_for(iso2),
+            "category": "geography",
+            "navigationKeyword1": "flags",
+            "navigationKeyword2": "countries",
+            "question": QUESTION,
+            "correctAnswer": name,
+            "incorrectAnswers": [names[code] for code in choose_wrong_answers(iso2, region, regions)],
+            "explanation": explanation,
+            "keywords": [region],
+            "source": entry["sourcePageUrl"],
+            "questionImage": {"key": f"curated:flags/{iso2}", "altText": design},
+        }
+        if iso2 in STARTER:
+            wow_line = STARTER[iso2]
+            if len(wow_line) > 140 or any(len(a) > 30 for a in [name, *item["incorrectAnswers"]]):
+                raise SystemExit(f"{iso2}: starter wowLine must be <= 140 chars and every answer <= 30 chars")
+            item["starterWorld"] = "flags"
+            item["wowLine"] = STARTER[iso2]
+        items.append(item)
     return items
 
 

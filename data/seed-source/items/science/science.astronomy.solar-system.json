@@ -130,7 +130,9 @@
       "jupiter",
       "mass"
     ],
-    "source": "https://science.nasa.gov/jupiter/"
+    "source": "https://science.nasa.gov/jupiter/",
+    "starterWorld": "space",
+    "wowLine": "Jupiter has more than twice the mass of all the other planets put together."
   },
   {
     "itemId": "9de65500-00b1-4e88-8263-3f26cef134ec",
@@ -149,7 +151,9 @@
       "pluto",
       "dwarf-planet"
     ],
-    "source": "https://science.nasa.gov/pluto/"
+    "source": "https://science.nasa.gov/pluto/",
+    "starterWorld": "space",
+    "wowLine": "Pluto lost its planet title in 2006, and it is smaller than Earth's Moon."
   },
   {
     "itemId": "c6c99fac-cb1c-4281-8071-0b965902daa6",
@@ -252,7 +256,7 @@
     "category": "science",
     "navigationKeyword1": "astronomy",
     "navigationKeyword2": "solar-system",
-    "question": "Near the Sun, Martian sunsets usually look what color?",
+    "question": "What color do sunsets usually look on Mars?",
     "correctAnswer": "Blue",
     "incorrectAnswers": [
       "Orange",
@@ -265,14 +269,16 @@
       "sunset",
       "atmosphere"
     ],
-    "source": "https://science.nasa.gov/solar-system/planets/mars/what-does-a-sunrise-sunset-look-like-on-mars/"
+    "source": "https://science.nasa.gov/solar-system/planets/mars/what-does-a-sunrise-sunset-look-like-on-mars/",
+    "starterWorld": "space",
+    "wowLine": "Fine dust in the Martian sky makes the glow around the setting Sun look blue."
   },
   {
     "itemId": "21b2fd34-a8f6-4d1c-9689-b574a7bd58bd",
     "category": "science",
     "navigationKeyword1": "astronomy",
     "navigationKeyword2": "solar-system",
-    "question": "Which planet is less dense than water and would float if you had an impossibly huge bathtub?",
+    "question": "Which planet is less dense than water, so it would float in a giant bathtub?",
     "correctAnswer": "Saturn",
     "incorrectAnswers": [
       "Neptune",
@@ -285,7 +291,9 @@
       "density",
       "solar-system"
     ],
-    "source": "https://science.gsfc.nasa.gov/attic/huygensgcms/Saturn.htm"
+    "source": "https://science.nasa.gov/saturn/",
+    "starterWorld": "space",
+    "wowLine": "Saturn is mostly hydrogen and helium, so its average density is lower than water's."
   },
   {
     "itemId": "8b5a2944-aee7-458d-b7af-a5368c28bf21",
@@ -305,7 +313,9 @@
       "volcanoes",
       "planets"
     ],
-    "source": "https://science.nasa.gov/mars/facts/"
+    "source": "https://science.nasa.gov/mars/facts/",
+    "starterWorld": "space",
+    "wowLine": "Olympus Mons is about two and a half times as tall as Mount Everest."
   },
   {
     "itemId": "b398c248-e3b4-448e-93bb-40d20ec2bedc",

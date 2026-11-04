@@ -657,7 +657,9 @@
     "questionImage": {
       "key": "curated:flags/bt",
       "altText": "A diagonal division from the lower left to the upper right, with yellow above and orange below, and a white dragon across the middle."
-    }
+    },
+    "starterWorld": "flags",
+    "wowLine": "Bhutan's flag shows a dragon. Its local name means 'Land of the Thunder Dragon'."
   },
   {
     "itemId": "9e2f371f-2c45-5eb2-a5cc-642aaa7e876e",
@@ -745,7 +747,9 @@
     "questionImage": {
       "key": "curated:flags/br",
       "altText": "A green field with a large yellow diamond holding a blue disc with white stars and a curved white banner."
-    }
+    },
+    "starterWorld": "flags",
+    "wowLine": "The stars show the sky over Rio de Janeiro on 15 November 1889, the day Brazil became a republic."
   },
   {
     "itemId": "222c9c2c-5217-550e-ba77-be033f04faa2",
@@ -921,7 +925,9 @@
     "questionImage": {
       "key": "curated:flags/ca",
       "altText": "Red bands at the left and right with a white square between them holding a red leaf with eleven points."
-    }
+    },
+    "starterWorld": "flags",
+    "wowLine": "The red maple leaf on Canada's flag has 11 points."
   },
   {
     "itemId": "460dea1f-0e90-5be9-923a-b613f3895fed",
@@ -1229,7 +1235,9 @@
     "questionImage": {
       "key": "curated:flags/dk",
       "altText": "A red field with a white cross that extends to the edges, set toward the left."
-    }
+    },
+    "starterWorld": "flags",
+    "wowLine": "Denmark's Dannebrog holds the Guinness record as the oldest national flag in continuous use, since 1625."
   },
   {
     "itemId": "2c21a9b0-239c-5240-8605-d169a3fdbc2b",
@@ -1889,7 +1897,9 @@
     "questionImage": {
       "key": "curated:flags/in",
       "altText": "Three equal horizontal bands of saffron, white and green, with a navy blue wheel of 24 spokes at the centre."
-    }
+    },
+    "starterWorld": "flags",
+    "wowLine": "The blue wheel in the middle of India's flag, the Ashoka Chakra, has 24 spokes."
   },
   {
     "itemId": "98359d6e-e46c-5831-96e5-62438f97378f",
@@ -2065,7 +2075,9 @@
     "questionImage": {
       "key": "curated:flags/jp",
       "altText": "A white field with a red disc at the centre."
-    }
+    },
+    "starterWorld": "flags",
+    "wowLine": "In Japan this flag is called the Hinomaru, which means 'circle of the sun'."
   },
   {
     "itemId": "995672db-90f5-56fa-9490-e4e2f93355f9",

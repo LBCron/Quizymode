@@ -67,6 +67,13 @@ class SourceItem:
     question_image: dict[str, str] | None = None
     # Curated explanation picture (#403): same shape; shown only after the answer is revealed.
     explanation_image: dict[str, str] | None = None
+    # Starter quiz (#462): "world" and one-line wow fact, set together or not at all.
+    starter_world: str | None = None
+    wow_line: str | None = None
+
+
+STARTER_WORLDS = ("flags", "genai", "space", "animals", "food", "time", "body", "places")
+MAX_WOW_LINE_LENGTH = 140
 
 
 @dataclass
@@ -243,7 +250,25 @@ def canonicalize_item_payload(item: SourceItem) -> dict[str, Any]:
             "key": item.explanation_image["key"],
             "altText": item.explanation_image["altText"],
         }
+    if item.starter_world:
+        payload["starterWorld"] = item.starter_world
+    if item.wow_line:
+        payload["wowLine"] = item.wow_line
     return payload
+
+
+def validate_starter_fields(item: SourceItem) -> list[str]:
+    where = f"{item.path} item {item.index}"
+    errors: list[str] = []
+    if (item.starter_world is None) != (item.wow_line is None):
+        errors.append(f"{where}: starterWorld and wowLine must be set together.")
+    if item.starter_world is not None and item.starter_world not in STARTER_WORLDS:
+        errors.append(f"{where}: starterWorld must be one of {', '.join(STARTER_WORLDS)}.")
+    if item.wow_line is not None and len(item.wow_line) > MAX_WOW_LINE_LENGTH:
+        errors.append(f"{where}: wowLine must be at most {MAX_WOW_LINE_LENGTH} characters.")
+    if item.wow_line is not None and any(ch in item.wow_line for ch in "\r\n\t"):
+        errors.append(f"{where}: wowLine must be a single line.")
+    return errors
 
 
 def load_source_items(source_root: Path = SOURCE_ITEMS_ROOT) -> list[SourceItem]:
@@ -280,6 +305,8 @@ def load_source_items(source_root: Path = SOURCE_ITEMS_ROOT) -> list[SourceItem]
                     index=index,
                     question_image=parse_question_image(item.get("questionImage"), f"{path} item {index}"),
                     explanation_image=parse_explanation_image(item.get("explanationImage"), f"{path} item {index}"),
+                    starter_world=_optional_str(item.get("starterWorld")),
+                    wow_line=_optional_str(item.get("wowLine")),
                 )
             )
 
@@ -345,6 +372,7 @@ def validate_source(
             errors.append(f"{item.path} item {item.index}: correctAnswer is required.")
         errors.extend(validate_question_image(item))
         errors.extend(validate_explanation_image(item))
+        errors.extend(validate_starter_fields(item))
 
         existing_id = seen_item_ids.get(item.item_id)
         if existing_id is not None:

@@ -238,5 +238,95 @@
       "transport"
     ],
     "source": "https://en.wikipedia.org/wiki/Hemoglobin"
+  },
+  {
+    "itemId": "a6f37f13-d664-4188-8916-88aab37e6624",
+    "category": "science",
+    "navigationKeyword1": "anatomy",
+    "navigationKeyword2": "cardio",
+    "question": "About how many times does your heart beat in one day?",
+    "correctAnswer": "About 100,000",
+    "incorrectAnswers": [
+      "About 1,000",
+      "About 10,000",
+      "About 1 million"
+    ],
+    "explanation": "A resting adult heart beats about 60 to 100 times a minute, which adds up to roughly 100,000 beats a day.",
+    "keywords": [],
+    "source": "https://en.wikipedia.org/wiki/Heart_rate",
+    "starterWorld": "body",
+    "wowLine": "That is over 30 million beats a year, and your heart never takes a day off."
+  },
+  {
+    "itemId": "7fb1fa16-cc89-4fdc-bf11-d61ddda1baa2",
+    "category": "science",
+    "navigationKeyword1": "anatomy",
+    "navigationKeyword2": "cardio",
+    "question": "What color is the blood inside your veins?",
+    "correctAnswer": "Dark red",
+    "incorrectAnswers": [
+      "Blue",
+      "Purple",
+      "Green"
+    ],
+    "explanation": "Blood is always red. Oxygen-rich blood is bright red and blood that has given up oxygen is darker. Veins only look blue through the skin.",
+    "keywords": [],
+    "source": "https://en.wikipedia.org/wiki/Blood",
+    "starterWorld": "body",
+    "wowLine": "Veins look blue through skin, but blood is always red. It is just darker when it carries less oxygen."
+  },
+  {
+    "itemId": "077de0f6-c191-4832-9732-bc53644405f6",
+    "category": "science",
+    "navigationKeyword1": "anatomy",
+    "navigationKeyword2": "cardio",
+    "question": "About how much blood does an adult body hold?",
+    "correctAnswer": "About 5 liters",
+    "incorrectAnswers": [
+      "About 1 liter",
+      "About 15 liters",
+      "About 40 liters"
+    ],
+    "explanation": "An adult has roughly 5 liters of blood. At rest the heart pumps about that much every minute.",
+    "keywords": [],
+    "source": "https://en.wikipedia.org/wiki/Cardiac_output",
+    "starterWorld": "body",
+    "wowLine": "Your heart pumps about that much blood every minute, so all of it makes a full lap of your body."
+  },
+  {
+    "itemId": "1c48ea8a-2ef3-4b88-ba4d-3d8597a83ab0",
+    "category": "science",
+    "navigationKeyword1": "anatomy",
+    "navigationKeyword2": "cardio",
+    "question": "How long does a red blood cell live?",
+    "correctAnswer": "About 4 months",
+    "incorrectAnswers": [
+      "About 1 week",
+      "About 1 year",
+      "About 10 years"
+    ],
+    "explanation": "Red blood cells survive about 120 days. Bone marrow keeps making new ones to replace them.",
+    "keywords": [],
+    "source": "https://en.wikipedia.org/wiki/Red_blood_cell",
+    "starterWorld": "body",
+    "wowLine": "Your bone marrow makes millions of new red blood cells every second to replace the old ones."
+  },
+  {
+    "itemId": "90e317aa-75e6-4277-8968-8aab2b229c5f",
+    "category": "science",
+    "navigationKeyword1": "anatomy",
+    "navigationKeyword2": "cardio",
+    "question": "Which blood type is called the universal red-cell donor?",
+    "correctAnswer": "O negative",
+    "incorrectAnswers": [
+      "AB positive",
+      "A negative",
+      "B positive"
+    ],
+    "explanation": "Red cells of type O negative lack the A and B markers and the Rh factor, so they can be given to almost any patient.",
+    "keywords": [],
+    "source": "https://www.redcrossblood.org/donate-blood/blood-types.html",
+    "starterWorld": "body",
+    "wowLine": "O negative red cells can go to almost any patient, so hospitals rely on them in emergencies."
   }
 ]

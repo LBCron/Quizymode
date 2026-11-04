@@ -602,6 +602,86 @@ public sealed class SeedSyncAdminTests : ItemTestFixture
             .IsFailure.Should().BeTrue();
     }
 
+    // --- #462 starter quiz fields ---
+
+    private SeedSyncAdmin.Request StarterRequest(string? world, string? wowLine) =>
+        BuildRequest([BuildItem(PictureItemId, "Which planet is third from the Sun?", "Earth", ["Venus", "Mars"], starterWorld: world, wowLine: wowLine)]);
+
+    [Fact]
+    public async Task ApplyAsync_CreatesItemWithStarterFields_TrimmedAndRoundTripped()
+    {
+        await EnsureGeographyPublicWithNavAsync("seeder");
+
+        Result<SeedSyncAdmin.ApplyResponse> result = await _service.ApplyAsync(
+            StarterRequest(" space ", "  Earth is the only planet known to have life.  "), CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+        Item item = await DbContext.Items.SingleAsync(i => i.Id == PictureItemId);
+        item.StarterWorld.Should().Be("space");
+        item.WowLine.Should().Be("Earth is the only planet known to have life.");
+    }
+
+    [Fact]
+    public async Task PreviewAsync_StarterFieldChanges_AreDetectedAndClearable()
+    {
+        await EnsureGeographyPublicWithNavAsync("seeder");
+        (await _service.ApplyAsync(StarterRequest("space", "First line."), CancellationToken.None)).IsSuccess.Should().BeTrue();
+
+        (await _service.PreviewAsync(StarterRequest("space", "First line."), CancellationToken.None))
+            .Value!.UnchangedCount.Should().Be(1);
+
+        Result<SeedSyncAdmin.PreviewResponse> lineOnly = await _service.PreviewAsync(StarterRequest("space", "Second line."), CancellationToken.None);
+        lineOnly.Value!.Changes.Should().ContainSingle().Which.ChangedFields.Should().Equal("wowLine");
+
+        Result<SeedSyncAdmin.PreviewResponse> both = await _service.PreviewAsync(StarterRequest("animals", "Second line."), CancellationToken.None);
+        both.Value!.Changes.Should().ContainSingle().Which.ChangedFields.Should().Equal("starterWorld", "wowLine");
+
+        Result<SeedSyncAdmin.PreviewResponse> removed = await _service.PreviewAsync(StarterRequest(null, null), CancellationToken.None);
+        removed.Value!.Changes.Should().ContainSingle().Which.ChangedFields.Should().Equal("starterWorld", "wowLine");
+
+        (await _service.ApplyAsync(StarterRequest("animals", "Second line."), CancellationToken.None)).IsSuccess.Should().BeTrue();
+        (await DbContext.Items.AsNoTracking().SingleAsync(i => i.Id == PictureItemId)).StarterWorld.Should().Be("animals");
+
+        (await _service.ApplyAsync(StarterRequest(null, null), CancellationToken.None)).IsSuccess.Should().BeTrue();
+        Item cleared = await DbContext.Items.AsNoTracking().SingleAsync(i => i.Id == PictureItemId);
+        cleared.StarterWorld.Should().BeNull();
+        cleared.WowLine.Should().BeNull();
+    }
+
+    [Theory]
+    [InlineData("music", "A valid line.")]
+    [InlineData("Space", "A valid line.")]
+    [InlineData("space", null)]
+    [InlineData("space", "   ")]
+    [InlineData(null, "A line without a world.")]
+    [InlineData("   ", "A line without a world.")]
+    public async Task ApplyAsync_InvalidStarterFields_AreRejected(string? world, string? wowLine)
+    {
+        await EnsureGeographyPublicWithNavAsync("seeder");
+
+        Result<SeedSyncAdmin.ApplyResponse> result = await _service.ApplyAsync(StarterRequest(world, wowLine), CancellationToken.None);
+
+        result.IsFailure.Should().BeTrue();
+        (await DbContext.Items.AnyAsync(i => i.Id == PictureItemId)).Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task ApplyAsync_WowLineOver140Characters_IsRejected_And140IsAccepted()
+    {
+        await EnsureGeographyPublicWithNavAsync("seeder");
+
+        (await _service.ApplyAsync(StarterRequest("space", new string('a', 141)), CancellationToken.None)).IsFailure.Should().BeTrue();
+        (await _service.ApplyAsync(StarterRequest("space", new string('a', 140)), CancellationToken.None)).IsSuccess.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ApplyAsync_WowLineWithLineBreak_IsRejected()
+    {
+        await EnsureGeographyPublicWithNavAsync("seeder");
+
+        (await _service.ApplyAsync(StarterRequest("space", "First line\nsecond line"), CancellationToken.None)).IsFailure.Should().BeTrue();
+    }
+
     // --- #403 curated explanation pictures ---
 
     private static readonly ItemImageReference Diagram = new("curated:diagrams/pythagorean-theorem", "Right triangle with legs a, b and hypotenuse c");
@@ -718,7 +798,9 @@ public sealed class SeedSyncAdminTests : ItemTestFixture
         ItemSpeechSupport? correctAnswerSpeech = null,
         Dictionary<int, ItemSpeechSupport>? incorrectAnswerSpeech = null,
         ItemImageReference? questionImage = null,
-        ItemImageReference? explanationImage = null)
+        ItemImageReference? explanationImage = null,
+        string? starterWorld = null,
+        string? wowLine = null)
     {
         return new SeedSyncAdmin.SeedItemRequest(
             ItemId: itemId,
@@ -735,7 +817,9 @@ public sealed class SeedSyncAdminTests : ItemTestFixture
             CorrectAnswerSpeech: correctAnswerSpeech,
             IncorrectAnswerSpeech: incorrectAnswerSpeech,
             QuestionImage: questionImage,
-            ExplanationImage: explanationImage);
+            ExplanationImage: explanationImage,
+            StarterWorld: starterWorld,
+            WowLine: wowLine);
     }
 
     private sealed class FakeGitHubSeedSource : IGitHubSeedSource

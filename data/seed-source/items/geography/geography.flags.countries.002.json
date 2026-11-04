@@ -591,7 +591,9 @@
     "questionImage": {
       "key": "curated:flags/mz",
       "altText": "Horizontal stripes of green, black and yellow separated by thin white lines, with a red triangle at the left holding a yellow star, an open book and a crossed rifle and hoe."
-    }
+    },
+    "starterWorld": "flags",
+    "wowLine": "Mozambique's is the only national flag with a modern firearm on it: an AK-47."
   },
   {
     "itemId": "d8cfc28e-840b-5929-a047-ae500c3e3bd6",
@@ -679,7 +681,9 @@
     "questionImage": {
       "key": "curated:flags/np",
       "altText": "Two stacked triangular pennants, crimson with a blue border, the upper holding a white crescent and the lower a white sun-like symbol."
-    }
+    },
+    "starterWorld": "flags",
+    "wowLine": "Nepal's is the only national flag that isn't a rectangle or a square."
   },
   {
     "itemId": "e1ad99c3-45f7-5fdb-9458-374bf5e91e4e",
@@ -1735,7 +1739,9 @@
     "questionImage": {
       "key": "curated:flags/ch",
       "altText": "A square red field with a white cross at the centre."
-    }
+    },
+    "starterWorld": "flags",
+    "wowLine": "Switzerland's is one of only two square national flags. The other belongs to Vatican City."
   },
   {
     "itemId": "21fe9541-e86b-5849-abb6-add74525ba9d",

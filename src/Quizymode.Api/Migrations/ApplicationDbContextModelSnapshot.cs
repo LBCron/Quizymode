@@ -1128,11 +1128,19 @@ namespace Quizymode.Api.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
 
+                    b.Property<string>("StarterWorld")
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid?>("UploadId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("WowLine")
+                        .HasMaxLength(140)
+                        .HasColumnType("character varying(140)");
 
                     b.HasKey("Id");
 

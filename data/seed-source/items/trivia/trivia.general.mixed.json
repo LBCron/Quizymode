@@ -4,7 +4,7 @@
     "category": "trivia",
     "navigationKeyword1": "general",
     "navigationKeyword2": "mixed",
-    "question": "What color is the \"black box\" recorder on most commercial airplanes?",
+    "question": "What color is the \"black box\" flight recorder on most airplanes?",
     "correctAnswer": "Bright orange",
     "incorrectAnswers": [
       "Black",
@@ -16,52 +16,56 @@
       "aviation",
       "surprising-facts"
     ],
-    "source": "seed: home sample collection"
+    "source": "https://en.wikipedia.org/wiki/Flight_recorder"
   },
   {
     "itemId": "b9aaa60d-33ec-4b02-b313-3720665a01f9",
     "category": "trivia",
     "navigationKeyword1": "general",
     "navigationKeyword2": "mixed",
-    "question": "What animal's fingerprints are so close to humans that they can confuse crime-scene analysis?",
-    "correctAnswer": "Koalas",
+    "question": "Which animal's fingerprints are so like ours they could fool detectives?",
+    "correctAnswer": "Koala",
     "incorrectAnswers": [
-      "Chimpanzees",
-      "Dogs",
-      "Otters"
+      "Dog",
+      "Otter",
+      "Raccoon"
     ],
-    "explanation": "Koala fingerprints have ridge patterns so similar to human fingerprints that they have reportedly confused investigators.",
+    "explanation": "Koala fingerprints are so similar to human ones that even under an electron microscope they are hard to tell apart, so they could be mistaken for ours at a crime scene.",
     "keywords": [
       "animals",
       "weird"
     ],
-    "source": "seed: home sample collection"
+    "source": "https://en.wikipedia.org/wiki/Fingerprint",
+    "starterWorld": "animals",
+    "wowLine": "Koala fingerprints are so like ours that they could be mistaken for a person's at a crime scene."
   },
   {
     "itemId": "ab50d87c-eb2a-4953-a34b-f2c6facaa139",
     "category": "trivia",
     "navigationKeyword1": "general",
     "navigationKeyword2": "mixed",
-    "question": "Which planet has a day longer than its year?",
+    "question": "Which planet takes longer to spin once than to orbit the Sun?",
     "correctAnswer": "Venus",
     "incorrectAnswers": [
       "Mars",
       "Mercury",
       "Neptune"
     ],
-    "explanation": "Venus rotates extremely slowly, so one full spin takes longer than one trip around the Sun.",
+    "explanation": "Venus spins so slowly that one full rotation takes about 243 Earth days, while one trip around the Sun takes only about 225.",
     "keywords": [
       "space",
       "planets"
     ],
-    "source": "seed: home sample collection"
+    "source": "https://science.nasa.gov/venus/",
+    "starterWorld": "space",
+    "wowLine": "Venus takes about 243 Earth days to spin once, but only about 225 to circle the Sun."
   },
   {
     "itemId": "9c536e25-e9e7-4356-b675-52d729469441",
     "category": "trivia",
     "navigationKeyword1": "general",
     "navigationKeyword2": "mixed",
-    "question": "What is the national animal of Scotland?",
+    "question": "What is Scotland's national animal?",
     "correctAnswer": "The unicorn",
     "incorrectAnswers": [
       "The stag",
@@ -73,25 +77,29 @@
       "countries",
       "symbols"
     ],
-    "source": "seed: home sample collection"
+    "source": "https://en.wikipedia.org/wiki/National_animal",
+    "starterWorld": "animals",
+    "wowLine": "Scotland's national animal isn't real: it's the unicorn, a Scottish royal symbol for centuries."
   },
   {
     "itemId": "365b5b12-6803-48e9-b907-2b40c1d487f5",
     "category": "trivia",
     "navigationKeyword1": "general",
     "navigationKeyword2": "mixed",
-    "question": "What everyday food never really spoils when stored properly?",
+    "question": "Which of these keeps for years in a sealed jar without going bad?",
     "correctAnswer": "Honey",
     "incorrectAnswers": [
       "Brown rice",
       "Milk chocolate",
       "Sea salt crackers"
     ],
-    "explanation": "Honey's low moisture and natural chemistry make it famously long-lasting, and edible ancient honey has even been found in tombs.",
+    "explanation": "Honey has very little water and is acidic, so most microbes cannot grow in it. Sealed honey keeps for years.",
     "keywords": [
       "food",
       "fun-facts"
     ],
-    "source": "seed: home sample collection"
+    "source": "https://en.wikipedia.org/wiki/Honey",
+    "starterWorld": "food",
+    "wowLine": "Honey has so little water and is so acidic that most microbes can't grow in it."
   }
 ]
