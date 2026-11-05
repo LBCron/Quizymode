@@ -113,10 +113,13 @@ public static class GetAnalyticsOverview
             .Select(user => user.CreatedAt)
             .ToListAsync(cancellationToken);
 
+        // Cohort rows are all-time and independent of the window, so load them once for both windows.
+        List<VisitorCohortReport.CohortRow> cohortRows = await VisitorCohortReport.LoadRowsAsync(
+            db, false, false, cancellationToken);
         VisitorCohortReport.Response currentVisitors = await VisitorCohortReport.BuildAsync(
-            db, windowStart, windowEndExclusive.AddTicks(-1), false, false, cancellationToken);
+            db, cohortRows, windowStart, windowEndExclusive.AddTicks(-1), cancellationToken);
         VisitorCohortReport.Response previousVisitors = await VisitorCohortReport.BuildAsync(
-            db, previousStart, windowStart.AddTicks(-1), false, false, cancellationToken);
+            db, cohortRows, previousStart, windowStart.AddTicks(-1), cancellationToken);
 
         Kpis currentKpis = BuildKpis(
             current,
@@ -242,8 +245,9 @@ public static class GetAnalyticsOverview
 
         var firstSeen = await db.AnalyticsSessions
             .AsNoTracking()
+            // Non-null predicate: see InternalTrafficFilter.ExcludeInternalSessions.
             .Where(session => session.AppVersion != null
-                && !internalSessionIds.Contains(session.SessionId)
+                && !internalSessionIds.Any(sessionId => sessionId == session.SessionId && session.SessionId != null)
                 && !db.PageViews.Any(pageView => pageView.SessionId == session.SessionId && pageView.IsBot))
             .GroupBy(session => session.AppVersion!)
             .Select(group => new { Version = group.Key, FirstSeenUtc = group.Min(session => session.FirstSeenUtc) })

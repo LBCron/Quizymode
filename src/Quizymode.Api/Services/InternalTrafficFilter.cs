@@ -36,14 +36,14 @@ internal static class InternalTrafficFilter
     {
         IQueryable<string> ownEvidenceSessionIds = OwnEvidenceInternalSessionIds(db);
 
-        IQueryable<string> siblingSessionIds =
-            from thisSession in db.AnalyticsSessions
-            join otherSession in db.AnalyticsSessions
-                on thisSession.VisitorId equals otherSession.VisitorId
-            where thisSession.VisitorId != null
-                && otherSession.VisitorId != null
-                && ownEvidenceSessionIds.Contains(otherSession.SessionId)
-            select thisSession.SessionId;
+        // Semi-join through the internal visitor ids instead of a self-join on VisitorId.
+        IQueryable<string> internalVisitorIds = db.AnalyticsSessions
+            .Where(session => session.VisitorId != null && ownEvidenceSessionIds.Contains(session.SessionId))
+            .Select(session => session.VisitorId!);
+
+        IQueryable<string> siblingSessionIds = db.AnalyticsSessions
+            .Where(session => session.VisitorId != null && internalVisitorIds.Any(visitorId => visitorId == session.VisitorId))
+            .Select(session => session.SessionId);
 
         return ownEvidenceSessionIds.Concat(siblingSessionIds).Distinct();
     }
@@ -89,7 +89,8 @@ internal static class InternalTrafficFilter
     {
         IQueryable<string> internalSessionIds = InternalSessionIds(db, query);
 
-        return query.Where(pageView => !internalSessionIds.Contains(pageView.SessionId));
+        // The extra non-null predicate (SessionId is required) stops EF from rewriting Any(x == y) back into NOT IN.
+        return query.Where(pageView => !internalSessionIds.Any(sessionId => sessionId == pageView.SessionId && pageView.SessionId != null));
     }
 
     /// <summary>Sessions internal by their own hits: an internal hit, or a hit tied to a user currently flagged internal.</summary>

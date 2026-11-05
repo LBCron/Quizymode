@@ -47,12 +47,25 @@ public static class VisitorCohortReport
         int ReturnedWithin7Days,
         double ReturnRatePercent);
 
-    private sealed record Row(string SessionId, string? VisitorId, DateTime FirstSeenUtc, Guid? UserId, string Channel, string? UtmCampaign);
+    internal sealed record CohortRow(string SessionId, string? VisitorId, DateTime FirstSeenUtc, Guid? UserId, string Channel, string? UtmCampaign);
 
     public static async Task<Response> BuildAsync(
         ApplicationDbContext db,
         DateTime windowStartUtc,
         DateTime windowEndUtc,
+        bool includeBots,
+        bool includeInternal,
+        CancellationToken cancellationToken)
+    {
+        List<CohortRow> allRows = await LoadRowsAsync(db, includeBots, includeInternal, cancellationToken);
+        return await BuildAsync(db, allRows, windowStartUtc, windowEndUtc, cancellationToken);
+    }
+
+    /// <summary>
+    /// Loads every session row (all time, scoped by exclusions only) so several windows can be built from one load.
+    /// </summary>
+    internal static async Task<List<CohortRow>> LoadRowsAsync(
+        ApplicationDbContext db,
         bool includeBots,
         bool includeInternal,
         CancellationToken cancellationToken)
@@ -69,13 +82,14 @@ public static class VisitorCohortReport
         {
             // Includes visitor-id propagation: one internal session makes all of that visitor's sessions internal.
             IQueryable<string> internalSessionIds = InternalTrafficFilter.AllInternalSessionIds(db);
-            scopeQuery = scopeQuery.Where(session => !internalSessionIds.Contains(session.SessionId));
+            // Non-null predicate: see InternalTrafficFilter.ExcludeInternalSessions.
+            scopeQuery = scopeQuery.Where(session => !internalSessionIds.Any(sessionId => sessionId == session.SessionId && session.SessionId != null));
         }
 
         // Scoped by exclusions only, not by the window: new/returning and the 7-day cohort need a
         // visitor's full history, which can predate the window.
-        List<Row> allRows = await scopeQuery
-            .Select(session => new Row(
+        return await scopeQuery
+            .Select(session => new CohortRow(
                 session.SessionId,
                 session.VisitorId,
                 session.FirstSeenUtc,
@@ -83,12 +97,23 @@ public static class VisitorCohortReport
                 session.Channel,
                 session.UtmCampaign))
             .ToListAsync(cancellationToken);
+    }
 
+    /// <summary>
+    /// Builds one window from already-loaded rows. The only database access is the per-window Users signup query.
+    /// </summary>
+    internal static async Task<Response> BuildAsync(
+        ApplicationDbContext db,
+        List<CohortRow> allRows,
+        DateTime windowStartUtc,
+        DateTime windowEndUtc,
+        CancellationToken cancellationToken)
+    {
         bool InWindow(DateTime time) => time >= windowStartUtc && time <= windowEndUtc;
 
-        List<Row> windowRows = allRows.Where(row => InWindow(row.FirstSeenUtc)).ToList();
+        List<CohortRow> windowRows = allRows.Where(row => InWindow(row.FirstSeenUtc)).ToList();
 
-        Dictionary<string, List<Row>> sessionsByVisitor = allRows
+        Dictionary<string, List<CohortRow>> sessionsByVisitor = allRows
             .Where(row => row.VisitorId is not null)
             .GroupBy(row => row.VisitorId!, StringComparer.Ordinal)
             .ToDictionary(
@@ -100,9 +125,9 @@ public static class VisitorCohortReport
         int unidentifiedSessions = windowRows.Count(row => row.VisitorId is null);
         int newVisitorSessions = 0;
         int returningVisitorSessions = 0;
-        foreach (Row row in windowRows.Where(row => row.VisitorId is not null))
+        foreach (CohortRow row in windowRows.Where(row => row.VisitorId is not null))
         {
-            Row first = sessionsByVisitor[row.VisitorId!][0];
+            CohortRow first = sessionsByVisitor[row.VisitorId!][0];
             if (first.SessionId == row.SessionId)
             {
                 newVisitorSessions++;
@@ -161,7 +186,7 @@ public static class VisitorCohortReport
         List<int> daysToSignupSamples = [];
         foreach ((Guid userId, DateTime createdAt) in signups)
         {
-            List<Row> visitorSessions = visitorsByUser[userId]
+            List<CohortRow> visitorSessions = visitorsByUser[userId]
                 .SelectMany(visitorId => sessionsByVisitor[visitorId])
                 .Where(row => row.FirstSeenUtc <= createdAt)
                 .ToList();
