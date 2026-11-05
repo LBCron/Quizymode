@@ -10,11 +10,8 @@ public sealed class LlmProviderSettings
 
     public int Id { get; set; } = SingletonId;
 
-    public string DeepSeekModel { get; set; } = string.Empty;
-
-    public string OpenAiModel { get; set; } = string.Empty;
-
-    public string GeminiModel { get; set; } = string.Empty;
+    /// <summary>Model per vendor (canonical vendor name → model id), stored as one JSON column so a new vendor needs no schema change.</summary>
+    public Dictionary<string, string> Models { get; set; } = new(StringComparer.Ordinal);
 
     /// <summary>Comma-separated ordered vendor names for free-tier jobs.</summary>
     public string RouteFree { get; set; } = string.Empty;
@@ -35,7 +32,10 @@ public enum LlmAttemptOutcome
     InvalidJson = 5,
 
     /// <summary>The vendor rejected our API key (HTTP 401; 403 whose body indicates a key/credential problem; or 400 "API key not valid"). Stored as an int: never renumber.</summary>
-    AuthError = 6
+    AuthError = 6,
+
+    /// <summary>The vendor answered HTTP 429 (rate limit or quota exhausted); the vendor is put on a cooldown. Stored as an int: never renumber.</summary>
+    RateLimited = 7
 }
 
 /// <summary>One vendor call made for a section generation (kept 90 days).</summary>

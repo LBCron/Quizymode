@@ -336,17 +336,19 @@ For **local development**, omit `Aws__SqsQueueUrl` entirely. The `IContentReques
 
 ---
 
-## 8. Deepseek Account
+## 8. LLM Vendor Accounts (study-guide generation, #464)
 
-1. Sign up at [platform.deepseek.com](https://platform.deepseek.com)
-2. Create an API key under **API Keys**
-3. Add credit — recommended minimum $5 for initial testing
-4. Store the key in SSM (step 5 above)
+DeepSeek is no longer used. The API calls these OpenAI-compatible vendors in route order (AC 5.12, AC 6.6.12) and skips any vendor without a key. Set keys as Lightsail container env vars (`APP_{Vendor}__ApiKey`, see `docs/infra/GITHUB_ACTIONS_DEPLOY.md`) or locally as user secrets / env vars (`{Vendor}:ApiKey` or `{VENDOR}_API_KEY`). Never commit or paste keys.
 
-Models used:
-- `deepseek-chat` — generation and review (V3, cheapest)
-- `deepseek-embedding` — embedding generation
-- Optionally `deepseek-reasoner` (R1) for Stage 2 if accuracy needs improvement — check pricing before switching
+| Vendor | Console | Free tier | Default model |
+|---|---|---|---|
+| Gemini | [aistudio.google.com](https://aistudio.google.com) | Flash / Flash-Lite free tier (Google may use free-tier prompts) | `gemini-3.5-flash-lite` |
+| Groq | [console.groq.com](https://console.groq.com) | Free, no card; ~1K requests/day, 8K tokens/min | `openai/gpt-oss-120b` |
+| Cerebras | [cloud.cerebras.ai](https://cloud.cerebras.ai) | Free trial tier, ~1M tokens/day | `gpt-oss-120b` |
+| OpenRouter | [openrouter.ai](https://openrouter.ai) | `:free` models, 50 requests/day (1,000/day after $10 of credits) | `google/gemma-4-31b-it:free` |
+| OpenAI | [platform.openai.com](https://platform.openai.com) | Paid | `gpt-5-nano` |
+
+OpenRouter: in **Settings → Privacy**, keep "allow providers that may train on inputs" and "publish prompts" off.
 
 ---
 
@@ -385,10 +387,9 @@ Set `Aws__SqsQueueUrl` to the LocalStack SQS endpoint (`http://localhost:4566/00
 - [ ] SQS queue created with correct visibility timeout and DLQ
 - [ ] IAM API policy created and attached to API service principal
 - [ ] IAM Lambda role created with SQS + S3 + SSM + logs permissions
-- [ ] Deepseek API key stored in SSM Parameter Store
+- [ ] LLM vendor keys (Gemini, Groq, Cerebras, OpenRouter, OpenAI) set as Lightsail env vars
 - [ ] Database connection string stored in SSM Parameter Store
 - [ ] Lambda function deployed with correct role, memory (512MB), timeout (300s)
 - [ ] SQS trigger configured on Lambda (batch size 5, window 30s)
 - [ ] Lambda reserved concurrency set to 5
 - [ ] API environment variables set in production hosting
-- [ ] Deepseek account funded with initial credit

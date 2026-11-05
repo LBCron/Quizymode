@@ -160,9 +160,20 @@ public sealed class AdminLlmUsageTests : DatabaseTestFixture
     {
         IConfiguration configuration = Pricing(("m:InputPerMTok", "1.0"), ("m:OutputPerMTok", "0"), ("comma:InputPerMTok", "1,5"), ("comma:OutputPerMTok", "1"));
 
-        LlmPricing.EstimateCostUsd(configuration, "m", 1_250, 0).Should().Be(0.0013m, "0.00125 is a midpoint and rounds away from zero");
-        LlmPricing.EstimateCostUsd(configuration, "m", 0, 0).Should().Be(0m);
-        LlmPricing.EstimateCostUsd(configuration, "comma", 1000, 1000).Should().BeNull("only '.' is a decimal separator");
+        LlmPricing.EstimateCostUsd(configuration, "OpenAI", "m", 1_250, 0).Should().Be(0.0013m, "0.00125 is a midpoint and rounds away from zero");
+        LlmPricing.EstimateCostUsd(configuration, "OpenAI", "m", 0, 0).Should().Be(0m);
+        LlmPricing.EstimateCostUsd(configuration, "OpenAI", "comma", 1000, 1000).Should().BeNull("only '.' is a decimal separator");
+    }
+
+    [Theory]
+    [InlineData("Groq", "openai/gpt-oss-120b", 0)]
+    [InlineData("Cerebras", "gpt-oss-120b", 0)]
+    [InlineData("OpenRouter", "google/gemma-4-31b-it:free", 0)]
+    [InlineData("OpenRouter", "openai/gpt-5", null)]
+    [InlineData("DeepSeek", "deepseek-flash", null)]
+    public void Pricing_FreeTierVendorsAreZero_OthersNeedConfiguredPrices(string vendor, string model, int? expected)
+    {
+        LlmPricing.EstimateCostUsd(Pricing(), vendor, model, 1_000_000, 1_000_000).Should().Be(expected is null ? null : (decimal)expected.Value);
     }
 
     [Fact]

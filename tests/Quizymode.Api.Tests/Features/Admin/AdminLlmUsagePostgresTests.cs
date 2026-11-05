@@ -157,7 +157,7 @@ public sealed class AdminLlmUsagePostgresTests(PostgresContainerFixture fixture,
                     inputTokens,
                     outputTokens,
                     (int)Math.Round(group.Average(attempt => (double)attempt.DurationMs), MidpointRounding.AwayFromZero),
-                    LlmPricing.EstimateCostUsd(configuration, group.Key.Model, inputTokens, outputTokens));
+                    LlmPricing.EstimateCostUsd(configuration, group.Key.Vendor, group.Key.Model, inputTokens, outputTokens));
             })
             .ToList();
 

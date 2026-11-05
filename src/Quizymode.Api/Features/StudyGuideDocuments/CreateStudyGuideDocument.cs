@@ -182,6 +182,7 @@ public static class CreateStudyGuideDocument
             services.AddOptions<StudyGuideGenerationOptions>().Bind(configuration.GetSection(StudyGuideGenerationOptions.SectionName));
             services.TryAddSingleton(TimeProvider.System);
             services.AddSingleton<ILlmVendorRegistry>(_ => new LlmVendorRegistry(configuration));
+            services.AddSingleton<LlmVendorCooldowns>();
             services.AddSingleton<IStudyGuideTextExtractor, StudyGuideTextExtractor>();
 #pragma warning disable EXTEXP0001 // RemoveAllResilienceHandlers is marked experimental; it is the supported opt-out from ServiceDefaults.
             services.AddHttpClient<IOpenAiCompatibleChatClient, OpenAiCompatibleChatClient>((provider, client) =>

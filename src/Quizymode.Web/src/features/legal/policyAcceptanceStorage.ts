@@ -3,7 +3,7 @@ import type { PolicyAcceptanceItemRequest } from "@/api/users";
 // The versions the signup form records. The server owns the current versions (CurrentPolicyVersions.cs, #222);
 // these must match them, and CurrentPolicyVersionsTests fails when they drift.
 export const TERMS_OF_SERVICE_POLICY_VERSION = "2026-03-29";
-export const PRIVACY_POLICY_VERSION = "2026-10-19";
+export const PRIVACY_POLICY_VERSION = "2026-11-05";
 
 const POLICY_ACCEPTANCE_STORAGE_KEY = "PendingPolicyAcceptancesV1";
 

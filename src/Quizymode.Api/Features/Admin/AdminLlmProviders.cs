@@ -19,7 +19,8 @@ public static partial class AdminLlmProviders
 {
     public const int MaxAttempts = 200;
 
-    public sealed record VendorResponse(string Vendor, bool KeyConfigured, string Model);
+    /// <summary><paramref name="CoolingDownUntilUtc"/> is set while the vendor is skipped after an HTTP 429 (in-memory, this API instance).</summary>
+    public sealed record VendorResponse(string Vendor, bool KeyConfigured, string Model, DateTime? CoolingDownUntilUtc);
 
     public sealed record Routes(List<string> Free, List<string> Premium);
 
@@ -90,17 +91,17 @@ public static partial class AdminLlmProviders
 
             RuleFor(x => x.Routes!.Free)
                 .Must(IsValidRoute)
-                .WithMessage("The free route must list 1 to 3 distinct known vendors.")
+                .WithMessage("The free route must list 1 to 5 distinct known vendors.")
                 .When(x => x.Routes is not null);
 
             RuleFor(x => x.Routes!.Premium)
                 .Must(IsValidRoute)
-                .WithMessage("The premium route must list 1 to 3 distinct known vendors.")
+                .WithMessage("The premium route must list 1 to 5 distinct known vendors.")
                 .When(x => x.Routes is not null);
         }
 
         private static bool IsValidRoute(List<string>? route) =>
-            route is { Count: >= 1 and <= 3 } &&
+            route is { Count: >= 1 } && route.Count <= LlmVendors.All.Count &&
             route.All(vendor => LlmVendors.Normalize(vendor) is not null) &&
             route.Select(LlmVendors.Normalize).Distinct().Count() == route.Count;
     }
@@ -167,16 +168,18 @@ public static partial class AdminLlmProviders
         private static async Task<IResult> GetHandler(
             ApplicationDbContext db,
             ILlmVendorRegistry vendors,
+            LlmVendorCooldowns cooldowns,
             IOptions<StudyGuideGenerationOptions> options,
             TimeProvider timeProvider,
             CancellationToken cancellationToken) =>
-            Results.Ok(await HandleGetAsync(db, vendors, options.Value, timeProvider.GetUtcNow().UtcDateTime, cancellationToken));
+            Results.Ok(await HandleGetAsync(db, vendors, cooldowns, options.Value, timeProvider.GetUtcNow().UtcDateTime, cancellationToken));
 
         private static async Task<IResult> UpdateHandler(
             UpdateRequest request,
             IValidator<UpdateRequest> validator,
             ApplicationDbContext db,
             ILlmVendorRegistry vendors,
+            LlmVendorCooldowns cooldowns,
             IOptions<StudyGuideGenerationOptions> options,
             TimeProvider timeProvider,
             CancellationToken cancellationToken)
@@ -187,7 +190,7 @@ public static partial class AdminLlmProviders
                 return Results.BadRequest(validation.Errors);
             }
 
-            return Results.Ok(await HandleUpdateAsync(request, db, vendors, options.Value, timeProvider.GetUtcNow().UtcDateTime, cancellationToken));
+            return Results.Ok(await HandleUpdateAsync(request, db, vendors, cooldowns, options.Value, timeProvider.GetUtcNow().UtcDateTime, cancellationToken));
         }
 
         private static async Task<IResult> AttemptsHandler(
@@ -201,19 +204,21 @@ public static partial class AdminLlmProviders
     internal static async Task<Response> HandleGetAsync(
         ApplicationDbContext db,
         ILlmVendorRegistry vendors,
+        LlmVendorCooldowns cooldowns,
         StudyGuideGenerationOptions options,
         DateTime nowUtc,
         CancellationToken cancellationToken)
     {
         LlmProviderSettings settings = await LlmProviderSettingsStore.GetOrCreateAsync(db, cancellationToken);
         int used = await StudyGuideQuota.GlobalMonthlyUsedAsync(db, nowUtc, cancellationToken);
-        return ToResponse(settings, vendors, options.MonthlySectionBudget, used);
+        return ToResponse(settings, vendors, cooldowns, options.MonthlySectionBudget, used);
     }
 
     internal static async Task<Response> HandleUpdateAsync(
         UpdateRequest request,
         ApplicationDbContext db,
         ILlmVendorRegistry vendors,
+        LlmVendorCooldowns cooldowns,
         StudyGuideGenerationOptions options,
         DateTime nowUtc,
         CancellationToken cancellationToken)
@@ -238,7 +243,7 @@ public static partial class AdminLlmProviders
         await db.SaveChangesAsync(cancellationToken);
 
         int used = await StudyGuideQuota.GlobalMonthlyUsedAsync(db, nowUtc, cancellationToken);
-        return ToResponse(settings, vendors, options.MonthlySectionBudget, used);
+        return ToResponse(settings, vendors, cooldowns, options.MonthlySectionBudget, used);
     }
 
     internal static async Task<AttemptsResponse> HandleAttemptsAsync(
@@ -350,7 +355,7 @@ public static partial class AdminLlmProviders
                 aggregate.InputTokens,
                 aggregate.OutputTokens,
                 (int)Math.Round((double)aggregate.DurationSumMs / aggregate.Attempts, MidpointRounding.AwayFromZero),
-                LlmPricing.EstimateCostUsd(configuration, aggregate.Model, aggregate.InputTokens, aggregate.OutputTokens)))
+                LlmPricing.EstimateCostUsd(configuration, aggregate.Vendor, aggregate.Model, aggregate.InputTokens, aggregate.OutputTokens)))
             .ToList();
 
         List<TopUserAggregate> users = await BuildTopUserAggregatesQuery(db, since).ToListAsync(cancellationToken);
@@ -365,10 +370,14 @@ public static partial class AdminLlmProviders
         return new UsageResponse(days, since, rows, topUsers);
     }
 
-    private static Response ToResponse(LlmProviderSettings settings, ILlmVendorRegistry vendors, int budget, int used) =>
+    private static Response ToResponse(LlmProviderSettings settings, ILlmVendorRegistry vendors, LlmVendorCooldowns cooldowns, int budget, int used) =>
         new(
             LlmVendors.All
-                .Select(vendor => new VendorResponse(vendor, vendors.IsConfigured(vendor), LlmProviderSettingsStore.ModelFor(settings, vendor)))
+                .Select(vendor => new VendorResponse(
+                    vendor,
+                    vendors.IsConfigured(vendor),
+                    LlmProviderSettingsStore.ModelFor(settings, vendor),
+                    cooldowns.CoolingDownUntil(vendor)?.UtcDateTime))
                 .ToList(),
             new Routes(
                 LlmProviderSettingsStore.RouteFor(settings, StudyGuideTier.Free),

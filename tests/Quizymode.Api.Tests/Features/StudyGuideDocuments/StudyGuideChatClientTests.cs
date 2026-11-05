@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.Net;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
@@ -31,7 +32,7 @@ public sealed class StudyGuideChatClientTests
 
     private static async Task<ChatCompletionResult> CallAsync(Func<HttpRequestMessage, string, HttpResponseMessage> respond, CapturingLogger? logger = null)
     {
-        OpenAiCompatibleChatClient client = new(new HttpClient(new FakeDeepSeekHandler(respond)), logger ?? new CapturingLogger());
+        OpenAiCompatibleChatClient client = new(new HttpClient(new FakeChatHandler(respond)), logger ?? new CapturingLogger());
         return await client.CompleteAsync(
             new LlmVendorEndpoint(LlmVendors.OpenAI, "https://api.openai.com/v1", "test-key"),
             "gpt-5-nano",
@@ -39,7 +40,42 @@ public sealed class StudyGuideChatClientTests
             CancellationToken.None);
     }
 
-    private static HttpResponseMessage Body(HttpStatusCode status, string body) => FakeDeepSeekHandler.Json(status, body);
+    private static HttpResponseMessage Body(HttpStatusCode status, string body) => FakeChatHandler.Json(status, body);
+
+    [Theory]
+    [InlineData(LlmVendors.OpenRouter, true)]
+    [InlineData(LlmVendors.OpenAI, false)]
+    [InlineData(LlmVendors.Gemini, false)]
+    [InlineData(LlmVendors.Groq, false)]
+    [InlineData(LlmVendors.Cerebras, false)]
+    public async Task ChatClient_OnlyOpenRouterRestrictsProviderDataCollection(string vendor, bool restrictDataCollection)
+    {
+        bool received = false;
+        OpenAiCompatibleChatClient client = new(new HttpClient(new FakeChatHandler((request, body) =>
+        {
+            received = true;
+            using JsonDocument document = JsonDocument.Parse(body);
+            bool hasProvider = document.RootElement.TryGetProperty("provider", out JsonElement provider);
+            hasProvider.Should().Be(restrictDataCollection);
+            if (restrictDataCollection)
+            {
+                provider.GetProperty("data_collection").GetString().Should().Be("deny");
+                request.Headers.GetValues("HTTP-Referer").Should().ContainSingle().Which.Should().Be("https://www.quizymode.com");
+                request.Headers.GetValues("X-Title").Should().ContainSingle().Which.Should().Be("Quizymode");
+            }
+
+            return FakeVendorHandler.Completion("{}");
+        })), new CapturingLogger());
+
+        ChatCompletionResult result = await client.CompleteAsync(
+            new LlmVendorEndpoint(vendor, "https://vendor.test/v1", "test-key"),
+            "test-model",
+            new ChatCompletionRequest("system", "user", 1000, 0.2),
+            CancellationToken.None);
+
+        received.Should().BeTrue();
+        result.Outcome.Should().Be(LlmAttemptOutcome.Success);
+    }
 
     [Theory]
     [InlineData(401, "{}", LlmAttemptOutcome.AuthError, 401)]
@@ -60,7 +96,7 @@ public sealed class StudyGuideChatClientTests
     [InlineData(400, GeminiBadKeyBody, LlmAttemptOutcome.AuthError, 400)]
     [InlineData(400, "{\"error\":\"unknown field\"}", LlmAttemptOutcome.ProviderError, 400)]
     [InlineData(500, "{\"error\":\"boom\"}", LlmAttemptOutcome.ProviderError, 500)]
-    [InlineData(429, "{\"error\":\"slow down\"}", LlmAttemptOutcome.ProviderError, 429)]
+    [InlineData(429, "{\"error\":\"slow down\"}", LlmAttemptOutcome.RateLimited, 429)]
     public async Task ChatClient_ClassifiesFailedResponses(int status, string body, LlmAttemptOutcome outcome, int expectedStatus)
     {
         ChatCompletionResult result = await CallAsync((_, _) => Body((HttpStatusCode)status, body));
@@ -91,7 +127,7 @@ public sealed class StudyGuideChatClientTests
     [Fact]
     public async Task ChatClient_NoApiKey_HasNoHttpStatus()
     {
-        OpenAiCompatibleChatClient client = new(new HttpClient(new FakeDeepSeekHandler((_, _) => throw new InvalidOperationException())), new CapturingLogger());
+        OpenAiCompatibleChatClient client = new(new HttpClient(new FakeChatHandler((_, _) => throw new InvalidOperationException())), new CapturingLogger());
 
         ChatCompletionResult result = await client.CompleteAsync(
             new LlmVendorEndpoint(LlmVendors.OpenAI, "https://api.openai.com/v1", ""),
@@ -422,5 +458,35 @@ public sealed class StudyGuideChatClientTests
         stopwatch.Stop();
 
         stopwatch.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(2), name);
+    }
+
+    [Fact]
+    public async Task ChatClient_RateLimitReadsRetryAfterHeaderAndDailyQuota()
+    {
+        OpenAiCompatibleChatClient client = new(new HttpClient(new FakeChatHandler((_, _) =>
+        {
+            HttpResponseMessage response = Body((HttpStatusCode)429, "{\"error\":{\"message\":\"Rate limit reached on tokens per day (TPD)\"}}");
+            response.Headers.RetryAfter = new System.Net.Http.Headers.RetryConditionHeaderValue(TimeSpan.FromSeconds(90));
+            return response;
+        })), new CapturingLogger());
+
+        ChatCompletionResult result = await client.CompleteAsync(new LlmVendorEndpoint("Groq", "https://api.groq.com/openai/v1", "key"), "m", new ChatCompletionRequest("s", "u", 100, 0.2), CancellationToken.None);
+
+        result.Outcome.Should().Be(LlmAttemptOutcome.RateLimited);
+        result.RetryAfter.Should().Be(TimeSpan.FromSeconds(90));
+        result.DailyQuotaExhausted.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ChatClient_RateLimitReadsGeminiRetryDelayFromBody()
+    {
+        OpenAiCompatibleChatClient client = new(new HttpClient(new FakeChatHandler((_, _) =>
+            Body((HttpStatusCode)429, "[{\"error\":{\"code\":429,\"details\":[{\"@type\":\"type.googleapis.com/google.rpc.RetryInfo\",\"retryDelay\":\"37s\"}]}}]"))), new CapturingLogger());
+
+        ChatCompletionResult result = await client.CompleteAsync(new LlmVendorEndpoint("Gemini", "https://g.test", "key"), "m", new ChatCompletionRequest("s", "u", 100, 0.2), CancellationToken.None);
+
+        result.Outcome.Should().Be(LlmAttemptOutcome.RateLimited);
+        result.RetryAfter.Should().Be(TimeSpan.FromSeconds(37));
+        result.DailyQuotaExhausted.Should().BeFalse();
     }
 }

@@ -14,7 +14,9 @@ internal sealed record ChatCompletionRequest(string SystemPrompt, string UserPro
 /// Outcome of one vendor call. <see cref="Content"/> is set only on <see cref="LlmAttemptOutcome.Success"/>.
 /// <see cref="HttpStatus"/> is the status of every response that was received (including 2xx replies that turn out to
 /// be invalid); it is null when no response arrived: vendor not configured, timeout, <see cref="HttpRequestException"/>,
-/// or a body read that failed after the headers.
+/// or a body read that failed after the headers. <see cref="RetryAfter"/> and <see cref="DailyQuotaExhausted"/> are set
+/// only on <see cref="LlmAttemptOutcome.RateLimited"/>, from the <c>Retry-After</c> header (or a <c>retryDelay</c> in the
+/// body) and from a body that names a per-day limit.
 /// </summary>
 internal sealed record ChatCompletionResult(
     LlmAttemptOutcome Outcome,
@@ -22,7 +24,9 @@ internal sealed record ChatCompletionResult(
     int? InputTokens,
     int? OutputTokens,
     int DurationMs,
-    int? HttpStatus = null);
+    int? HttpStatus = null,
+    TimeSpan? RetryAfter = null,
+    bool DailyQuotaExhausted = false);
 
 internal interface IOpenAiCompatibleChatClient
 {
@@ -34,10 +38,12 @@ internal interface IOpenAiCompatibleChatClient
 }
 
 /// <summary>
-/// One typed HttpClient for every OpenAI-compatible chat completions API (DeepSeek, OpenAI, Gemini): POST
+/// One typed HttpClient for every OpenAI-compatible chat completions API (Gemini, Groq, Cerebras, OpenRouter, OpenAI): POST
 /// <c>{baseUrl}/chat/completions</c> with a Bearer key, JSON mode (<c>response_format: json_object</c>), low temperature,
 /// and capped output tokens. OpenAI reasoning models (gpt-5*, o-series) get <c>max_completion_tokens</c> and no
-/// temperature, which those models require. The Authorization header is redacted from HTTP logs and keys are never
+/// temperature, which those models require; gpt-oss models get <c>reasoning_effort: low</c>; a vendor's
+/// <see cref="LlmVendorEndpoint.MaxTokens"/> caps the requested output tokens. OpenRouter calls carry the app attribution
+/// headers and restrict routing to providers that deny data collection. HTTP 429 is <see cref="LlmAttemptOutcome.RateLimited"/>. The Authorization header is redacted from HTTP logs and keys are never
 /// logged. HTTP 401 means a bad key; a 403 is a bad key only when its body says so (otherwise a region/model-access
 /// block, a provider error).
 /// </summary>
@@ -62,9 +68,14 @@ internal sealed class OpenAiCompatibleChatClient(HttpClient httpClient, ILogger<
 
         using HttpRequestMessage httpRequest = new(HttpMethod.Post, $"{endpoint.BaseUrl.TrimEnd('/')}/chat/completions")
         {
-            Content = JsonContent.Create(BuildRequestBody(endpoint.Vendor, model, request))
+            Content = JsonContent.Create(BuildRequestBody(endpoint, model, request))
         };
         httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", endpoint.ApiKey);
+        if (endpoint.Vendor == LlmVendors.OpenRouter)
+        {
+            httpRequest.Headers.TryAddWithoutValidation("HTTP-Referer", "https://www.quizymode.com");
+            httpRequest.Headers.TryAddWithoutValidation("X-Title", "Quizymode");
+        }
 
         try
         {
@@ -102,6 +113,19 @@ internal sealed class OpenAiCompatibleChatClient(HttpClient httpClient, ILogger<
                         ErrorExcerpt(responseText));
                 }
 
+                if (failure == LlmAttemptOutcome.RateLimited)
+                {
+                    return new ChatCompletionResult(
+                        failure,
+                        null,
+                        null,
+                        null,
+                        elapsed,
+                        status,
+                        ReadRetryAfter(response, responseText),
+                        IndicatesDailyQuota(responseText));
+                }
+
                 return new ChatCompletionResult(failure, null, null, null, elapsed, status);
             }
 
@@ -119,8 +143,10 @@ internal sealed class OpenAiCompatibleChatClient(HttpClient httpClient, ILogger<
         }
     }
 
-    internal static JsonObject BuildRequestBody(string vendor, string model, ChatCompletionRequest request)
+    internal static JsonObject BuildRequestBody(LlmVendorEndpoint endpoint, string model, ChatCompletionRequest request)
     {
+        string vendor = endpoint.Vendor;
+        int maxTokens = endpoint.MaxTokens is int cap && cap > 0 ? Math.Min(request.MaxTokens, cap) : request.MaxTokens;
         JsonObject body = new()
         {
             ["model"] = model,
@@ -133,14 +159,24 @@ internal sealed class OpenAiCompatibleChatClient(HttpClient httpClient, ILogger<
 
         if (vendor == LlmVendors.OpenAI && IsOpenAiReasoningModel(model))
         {
-            body["max_completion_tokens"] = request.MaxTokens;
+            body["max_completion_tokens"] = maxTokens;
             // Without this, reasoning can use the whole completion budget before any answer is written.
             body["reasoning_effort"] = ReasoningEffortFor(model);
         }
         else
         {
             body["temperature"] = request.Temperature;
-            body["max_tokens"] = request.MaxTokens;
+            body["max_tokens"] = maxTokens;
+            if (IsGptOssModel(model))
+            {
+                // gpt-oss (Groq, Cerebras) reasons by default; low effort leaves the output budget for the answer.
+                body["reasoning_effort"] = "low";
+            }
+        }
+
+        if (vendor == LlmVendors.OpenRouter)
+        {
+            body["provider"] = new JsonObject { ["data_collection"] = "deny" };
         }
 
         return body;
@@ -156,6 +192,7 @@ internal sealed class OpenAiCompatibleChatClient(HttpClient httpClient, ILogger<
     /// "API key not valid"). Any other 403 (region or model-access block) and everything else is a provider error.
     /// </summary>
     internal static LlmAttemptOutcome ClassifyFailure(int status, string body) =>
+        status == 429 ? LlmAttemptOutcome.RateLimited :
         status == 401 ||
         (status == 403 && IndicatesCredentialProblem(body)) ||
         (status == 400 && body.Contains("API key", StringComparison.OrdinalIgnoreCase))
@@ -220,6 +257,43 @@ internal sealed class OpenAiCompatibleChatClient(HttpClient httpClient, ILogger<
     {
         string singleLine = string.Join(' ', Redact(responseText).Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
         return singleLine.Length <= MaxErrorExcerptLength ? singleLine : singleLine[..MaxErrorExcerptLength] + "…";
+    }
+
+    internal static bool IsGptOssModel(string model) =>
+        model.Contains("gpt-oss", StringComparison.OrdinalIgnoreCase);
+
+    private static readonly string[] DailyQuotaMarkers = ["perday", "per day", "per_day", "per-day", "daily", "tokens per day", "requests per day"];
+
+    /// <summary>True when a 429 body names a per-day limit (Gemini "...PerDay...", Groq "tokens per day (TPD)", OpenRouter "free-models-per-day").</summary>
+    internal static bool IndicatesDailyQuota(string body) =>
+        DailyQuotaMarkers.Any(marker => body.Contains(marker, StringComparison.OrdinalIgnoreCase));
+
+    private static readonly Regex RetryDelayPattern = new(@"""retryDelay""\s*:\s*""(\d+(?:\.\d+)?)s""", Opt);
+
+    /// <summary>The <c>Retry-After</c> header (seconds or HTTP date), else a Gemini-style <c>"retryDelay": "37s"</c> in the body.</summary>
+    internal static TimeSpan? ReadRetryAfter(HttpResponseMessage response, string body)
+    {
+        RetryConditionHeaderValue? header = response.Headers.RetryAfter;
+        if (header?.Delta is TimeSpan delta && delta > TimeSpan.Zero)
+        {
+            return delta;
+        }
+
+        if (header?.Date is DateTimeOffset date)
+        {
+            TimeSpan untilDate = date - DateTimeOffset.UtcNow;
+            if (untilDate > TimeSpan.Zero)
+            {
+                return untilDate;
+            }
+        }
+
+        Match match = RetryDelayPattern.Match(body);
+        return match.Success &&
+               double.TryParse(match.Groups[1].Value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out double seconds) &&
+               seconds > 0
+            ? TimeSpan.FromSeconds(seconds)
+            : null;
     }
 
     internal static bool IsOpenAiReasoningModel(string model)

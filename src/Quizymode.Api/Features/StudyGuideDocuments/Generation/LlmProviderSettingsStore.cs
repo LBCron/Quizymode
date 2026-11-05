@@ -5,18 +5,33 @@ using Quizymode.Api.Shared.Models;
 namespace Quizymode.Api.Features.StudyGuideDocuments.Generation;
 
 /// <summary>
-/// Reads the single admin routing row (AC 5.12), seeding defaults on first read: models DeepSeek <c>deepseek-flash</c>,
-/// OpenAI <c>gpt-5-nano</c>, Gemini <c>gemini-2.5-flash-lite</c>; free route Gemini → OpenAI → DeepSeek; premium route
-/// DeepSeek → OpenAI → Gemini.
+/// Reads the single admin routing row (AC 5.12), seeding defaults on first read: models Gemini <c>gemini-3.5-flash-lite</c>,
+/// Groq <c>openai/gpt-oss-120b</c>, Cerebras <c>gpt-oss-120b</c>, OpenRouter <c>google/gemma-4-31b-it:free</c>, OpenAI
+/// <c>gpt-5-nano</c>; free route Gemini → Groq → Cerebras → OpenRouter → OpenAI; premium route OpenAI → Gemini → Cerebras
+/// → Groq → OpenRouter.
 /// </summary>
 internal static class LlmProviderSettingsStore
 {
-    public const string DefaultDeepSeekModel = "deepseek-flash";
+    public const string DefaultGeminiModel = "gemini-3.5-flash-lite";
+    public const string DefaultGroqModel = "openai/gpt-oss-120b";
+    public const string DefaultCerebrasModel = "gpt-oss-120b";
+    public const string DefaultOpenRouterModel = "google/gemma-4-31b-it:free";
     public const string DefaultOpenAiModel = "gpt-5-nano";
-    public const string DefaultGeminiModel = "gemini-2.5-flash-lite";
 
-    public static readonly IReadOnlyList<string> DefaultRouteFree = [LlmVendors.Gemini, LlmVendors.OpenAI, LlmVendors.DeepSeek];
-    public static readonly IReadOnlyList<string> DefaultRoutePremium = [LlmVendors.DeepSeek, LlmVendors.OpenAI, LlmVendors.Gemini];
+    public static readonly IReadOnlyDictionary<string, string> DefaultModels = new Dictionary<string, string>(StringComparer.Ordinal)
+    {
+        [LlmVendors.Gemini] = DefaultGeminiModel,
+        [LlmVendors.Groq] = DefaultGroqModel,
+        [LlmVendors.Cerebras] = DefaultCerebrasModel,
+        [LlmVendors.OpenRouter] = DefaultOpenRouterModel,
+        [LlmVendors.OpenAI] = DefaultOpenAiModel
+    };
+
+    public static readonly IReadOnlyList<string> DefaultRouteFree =
+        [LlmVendors.Gemini, LlmVendors.Groq, LlmVendors.Cerebras, LlmVendors.OpenRouter, LlmVendors.OpenAI];
+
+    public static readonly IReadOnlyList<string> DefaultRoutePremium =
+        [LlmVendors.OpenAI, LlmVendors.Gemini, LlmVendors.Cerebras, LlmVendors.Groq, LlmVendors.OpenRouter];
 
     public static async Task<LlmProviderSettings> GetOrCreateAsync(ApplicationDbContext db, CancellationToken cancellationToken)
     {
@@ -63,38 +78,21 @@ internal static class LlmProviderSettingsStore
         new()
         {
             Id = LlmProviderSettings.SingletonId,
-            DeepSeekModel = DefaultDeepSeekModel,
-            OpenAiModel = DefaultOpenAiModel,
-            GeminiModel = DefaultGeminiModel,
+            Models = new Dictionary<string, string>(DefaultModels, StringComparer.Ordinal),
             RouteFree = FormatRoute(DefaultRouteFree),
             RoutePremium = FormatRoute(DefaultRoutePremium),
             UpdatedUtc = nowUtc
         };
 
+    /// <summary>The saved model for a vendor, else the vendor's default (a vendor added after the row was saved), else empty.</summary>
     public static string ModelFor(LlmProviderSettings settings, string vendor) =>
-        vendor switch
-        {
-            LlmVendors.DeepSeek => settings.DeepSeekModel,
-            LlmVendors.OpenAI => settings.OpenAiModel,
-            LlmVendors.Gemini => settings.GeminiModel,
-            _ => string.Empty
-        };
+        settings.Models.TryGetValue(vendor, out string? model) && !string.IsNullOrWhiteSpace(model)
+            ? model
+            : DefaultModels.GetValueOrDefault(vendor, string.Empty);
 
-    public static void SetModel(LlmProviderSettings settings, string vendor, string model)
-    {
-        switch (vendor)
-        {
-            case LlmVendors.DeepSeek:
-                settings.DeepSeekModel = model;
-                break;
-            case LlmVendors.OpenAI:
-                settings.OpenAiModel = model;
-                break;
-            case LlmVendors.Gemini:
-                settings.GeminiModel = model;
-                break;
-        }
-    }
+    /// <summary>Replaces the dictionary so EF change tracking always sees the update.</summary>
+    public static void SetModel(LlmProviderSettings settings, string vendor, string model) =>
+        settings.Models = new Dictionary<string, string>(settings.Models, StringComparer.Ordinal) { [vendor] = model };
 
     public static List<string> RouteFor(LlmProviderSettings settings, StudyGuideTier tier) =>
         ParseRoute(tier == StudyGuideTier.Premium ? settings.RoutePremium : settings.RouteFree);

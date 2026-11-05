@@ -36,7 +36,7 @@ public sealed class StudyGuideQuickHttpTests : ItemTestFixture, IAsyncLifetime
             {
                 ["Gemini:ApiKey"] = "gemini-test-key",
                 ["OpenAI:ApiKey"] = "",
-                ["DeepSeek:ApiKey"] = ""
+                ["OpenRouter:ApiKey"] = ""
             })
             .Build();
 
@@ -187,7 +187,7 @@ public sealed class StudyGuideQuickHttpTests : ItemTestFixture, IAsyncLifetime
         await using (ApplicationDbContext db = CreateDbContext())
         {
             LlmProviderSettings settings = await LlmProviderSettingsStore.GetOrCreateAsync(db, CancellationToken.None);
-            settings.RouteFree = LlmProviderSettingsStore.FormatRoute([LlmVendors.DeepSeek]);
+            settings.RouteFree = LlmProviderSettingsStore.FormatRoute([LlmVendors.OpenRouter]);
             await db.SaveChangesAsync();
         }
 

@@ -33,7 +33,7 @@ public sealed class StudyGuideDocumentHttpTests : ItemTestFixture, IAsyncLifetim
             {
                 ["Gemini:ApiKey"] = "gemini-test-key",
                 ["OpenAI:ApiKey"] = "",
-                ["DeepSeek:ApiKey"] = ""
+                ["OpenRouter:ApiKey"] = ""
             })
             .Build();
 
@@ -289,7 +289,7 @@ public sealed class StudyGuideDocumentHttpTests : ItemTestFixture, IAsyncLifetim
         }
 
         using HttpResponseMessage memberPut = await SendAsync(HttpMethod.Put, "/admin/llm-providers", Token("member"),
-            JsonContent.Create(new { vendors = Array.Empty<object>(), routes = new { free = new[] { "Gemini" }, premium = new[] { "DeepSeek" } } }));
+            JsonContent.Create(new { vendors = Array.Empty<object>(), routes = new { free = new[] { "Gemini" }, premium = new[] { "OpenRouter" } } }));
         memberPut.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
 
@@ -302,11 +302,14 @@ public sealed class StudyGuideDocumentHttpTests : ItemTestFixture, IAsyncLifetim
         body.Should().NotContain("gemini-test-key");
         AdminLlmProviders.Response providers = JsonSerializer.Deserialize<AdminLlmProviders.Response>(body, JsonSerializerOptions.Web)!;
         providers.Vendors.Should().Equal(
-            new AdminLlmProviders.VendorResponse("DeepSeek", false, "deepseek-flash"),
-            new AdminLlmProviders.VendorResponse("OpenAI", false, "gpt-5-nano"),
-            new AdminLlmProviders.VendorResponse("Gemini", true, "gemini-2.5-flash-lite"));
-        providers.Routes.Free.Should().Equal("Gemini", "OpenAI", "DeepSeek");
-        providers.Routes.Premium.Should().Equal("DeepSeek", "OpenAI", "Gemini");
+            new AdminLlmProviders.VendorResponse("Gemini", true, "gemini-3.5-flash-lite", null),
+            new AdminLlmProviders.VendorResponse("Groq", false, "openai/gpt-oss-120b", null),
+            new AdminLlmProviders.VendorResponse("Cerebras", false, "gpt-oss-120b", null),
+            new AdminLlmProviders.VendorResponse("OpenRouter", false, "google/gemma-4-31b-it:free", null),
+            new AdminLlmProviders.VendorResponse("OpenAI", false, "gpt-5-nano", null));
+        providers.Routes.Free.Should().Equal("Gemini", "Groq", "Cerebras", "OpenRouter", "OpenAI");
+        providers.Routes.Premium.Should().Equal("OpenAI", "Gemini", "Cerebras", "Groq", "OpenRouter");
+        body.Should().NotContain("DeepSeek");
         providers.MonthlySectionBudget.Should().Be(1000);
         providers.MonthlySectionsUsed.Should().Be(0);
     }
@@ -317,28 +320,30 @@ public sealed class StudyGuideDocumentHttpTests : ItemTestFixture, IAsyncLifetim
         using HttpResponseMessage response = await SendAsync(HttpMethod.Put, "/admin/llm-providers", AdminToken(), JsonContent.Create(new
         {
             vendors = new[] { new { vendor = "openai", model = "gpt-5-mini" }, new { vendor = "Gemini", model = "models/gemini-2.5-flash" } },
-            routes = new { free = new[] { "OpenAI" }, premium = new[] { "Gemini", "DeepSeek" } }
+            routes = new { free = new[] { "OpenAI" }, premium = new[] { "Gemini", "Groq", "Cerebras", "OpenRouter", "OpenAI" } }
         }));
 
         response.StatusCode.Should().Be(HttpStatusCode.OK, await response.Content.ReadAsStringAsync());
         AdminLlmProviders.Response providers = (await response.Content.ReadFromJsonAsync<AdminLlmProviders.Response>())!;
         providers.Vendors.Single(v => v.Vendor == "OpenAI").Model.Should().Be("gpt-5-mini");
         providers.Vendors.Single(v => v.Vendor == "Gemini").Model.Should().Be("models/gemini-2.5-flash");
-        providers.Vendors.Single(v => v.Vendor == "DeepSeek").Model.Should().Be("deepseek-flash");
+        providers.Vendors.Single(v => v.Vendor == "OpenRouter").Model.Should().Be("google/gemma-4-31b-it:free");
         providers.Routes.Free.Should().Equal("OpenAI");
-        providers.Routes.Premium.Should().Equal("Gemini", "DeepSeek");
+        providers.Routes.Premium.Should().Equal("Gemini", "Groq", "Cerebras", "OpenRouter", "OpenAI");
 
         using HttpResponseMessage reread = await SendAsync(HttpMethod.Get, "/admin/llm-providers", AdminToken());
         (await reread.Content.ReadFromJsonAsync<AdminLlmProviders.Response>())!.Routes.Free.Should().Equal("OpenAI");
     }
 
     [Theory]
-    [InlineData("Mistral", "model-1", "Gemini", "DeepSeek")]
-    [InlineData("OpenAI", "bad model!", "Gemini", "DeepSeek")]
-    [InlineData("OpenAI", "", "Gemini", "DeepSeek")]
-    [InlineData("OpenAI", "gpt-5-nano", "Gemini,Gemini", "DeepSeek")]
-    [InlineData("OpenAI", "gpt-5-nano", "", "DeepSeek")]
-    [InlineData("OpenAI", "gpt-5-nano", "Gemini,OpenAI,DeepSeek,Gemini", "DeepSeek")]
+    [InlineData("Mistral", "model-1", "Gemini", "OpenAI")]
+    [InlineData("DeepSeek", "deepseek-flash", "Gemini", "OpenAI")]
+    [InlineData("OpenAI", "bad model!", "Gemini", "OpenAI")]
+    [InlineData("OpenAI", "", "Gemini", "OpenAI")]
+    [InlineData("OpenAI", "gpt-5-nano", "Gemini,Gemini", "OpenAI")]
+    [InlineData("OpenAI", "gpt-5-nano", "", "OpenAI")]
+    [InlineData("OpenAI", "gpt-5-nano", "Gemini,OpenAI,Groq,Gemini", "OpenAI")]
+    [InlineData("OpenAI", "gpt-5-nano", "Gemini", "OpenAI,DeepSeek")]
     [InlineData("OpenAI", "gpt-5-nano", "Gemini", "Claude")]
     public async Task AdminProviders_PutValidatesVendorsModelsAndRoutes(string vendor, string model, string free, string premium)
     {
@@ -400,7 +405,7 @@ public sealed class StudyGuideDocumentHttpTests : ItemTestFixture, IAsyncLifetim
             System.Guid premiumUserId = db.Users.Single(u => u.Subject == "premium-user").Id;
             db.UserSettings.Add(new Quizymode.Api.Shared.Models.UserSetting { Id = Guid.NewGuid(), UserId = premiumUserId, Key = "StudyGuidePremium", Value = "true" });
             Quizymode.Api.Shared.Models.LlmProviderSettings settings = await Quizymode.Api.Features.StudyGuideDocuments.Generation.LlmProviderSettingsStore.GetOrCreateAsync(db, CancellationToken.None);
-            settings.RoutePremium = "DeepSeek,OpenAI";
+            settings.RoutePremium = "DeepSeek,OpenAI"; // a legacy route that still names DeepSeek loads fine
             settings.RouteFree = "Gemini";
             await db.SaveChangesAsync();
         }

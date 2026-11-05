@@ -11,8 +11,9 @@ namespace Quizymode.Api.Features.StudyGuideDocuments.Generation;
 
 /// <summary>
 /// Runs one claimed generation (AC 6.6): takes the tier's vendor route (premium route when the job's tier is Premium),
-/// skips vendors without an API key, and tries them in order with prompt v2. A vendor attempt fails over to the next
-/// vendor on a provider error, auth error (rejected key), timeout, content-filter stop, invalid JSON, or low quote yield (no question kept, or fewer
+/// skips vendors without an API key and vendors cooling down after an HTTP 429 (unless every keyed vendor is cooling
+/// down, then the whole keyed route is tried), and tries them in order with prompt v2. A vendor attempt fails over to the next
+/// vendor on a provider error, rate limit (429, which also starts the vendor's cooldown), auth error (rejected key), timeout, content-filter stop, invalid JSON, or low quote yield (no question kept, or fewer
 /// than half kept). Every attempt is logged in <c>LlmAttempts</c> with its outcome and the vendor's HTTP status. On success the candidates are saved, the source text is
 /// cleared, and tokens/vendor/model are recorded. When every vendor fails, the best low-yield result is kept if it has
 /// at least one verified question; otherwise the job is Failed with a user-safe error and its quota charges are refunded.
@@ -22,6 +23,7 @@ internal sealed class SectionGenerationProcessor(
     ApplicationDbContext db,
     IOpenAiCompatibleChatClient chatClient,
     ILlmVendorRegistry vendors,
+    LlmVendorCooldowns cooldowns,
     ITextModerationService moderation,
     IOptions<StudyGuideGenerationOptions> options,
     TimeProvider timeProvider,
@@ -35,6 +37,7 @@ internal sealed class SectionGenerationProcessor(
     private readonly ApplicationDbContext _db = db;
     private readonly IOpenAiCompatibleChatClient _chatClient = chatClient;
     private readonly ILlmVendorRegistry _vendors = vendors;
+    private readonly LlmVendorCooldowns _cooldowns = cooldowns;
     private readonly ITextModerationService _moderation = moderation;
     private readonly StudyGuideGenerationOptions _options = options.Value;
     private readonly TimeProvider _timeProvider = timeProvider;
@@ -76,6 +79,29 @@ internal sealed class SectionGenerationProcessor(
             return;
         }
 
+        List<string> available = route.Where(vendor => !_cooldowns.IsCoolingDown(vendor)).ToList();
+        if (available.Count == 0)
+        {
+            // Cooldowns are an optimization; they must not fail a job on their own.
+            _logger.LogInformation(
+                "StudyGuideGeneration: {GenerationId} every keyed vendor in the {Tier} route is cooling down; trying them anyway.",
+                generation.Id,
+                generation.Tier);
+        }
+        else
+        {
+            foreach (string vendor in route.Except(available))
+            {
+                _logger.LogInformation(
+                    "StudyGuideGeneration: {GenerationId} skipped {Vendor}: rate-limited, cooling down until {Until:u}.",
+                    generation.Id,
+                    vendor,
+                    _cooldowns.CoolingDownUntil(vendor));
+            }
+
+            route = available;
+        }
+
         string sourceText = generation.SourceText;
         int maxQuestions = Math.Clamp(_options.MaxQuestions, 1, 20);
         ChatCompletionRequest request = new(
@@ -93,6 +119,16 @@ internal sealed class SectionGenerationProcessor(
 
             ChatCompletionResult result = await _chatClient.CompleteAsync(_vendors.Get(vendor), model, request, cancellationToken);
             LlmAttemptOutcome outcome = result.Outcome;
+            if (outcome == LlmAttemptOutcome.RateLimited)
+            {
+                DateTimeOffset until = _cooldowns.Start(vendor, result.RetryAfter, result.DailyQuotaExhausted);
+                _logger.LogWarning(
+                    "StudyGuideGeneration: {Vendor} is rate-limited{Daily}; cooling down until {Until:u}.",
+                    vendor,
+                    result.DailyQuotaExhausted ? " (daily quota)" : string.Empty,
+                    until);
+            }
+
             CandidateParseResult? parsed = null;
             if (outcome == LlmAttemptOutcome.Success)
             {

@@ -7118,7 +7118,8 @@
         "required": [
           "vendor",
           "keyConfigured",
-          "model"
+          "model",
+          "coolingDownUntilUtc"
         ],
         "type": "object",
         "properties": {
@@ -7130,8 +7131,19 @@
           },
           "model": {
             "$ref": "#/components/schemas/System.String"
+          },
+          "coolingDownUntilUtc": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.NullableOfSystem.DateTime"
+              }
+            ]
           }
-        }
+        },
+        "description": "CoolingDownUntilUtc is set while the vendor is skipped after an HTTP 429 (in-memory, this API instance)."
       },
       "Quizymode.Api.Features.Admin.AdminUsersActivity.UserActivityResponse": {
         "required": [

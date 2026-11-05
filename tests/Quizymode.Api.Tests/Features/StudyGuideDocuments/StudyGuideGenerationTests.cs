@@ -156,7 +156,7 @@ public sealed class StudyGuideGenerationTests : DatabaseTestFixture
         request.Headers.Authorization!.Parameter.Should().Be("gemini-test-key");
         using (JsonDocument json = JsonDocument.Parse(body))
         {
-            json.RootElement.GetProperty("model").GetString().Should().Be("gemini-2.5-flash-lite");
+            json.RootElement.GetProperty("model").GetString().Should().Be("gemini-3.5-flash-lite");
             json.RootElement.GetProperty("response_format").GetProperty("type").GetString().Should().Be("json_object");
             json.RootElement.GetProperty("temperature").GetDouble().Should().Be(0.2);
             json.RootElement.GetProperty("max_tokens").GetInt32().Should().Be(8000);
@@ -164,7 +164,7 @@ public sealed class StudyGuideGenerationTests : DatabaseTestFixture
 
         completed.Status.Should().Be(SectionGenerationStatus.Completed);
         completed.Vendor.Should().Be(LlmVendors.Gemini);
-        completed.Model.Should().Be("gemini-2.5-flash-lite");
+        completed.Model.Should().Be("gemini-3.5-flash-lite");
         completed.InputTokens.Should().Be(1200);
         completed.OutputTokens.Should().Be(800);
         completed.DroppedCount.Should().Be(1);
@@ -176,16 +176,16 @@ public sealed class StudyGuideGenerationTests : DatabaseTestFixture
     }
 
     [Fact]
-    public async Task Processor_PremiumRouteTriesDeepSeekFirst()
+    public async Task Processor_PremiumRouteTriesOpenAiFirst()
     {
         SectionGeneration generation = await QueueAsync(StudyGuideTier.Premium);
         FakeVendorHandler handler = new((_, _) => FakeVendorHandler.Completion(StudyGuideTestData.QuestionsJson()));
 
         SectionGeneration completed = await ClaimAndProcessAsync(generation, handler);
 
-        handler.Vendors.Should().Equal(LlmVendors.DeepSeek);
-        handler.Requests[0].Request.RequestUri!.ToString().Should().Be("https://api.deepseek.com/chat/completions");
-        completed.Model.Should().Be("deepseek-flash");
+        handler.Vendors.Should().Equal(LlmVendors.OpenAI);
+        handler.Requests[0].Request.RequestUri!.ToString().Should().Be("https://api.openai.com/v1/chat/completions");
+        completed.Model.Should().Be("gpt-5-nano");
     }
 
     [Fact]
@@ -194,10 +194,10 @@ public sealed class StudyGuideGenerationTests : DatabaseTestFixture
         SectionGeneration generation = await QueueAsync();
         FakeVendorHandler handler = new((_, _) => FakeVendorHandler.Completion(StudyGuideTestData.QuestionsJson()));
 
-        SectionGeneration completed = await ClaimAndProcessAsync(generation, handler, StudyGuideTestData.Keys(deepSeek: true, openAi: false, gemini: false));
+        SectionGeneration completed = await ClaimAndProcessAsync(generation, handler, StudyGuideTestData.Keys(openRouter: true, openAi: false, gemini: false));
 
-        handler.Vendors.Should().Equal(LlmVendors.DeepSeek);
-        completed.Vendor.Should().Be(LlmVendors.DeepSeek);
+        handler.Vendors.Should().Equal(LlmVendors.OpenRouter);
+        completed.Vendor.Should().Be(LlmVendors.OpenRouter);
     }
 
     [Fact]
@@ -239,13 +239,13 @@ public sealed class StudyGuideGenerationTests : DatabaseTestFixture
                 DbContext,
                 handler,
                 _clock,
-                StudyGuideTestData.Keys(deepSeek: true, openAi: false, gemini: false),
+                StudyGuideTestData.Keys(openRouter: true, openAi: false, gemini: false),
                 logger: loggerFactory.CreateLogger<SectionGenerationProcessor>())
             .ProcessAsync(generation.Id, CancellationToken.None);
 
         CapturingLoggerProvider.CapturedLog skipped = logs.Entries.Should().ContainSingle(e => e.Message.Contains("skipped vendor(s) without a key")).Subject;
         skipped.Level.Should().Be(LogLevel.Warning);
-        skipped.Message.Should().Contain($"{LlmVendors.Gemini}, {LlmVendors.OpenAI}");
+        skipped.Message.Should().Contain($"{LlmVendors.Gemini}, {LlmVendors.Groq}, {LlmVendors.Cerebras}, {LlmVendors.OpenAI}");
     }
 
     [Fact]
@@ -255,18 +255,18 @@ public sealed class StudyGuideGenerationTests : DatabaseTestFixture
         FakeVendorHandler handler = new((vendor, _) => vendor switch
         {
             LlmVendors.Gemini => FakeVendorHandler.Status(HttpStatusCode.InternalServerError),
-            LlmVendors.OpenAI => throw new TaskCanceledException("timeout"),
+            LlmVendors.OpenRouter => throw new TaskCanceledException("timeout"),
             _ => FakeVendorHandler.Completion(StudyGuideTestData.QuestionsJson())
         });
 
         SectionGeneration completed = await ClaimAndProcessAsync(generation, handler);
 
-        handler.Vendors.Should().Equal(LlmVendors.Gemini, LlmVendors.OpenAI, LlmVendors.DeepSeek);
-        completed.Vendor.Should().Be(LlmVendors.DeepSeek);
+        handler.Vendors.Should().Equal(LlmVendors.Gemini, LlmVendors.OpenRouter, LlmVendors.OpenAI);
+        completed.Vendor.Should().Be(LlmVendors.OpenAI);
         Attempts().Select(a => (a.Vendor, a.Outcome, a.HttpStatus)).Should().Equal(
             (LlmVendors.Gemini, LlmAttemptOutcome.ProviderError, (int?)500),
-            (LlmVendors.OpenAI, LlmAttemptOutcome.Timeout, (int?)null),
-            (LlmVendors.DeepSeek, LlmAttemptOutcome.Success, (int?)200));
+            (LlmVendors.OpenRouter, LlmAttemptOutcome.Timeout, (int?)null),
+            (LlmVendors.OpenAI, LlmAttemptOutcome.Success, (int?)200));
         Attempts().Should().OnlyContain(a => a.GenerationId == generation.Id);
     }
 
@@ -277,15 +277,15 @@ public sealed class StudyGuideGenerationTests : DatabaseTestFixture
         FakeVendorHandler handler = new((vendor, _) => vendor switch
         {
             LlmVendors.Gemini => FakeVendorHandler.Status(HttpStatusCode.Unauthorized),
-            LlmVendors.OpenAI => FakeVendorHandler.Json(HttpStatusCode.Forbidden, "{\"error\":{\"message\":\"Request blocked: restricted API key\"}}"),
+            LlmVendors.OpenRouter => FakeVendorHandler.Json(HttpStatusCode.Forbidden, "{\"error\":{\"message\":\"Request blocked: restricted API key\"}}"),
             _ => FakeVendorHandler.Completion(StudyGuideTestData.QuestionsJson())
         });
 
         SectionGeneration completed = await ClaimAndProcessAsync(generation, handler);
 
-        handler.Vendors.Should().Equal(LlmVendors.Gemini, LlmVendors.OpenAI, LlmVendors.DeepSeek);
+        handler.Vendors.Should().Equal(LlmVendors.Gemini, LlmVendors.OpenRouter, LlmVendors.OpenAI);
         completed.Status.Should().Be(SectionGenerationStatus.Completed);
-        completed.Vendor.Should().Be(LlmVendors.DeepSeek);
+        completed.Vendor.Should().Be(LlmVendors.OpenAI);
         Attempts().Select(a => (a.Outcome, a.HttpStatus)).Should().Equal(
             (LlmAttemptOutcome.AuthError, (int?)401),
             (LlmAttemptOutcome.AuthError, (int?)403),
@@ -302,7 +302,7 @@ public sealed class StudyGuideGenerationTests : DatabaseTestFixture
 
         SectionGeneration completed = await ClaimAndProcessAsync(generation, handler);
 
-        handler.Vendors.Should().Equal(LlmVendors.Gemini, LlmVendors.OpenAI);
+        handler.Vendors.Should().Equal(LlmVendors.Gemini, LlmVendors.OpenRouter);
         completed.Status.Should().Be(SectionGenerationStatus.Completed);
         Attempts().Select(a => (a.Outcome, a.HttpStatus)).Should().Equal(
             (LlmAttemptOutcome.ProviderError, (int?)403),
@@ -316,7 +316,7 @@ public sealed class StudyGuideGenerationTests : DatabaseTestFixture
         FakeVendorHandler handler = new((vendor, _) => vendor switch
         {
             LlmVendors.Gemini => FakeVendorHandler.Completion("", "content_filter"),
-            LlmVendors.OpenAI => FakeVendorHandler.Completion("Sure! Here are your questions."),
+            LlmVendors.OpenRouter => FakeVendorHandler.Completion("Sure! Here are your questions."),
             _ => FakeVendorHandler.Completion(StudyGuideTestData.QuestionsJson())
         });
 
@@ -339,7 +339,7 @@ public sealed class StudyGuideGenerationTests : DatabaseTestFixture
         SectionGeneration completed = await ClaimAndProcessAsync(generation, handler);
 
         Attempts().Select(a => a.Outcome).Should().Equal(LlmAttemptOutcome.LowQuoteYield, LlmAttemptOutcome.Success);
-        completed.Vendor.Should().Be(LlmVendors.OpenAI);
+        completed.Vendor.Should().Be(LlmVendors.OpenRouter);
         completed.Candidates.Should().HaveCount(3);
         completed.DroppedCount.Should().Be(1);
     }
@@ -384,9 +384,7 @@ public sealed class StudyGuideGenerationTests : DatabaseTestFixture
         DbContext.LlmProviderSettings.Add(new LlmProviderSettings
         {
             Id = LlmProviderSettings.SingletonId,
-            DeepSeekModel = "deepseek-x",
-            OpenAiModel = "gpt-4.1-mini",
-            GeminiModel = "gemini-x",
+            Models = new Dictionary<string, string> { [LlmVendors.OpenAI] = "gpt-4.1-mini", [LlmVendors.Gemini] = "gemini-x" },
             RouteFree = "OpenAI",
             RoutePremium = "OpenAI",
             UpdatedUtc = _clock.UtcNow
@@ -419,14 +417,14 @@ public sealed class StudyGuideGenerationTests : DatabaseTestFixture
     {
         ChatCompletionRequest request = new("system", "user", 8000, 0.2);
 
-        System.Text.Json.Nodes.JsonObject reasoning = OpenAiCompatibleChatClient.BuildRequestBody(LlmVendors.OpenAI, "gpt-5-nano", request);
-        System.Text.Json.Nodes.JsonObject deepSeek = OpenAiCompatibleChatClient.BuildRequestBody(LlmVendors.DeepSeek, "deepseek-flash", request);
+        System.Text.Json.Nodes.JsonObject reasoning = OpenAiCompatibleChatClient.BuildRequestBody(Endpoint(LlmVendors.OpenAI), "gpt-5-nano", request);
+        System.Text.Json.Nodes.JsonObject openRouter = OpenAiCompatibleChatClient.BuildRequestBody(Endpoint(LlmVendors.OpenRouter), "google/gemma-4-31b-it:free", request);
 
         reasoning.ContainsKey("max_completion_tokens").Should().BeTrue();
         reasoning.ContainsKey("temperature").Should().BeFalse();
         reasoning.ContainsKey("max_tokens").Should().BeFalse();
-        deepSeek["max_tokens"]!.GetValue<int>().Should().Be(8000);
-        deepSeek["temperature"]!.GetValue<double>().Should().Be(0.2);
+        openRouter["max_tokens"]!.GetValue<int>().Should().Be(8000);
+        openRouter["temperature"]!.GetValue<double>().Should().Be(0.2);
     }
 
     [Theory]
@@ -437,20 +435,20 @@ public sealed class StudyGuideGenerationTests : DatabaseTestFixture
     {
         ChatCompletionRequest request = new("system", "user", 8000, 0.2);
 
-        System.Text.Json.Nodes.JsonObject body = OpenAiCompatibleChatClient.BuildRequestBody(LlmVendors.OpenAI, model, request);
+        System.Text.Json.Nodes.JsonObject body = OpenAiCompatibleChatClient.BuildRequestBody(Endpoint(LlmVendors.OpenAI), model, request);
 
         body["reasoning_effort"]!.GetValue<string>().Should().Be(expected);
     }
 
     [Theory]
-    [InlineData("DeepSeek", "deepseek-flash")]
-    [InlineData("Gemini", "gemini-2.5-flash-lite")]
+    [InlineData("OpenRouter", "google/gemma-4-31b-it:free")]
+    [InlineData("Gemini", "gemini-3.5-flash-lite")]
     [InlineData("OpenAI", "gpt-4o-mini")]
     public void BuildRequestBody_OmitsReasoningEffortForNonReasoningModels(string vendor, string model)
     {
         ChatCompletionRequest request = new("system", "user", 8000, 0.2);
 
-        System.Text.Json.Nodes.JsonObject body = OpenAiCompatibleChatClient.BuildRequestBody(vendor, model, request);
+        System.Text.Json.Nodes.JsonObject body = OpenAiCompatibleChatClient.BuildRequestBody(Endpoint(vendor), model, request);
 
         body.ContainsKey("reasoning_effort").Should().BeFalse();
     }
@@ -476,14 +474,18 @@ public sealed class StudyGuideGenerationTests : DatabaseTestFixture
             {
                 ["OPENAI_API_KEY"] = "from-env",
                 ["Gemini:ApiKey"] = " ",
-                ["DeepSeek:BaseUrl"] = "https://deepseek.test/v1"
+                ["OpenRouter:BaseUrl"] = "https://openrouter.test/v1"
             })
             .Build());
 
         registry.IsConfigured(LlmVendors.OpenAI).Should().BeTrue();
         registry.IsConfigured(LlmVendors.Gemini).Should().BeFalse();
-        registry.IsConfigured(LlmVendors.DeepSeek).Should().BeFalse();
-        registry.Get(LlmVendors.DeepSeek).BaseUrl.Should().Be("https://deepseek.test/v1");
+        registry.IsConfigured(LlmVendors.OpenRouter).Should().BeFalse();
+        registry.Get(LlmVendors.OpenRouter).BaseUrl.Should().Be("https://openrouter.test/v1");
+        registry.Get(LlmVendors.Groq).BaseUrl.Should().Be("https://api.groq.com/openai/v1");
+        registry.Get(LlmVendors.Groq).MaxTokens.Should().Be(LlmVendorRegistry.DefaultGroqMaxTokens);
+        registry.Get(LlmVendors.Cerebras).BaseUrl.Should().Be("https://api.cerebras.ai/v1");
+        LlmVendors.Normalize("DeepSeek").Should().BeNull("DeepSeek is retired (#464)");
         registry.Get(LlmVendors.OpenAI).ToString().Should().NotContain("from-env", "keys never appear in ToString/logs");
     }
 
@@ -518,7 +520,7 @@ public sealed class StudyGuideGenerationTests : DatabaseTestFixture
         await using ServiceProvider provider = services.BuildServiceProvider();
         StudyGuideGenerationWorker worker = new(
             provider.GetRequiredService<IServiceScopeFactory>(),
-            new LlmVendorRegistry(StudyGuideTestData.Keys(false, false, false)),
+            new LlmVendorRegistry(StudyGuideTestData.Keys(false, false, false, false, false)),
             MsOptions.Create(new StudyGuideGenerationOptions()),
             NullLogger<StudyGuideGenerationWorker>.Instance);
 
@@ -527,4 +529,102 @@ public sealed class StudyGuideGenerationTests : DatabaseTestFixture
 
         (await DbContext.SectionGenerations.SingleAsync()).Status.Should().Be(SectionGenerationStatus.Pending);
     }
+
+    [Fact]
+    public async Task Processor_RateLimitedVendorIsRecordedAndCooledDownForLaterSections()
+    {
+        LlmVendorCooldowns cooldowns = new(_clock);
+        FakeVendorHandler handler = new((vendor, _) => vendor == LlmVendors.Gemini
+            ? FakeVendorHandler.Json((HttpStatusCode)429, "{\"error\":{\"code\":429,\"message\":\"Quota exceeded for metric: GenerateRequestsPerDayPerProjectPerModel-FreeTier\",\"status\":\"RESOURCE_EXHAUSTED\"}}")
+            : FakeVendorHandler.Completion(StudyGuideTestData.QuestionsJson()));
+
+        SectionGeneration first = await QueueAsync();
+        await Queue().ClaimDueAsync(2, CancellationToken.None);
+        DbContext.ChangeTracker.Clear();
+        await StudyGuideTestData.Processor(DbContext, handler, _clock, cooldowns: cooldowns).ProcessAsync(first.Id, CancellationToken.None);
+
+        handler.Vendors.Should().Equal(LlmVendors.Gemini, LlmVendors.OpenRouter);
+        Attempts().Select(a => (a.Vendor, a.Outcome, a.HttpStatus)).Should().Equal(
+            (LlmVendors.Gemini, LlmAttemptOutcome.RateLimited, (int?)429),
+            (LlmVendors.OpenRouter, LlmAttemptOutcome.Success, (int?)200));
+        cooldowns.IsCoolingDown(LlmVendors.Gemini).Should().BeTrue();
+        cooldowns.CoolingDownUntil(LlmVendors.Gemini).Should().BeOnOrBefore(_clock.GetUtcNow() + LlmVendorCooldowns.MaxCooldown);
+
+        handler.Requests.Clear();
+        _clock.UtcNow = _clock.UtcNow.Add(TimeSpan.FromMinutes(5));
+        SectionGeneration second = await QueueAsync();
+        await Queue().ClaimDueAsync(2, CancellationToken.None);
+        DbContext.ChangeTracker.Clear();
+        await StudyGuideTestData.Processor(DbContext, handler, _clock, cooldowns: cooldowns).ProcessAsync(second.Id, CancellationToken.None);
+        handler.Vendors.Should().Equal([LlmVendors.OpenRouter], "Gemini is cooling down");
+
+        handler.Requests.Clear();
+        _clock.UtcNow = _clock.UtcNow.Add(LlmVendorCooldowns.MaxCooldown);
+        cooldowns.IsCoolingDown(LlmVendors.Gemini).Should().BeFalse("cooldowns are capped at an hour");
+    }
+
+    [Fact]
+    public async Task Processor_WhenEveryKeyedVendorIsCoolingDown_StillTriesTheRoute()
+    {
+        LlmVendorCooldowns cooldowns = new(_clock);
+        cooldowns.Start(LlmVendors.Gemini, TimeSpan.FromMinutes(10), false);
+        cooldowns.Start(LlmVendors.OpenRouter, TimeSpan.FromMinutes(10), false);
+        cooldowns.Start(LlmVendors.OpenAI, TimeSpan.FromMinutes(10), false);
+        FakeVendorHandler handler = new((_, _) => FakeVendorHandler.Completion(StudyGuideTestData.QuestionsJson()));
+        SectionGeneration generation = await QueueAsync();
+        await Queue().ClaimDueAsync(2, CancellationToken.None);
+        DbContext.ChangeTracker.Clear();
+
+        await StudyGuideTestData.Processor(DbContext, handler, _clock, cooldowns: cooldowns).ProcessAsync(generation.Id, CancellationToken.None);
+
+        handler.Vendors.Should().Equal(LlmVendors.Gemini);
+        (await DbContext.SectionGenerations.SingleAsync(g => g.Id == generation.Id)).Status.Should().Be(SectionGenerationStatus.Completed);
+    }
+
+    [Fact]
+    public void Cooldowns_UseRetryAfterThenDailyResetThenDefault_CappedAtAnHour()
+    {
+        LlmVendorCooldowns cooldowns = new(_clock);
+        DateTimeOffset now = _clock.GetUtcNow();
+
+        cooldowns.Start("A", TimeSpan.FromSeconds(30), dailyQuotaExhausted: true).Should().Be(now.AddSeconds(30));
+        cooldowns.Start("B", null, dailyQuotaExhausted: false).Should().Be(now + LlmVendorCooldowns.DefaultCooldown);
+        cooldowns.Start("C", TimeSpan.FromHours(5), dailyQuotaExhausted: false).Should().Be(now + LlmVendorCooldowns.MaxCooldown);
+        cooldowns.Start("D", null, dailyQuotaExhausted: true).Should().BeOnOrBefore(now + LlmVendorCooldowns.MaxCooldown);
+        LlmVendorCooldowns.UntilNextPacificMidnight(new DateTimeOffset(2026, 11, 5, 7, 30, 0, TimeSpan.Zero))
+            .Should().Be(TimeSpan.FromMinutes(30), "07:30 UTC is 23:30 PST");
+    }
+
+    [Fact]
+    public void BuildRequestBody_CapsMaxTokensAtTheVendorLimit_AndSetsLowEffortForGptOss()
+    {
+        ChatCompletionRequest request = new("system", "user", 8000, 0.2);
+        LlmVendorRegistry registry = new(StudyGuideTestData.Keys(groq: true));
+
+        System.Text.Json.Nodes.JsonObject groq = OpenAiCompatibleChatClient.BuildRequestBody(registry.Get(LlmVendors.Groq), "openai/gpt-oss-120b", request);
+        System.Text.Json.Nodes.JsonObject cerebras = OpenAiCompatibleChatClient.BuildRequestBody(registry.Get(LlmVendors.Cerebras), "gpt-oss-120b", request);
+        System.Text.Json.Nodes.JsonObject small = OpenAiCompatibleChatClient.BuildRequestBody(registry.Get(LlmVendors.Groq), "openai/gpt-oss-120b", request with { MaxTokens = 1000 });
+
+        groq["max_tokens"]!.GetValue<int>().Should().Be(4000);
+        groq["reasoning_effort"]!.GetValue<string>().Should().Be("low");
+        cerebras["max_tokens"]!.GetValue<int>().Should().Be(8000);
+        cerebras["reasoning_effort"]!.GetValue<string>().Should().Be("low");
+        small["max_tokens"]!.GetValue<int>().Should().Be(1000);
+    }
+
+    [Fact]
+    public async Task Processor_OpenRouterCallsCarryAttributionHeaders()
+    {
+        SectionGeneration generation = await QueueAsync();
+        FakeVendorHandler handler = new((_, _) => FakeVendorHandler.Completion(StudyGuideTestData.QuestionsJson()));
+
+        await ClaimAndProcessAsync(generation, handler, StudyGuideTestData.Keys(openRouter: true, openAi: false, gemini: false));
+
+        HttpRequestMessage request = handler.Requests.Single().Request;
+        request.RequestUri!.ToString().Should().Be("https://openrouter.ai/api/v1/chat/completions");
+        request.Headers.GetValues("HTTP-Referer").Should().Equal("https://www.quizymode.com");
+        request.Headers.GetValues("X-Title").Should().Equal("Quizymode");
+    }
+
+    private static LlmVendorEndpoint Endpoint(string vendor, int? maxTokens = null) => new(vendor, "https://vendor.test/v1", "key", maxTokens);
 }

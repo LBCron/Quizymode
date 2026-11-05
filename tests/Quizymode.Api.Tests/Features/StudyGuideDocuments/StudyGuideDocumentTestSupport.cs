@@ -135,7 +135,9 @@ internal sealed class FakeVendorHandler(Func<string, string, HttpResponseMessage
         string body = request.Content is null ? string.Empty : await request.Content.ReadAsStringAsync(cancellationToken);
         string vendor = request.RequestUri!.Host switch
         {
-            "api.deepseek.com" => LlmVendors.DeepSeek,
+            "openrouter.ai" => LlmVendors.OpenRouter,
+            "api.groq.com" => LlmVendors.Groq,
+            "api.cerebras.ai" => LlmVendors.Cerebras,
             "api.openai.com" => LlmVendors.OpenAI,
             "generativelanguage.googleapis.com" => LlmVendors.Gemini,
             _ => "unknown"
@@ -145,7 +147,7 @@ internal sealed class FakeVendorHandler(Func<string, string, HttpResponseMessage
     }
 
     public static HttpResponseMessage Completion(string content, string finishReason = "stop") =>
-        FakeDeepSeekHandler.Json(HttpStatusCode.OK, JsonSerializer.Serialize(new
+        FakeChatHandler.Json(HttpStatusCode.OK, JsonSerializer.Serialize(new
         {
             id = "chatcmpl-test",
             choices = new object[] { new { index = 0, message = new { role = "assistant", content }, finish_reason = finishReason } },
@@ -153,10 +155,10 @@ internal sealed class FakeVendorHandler(Func<string, string, HttpResponseMessage
         }));
 
     public static HttpResponseMessage Json(HttpStatusCode statusCode, string body) =>
-        FakeDeepSeekHandler.Json(statusCode, body);
+        FakeChatHandler.Json(statusCode, body);
 
     public static HttpResponseMessage Status(HttpStatusCode statusCode) =>
-        FakeDeepSeekHandler.Json(statusCode, "{\"error\":{\"message\":\"boom\",\"type\":\"api_error\"}}");
+        FakeChatHandler.Json(statusCode, "{\"error\":{\"message\":\"boom\",\"type\":\"api_error\"}}");
 }
 
 internal static class StudyGuideTestData
@@ -201,11 +203,13 @@ internal static class StudyGuideTestData
                 .ToList()
         });
 
-    public static IConfiguration Keys(bool deepSeek = true, bool openAi = true, bool gemini = true) =>
+    public static IConfiguration Keys(bool openRouter = true, bool openAi = true, bool gemini = true, bool groq = false, bool cerebras = false) =>
         new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["DeepSeek:ApiKey"] = deepSeek ? "deepseek-test-key" : "",
+                ["OpenRouter:ApiKey"] = openRouter ? "openrouter-test-key" : "",
+                ["Groq:ApiKey"] = groq ? "groq-test-key" : "",
+                ["Cerebras:ApiKey"] = cerebras ? "cerebras-test-key" : "",
                 ["OpenAI:ApiKey"] = openAi ? "openai-test-key" : "",
                 ["Gemini:ApiKey"] = gemini ? "gemini-test-key" : ""
             })
@@ -232,11 +236,13 @@ internal static class StudyGuideTestData
         TimeProvider clock,
         IConfiguration? keys = null,
         StudyGuideGenerationOptions? options = null,
-        ILogger<SectionGenerationProcessor>? logger = null) =>
+        ILogger<SectionGenerationProcessor>? logger = null,
+        LlmVendorCooldowns? cooldowns = null) =>
         new(
             db,
             new OpenAiCompatibleChatClient(new HttpClient(handler), NullLogger<OpenAiCompatibleChatClient>.Instance),
             new LlmVendorRegistry(keys ?? Keys()),
+            cooldowns ?? new LlmVendorCooldowns(clock),
             Moderation(),
             MsOptions.Create(options ?? new StudyGuideGenerationOptions()),
             clock,

@@ -396,9 +396,9 @@ public sealed class StudyGuideDocumentTests : StudyGuideDocumentFixture
 
     private async Task SetUpPremiumRouteWithoutKeyAsync()
     {
-        // Only Gemini has a key; the free route reaches it, the premium route (DeepSeek, OpenAI) does not.
+        // Only Gemini has a key; the free route reaches it, the premium route (OpenRouter, OpenAI) does not.
         Vendors = new LlmVendorRegistry(StudyGuideTestData.Keys(false, false, true));
-        await SetRoutesAsync([LlmVendors.Gemini], [LlmVendors.DeepSeek, LlmVendors.OpenAI]);
+        await SetRoutesAsync([LlmVendors.Gemini], [LlmVendors.OpenRouter, LlmVendors.OpenAI]);
         await MakePremiumAsync(UserA);
     }
 

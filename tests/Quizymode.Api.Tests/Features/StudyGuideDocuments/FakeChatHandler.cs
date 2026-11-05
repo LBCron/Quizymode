@@ -4,8 +4,8 @@ using System.Text.Json;
 
 namespace Quizymode.Api.Tests.Features.StudyGuideDocuments;
 
-/// <summary>Fake HTTP handler for the DeepSeek chat completions API; never touches the network.</summary>
-internal sealed class FakeDeepSeekHandler(Func<HttpRequestMessage, string, HttpResponseMessage> respond) : HttpMessageHandler
+/// <summary>Fake HTTP handler for an OpenAI-compatible chat completions API; never touches the network.</summary>
+internal sealed class FakeChatHandler(Func<HttpRequestMessage, string, HttpResponseMessage> respond) : HttpMessageHandler
 {
     public List<(HttpRequestMessage Request, string Body)> Requests { get; } = [];
 
@@ -16,10 +16,10 @@ internal sealed class FakeDeepSeekHandler(Func<HttpRequestMessage, string, HttpR
         return respond(request, body);
     }
 
-    public static FakeDeepSeekHandler ReturningText(string text, string finishReason = "stop") =>
+    public static FakeChatHandler ReturningText(string text, string finishReason = "stop") =>
         new((_, _) => Json(HttpStatusCode.OK, CompletionBody(text, finishReason)));
 
-    public static FakeDeepSeekHandler ReturningStatus(HttpStatusCode statusCode) =>
+    public static FakeChatHandler ReturningStatus(HttpStatusCode statusCode) =>
         new((_, _) => Json(statusCode, "{\"error\":{\"message\":\"boom\",\"type\":\"api_error\",\"code\":\"x\"}}"));
 
     public static string CompletionBody(string text, string finishReason = "stop") =>
@@ -27,7 +27,7 @@ internal sealed class FakeDeepSeekHandler(Func<HttpRequestMessage, string, HttpR
         {
             id = "chatcmpl-test",
             @object = "chat.completion",
-            model = "deepseek-flash",
+            model = "test-model",
             choices = new object[]
             {
                 new

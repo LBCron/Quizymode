@@ -7,7 +7,7 @@ const routeSchema = (label: string) =>
   z
     .array(vendorSchema)
     .min(1, `The ${label} route needs at least one vendor.`)
-    .max(3, `The ${label} route can list at most three vendors.`)
+    .max(LLM_VENDORS.length, `The ${label} route can list at most ${LLM_VENDORS.length} vendors.`)
     .refine((route) => new Set(route).size === route.length, `The ${label} route lists a vendor twice.`);
 
 /** Mirrors the PUT /admin/llm-providers validation (AC 5.12). */
@@ -51,7 +51,9 @@ export function routeHasKeyedVendor(route: readonly string[], keyConfigured: Rec
 
 /** Display label for an attempt outcome; unknown values are shown as-is (AC 5.12.13). */
 export function formatAttemptOutcome(outcome: string): string {
-  return outcome === "AuthError" ? "Auth error (check key)" : outcome;
+  if (outcome === "AuthError") return "Auth error (check key)";
+  if (outcome === "RateLimited") return "Rate limited (429)";
+  return outcome;
 }
 
 /** Moves the item at `index` by `delta` (−1 up, +1 down); returns a new array. */

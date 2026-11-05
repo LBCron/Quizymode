@@ -2,9 +2,9 @@ import { apiClient } from "./client";
 
 /** Admin AI provider routing (AC 5.12, epic #203). Types mirror the API contract exactly. */
 
-export type LlmVendor = "DeepSeek" | "OpenAI" | "Gemini";
+export type LlmVendor = "Gemini" | "Groq" | "Cerebras" | "OpenRouter" | "OpenAI";
 
-export const LLM_VENDORS: LlmVendor[] = ["DeepSeek", "OpenAI", "Gemini"];
+export const LLM_VENDORS: LlmVendor[] = ["Gemini", "Groq", "Cerebras", "OpenRouter", "OpenAI"];
 
 export type LlmAttemptOutcome =
   | "Success"
@@ -13,12 +13,15 @@ export type LlmAttemptOutcome =
   | "ContentFilter"
   | "LowQuoteYield"
   | "InvalidJson"
-  | "AuthError";
+  | "AuthError"
+  | "RateLimited";
 
 export interface LlmVendorSettings {
   vendor: LlmVendor;
   keyConfigured: boolean;
   model: string;
+  /** Set while the vendor is skipped after an HTTP 429 (in-memory on the API instance that answered). */
+  coolingDownUntilUtc?: string | null;
 }
 
 export interface LlmRoutes {

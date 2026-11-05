@@ -101,7 +101,7 @@ Current container env vars (values stored in LightSail, not in GitHub):
 - `APP_Authentication__Cognito__Audience`
 - `APP_Authentication__Cognito__Authority`
 - `APP_ConnectionStrings__PostgreSQL`
-- `APP_Gemini__ApiKey` / `APP_OpenAI__ApiKey` / `APP_DeepSeek__ApiKey` (study-guide LLM vendors; a vendor without a key is skipped)
+- `APP_Gemini__ApiKey` / `APP_Groq__ApiKey` / `APP_Cerebras__ApiKey` / `APP_OpenRouter__ApiKey` / `APP_OpenAI__ApiKey` (study-guide LLM vendors, #464; a vendor without a key is skipped). `APP_DeepSeek__*` is no longer read and can be removed. Optional: `APP_{Vendor}__BaseUrl`, `APP_{Vendor}__MaxTokens` (Groq defaults to 4000).
 - `APP_GrafanaCloud__ApiKey`
 - `APP_GrafanaCloud__Enabled`
 - `APP_GrafanaCloud__LokiInstanceId`

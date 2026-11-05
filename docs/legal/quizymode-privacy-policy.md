@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**Effective date:** October 19, 2026
+**Effective date:** November 5, 2026
 
 ## 1. Overview
 
@@ -51,8 +51,9 @@ Quizymode uses third-party providers to operate the service, including:
 - **AWS S3 and CloudFront** for web hosting and delivery;
 - **Supabase** for managed PostgreSQL storage;
 - **Cloudflare** for DNS, TLS, and edge proxying;
-- **ipinfo.io** for approximate, IP-based country resolution used in analytics; and
-- **Grafana Cloud** for logs, traces, metrics, and operational observability.
+- **ipinfo.io** for approximate, IP-based country resolution used in analytics;
+- **Grafana Cloud** for logs, traces, metrics, and operational observability; and
+- **Google Gemini API, Groq, Cerebras, OpenRouter, and OpenAI** for AI question generation from study guides you upload (see Section 6).
 
 We may disclose information:
 
@@ -64,9 +65,19 @@ We do not sell personal information, and the current app does not use third-part
 
 ## 6. AI-Assisted Workflows
 
-Quizymode includes AI-assisted workflows that help you prepare prompts for third-party AI tools. In the current product, those workflows are manual copy/paste experiences. Quizymode does not automatically send your study guide or item content to a third-party generative AI provider from within the app.
+When you ask Quizymode to generate questions from a study guide you uploaded, the text of each section you choose is sent to a third-party AI provider, which returns draft questions. We send only the section text and our instructions; we do not send your name, email address, or account details. We clear the temporary generation copy once its questions are generated. Uploaded section text remains until the document expires, normally 30 days after its last activity, when cleanup removes the text.
 
-If you choose to paste content into an external AI tool, that provider handles the data you submit under its own terms and privacy practices.
+Depending on availability, a section may be processed by one of these providers, tried in order until one succeeds:
+
+- **Google Gemini API** (Google). On Google's free tier, Google may use submitted content to improve its products, and human reviewers may read it.
+- **Groq**, which states it does not use API inputs to train models.
+- **Cerebras**, which states it does not retain API inputs or use them for training.
+- **OpenRouter**, which forwards the request to the model's upstream provider (for example Google for Gemma models). We configure OpenRouter not to route to providers that train on inputs or publish prompts.
+- **OpenAI**, which states it does not use API inputs to train models by default.
+
+Each provider handles the content under its own terms and privacy policy. Do not upload study guides that contain personal, confidential, or sensitive information.
+
+Quizymode also includes copy/paste prompt workflows for external AI tools. If you paste content into an external AI tool, that provider handles it under its own terms and privacy practices.
 
 ## 7. Retention
 

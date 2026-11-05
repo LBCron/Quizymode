@@ -25,8 +25,8 @@ describe("adminLlmProvidersApi", () => {
   it("update puts models and routes", async () => {
     mockPut.mockResolvedValueOnce({ data: {} });
     const request = {
-      vendors: [{ vendor: "Gemini" as const, model: "gemini-2.5-flash-lite" }],
-      routes: { free: ["Gemini" as const], premium: ["DeepSeek" as const] },
+      vendors: [{ vendor: "Gemini" as const, model: "gemini-3.5-flash-lite" }],
+      routes: { free: ["Gemini" as const], premium: ["OpenRouter" as const] },
     };
     await adminLlmProvidersApi.update(request);
     expect(mockPut).toHaveBeenCalledWith("/admin/llm-providers", request);
