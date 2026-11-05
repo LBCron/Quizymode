@@ -73,7 +73,7 @@ describe("HomePage personalized layout (#382)", () => {
     expect(hero()).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /play a 5-question quiz/i })).toBeInTheDocument();
     expect(screen.getByText(/no account needed/i)).toBeInTheDocument();
-    expect(screen.queryByText(/start with fun trivia facts/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/five quick questions, from flags to space to AI/i)).not.toBeInTheDocument();
     expect(headingOrder()).toEqual(["Today", "For you"]);
 
     const game = screen.getByRole("link", { name: /Play a game in Science/ });
@@ -93,7 +93,7 @@ describe("HomePage personalized layout (#382)", () => {
   it("guest with no topics keeps the full Home and never sees the onboarding card", async () => {
     renderWithProviders(<HomePage />);
 
-    expect(screen.getByText(/start with fun trivia facts/i)).toBeInTheDocument();
+    expect(screen.getByText(/five quick questions, from flags to space to AI/i)).toBeInTheDocument();
     expect(screen.queryByText("Explore all topics")).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /Play a game in/ })).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "For you" })).toBeInTheDocument();
@@ -140,7 +140,7 @@ describe("HomePage personalized layout (#382)", () => {
 
     expect(await screen.findByRole("region", { name: "Make Home yours" })).toBeInTheDocument();
     expect(headingOrder()).toEqual(["Make Home yours", "Today", "For you"]);
-    expect(screen.getByText(/start with fun trivia facts/i)).toBeInTheDocument();
+    expect(screen.getByText(/five quick questions, from flags to space to AI/i)).toBeInTheDocument();
     expect(screen.queryByText("Explore all topics")).not.toBeInTheDocument();
   });
 
@@ -150,7 +150,7 @@ describe("HomePage personalized layout (#382)", () => {
     renderWithProviders(<HomePage />);
 
     await waitFor(() => expect(screen.queryByRole("status")).not.toBeInTheDocument());
-    expect(screen.getByText(/start with fun trivia facts/i)).toBeInTheDocument();
+    expect(screen.getByText(/five quick questions, from flags to space to AI/i)).toBeInTheDocument();
     expect(screen.getByText("Categories")).toBeInTheDocument();
     expect(screen.queryByText("Explore all topics")).not.toBeInTheDocument();
     expect(screen.queryByRole("region", { name: "Make Home yours" })).not.toBeInTheDocument();

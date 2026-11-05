@@ -9,7 +9,7 @@ import { collectionsApi } from "@/api/collections";
 import { featuredApi, type FeaturedSetDto } from "@/api/featured";
 import type { CollectionDiscoverItem } from "@/types/api";
 import { useAuth } from "@/contexts/AuthContext";
-import { buildCollectionPath, buildCollectionStudyPath } from "@/utils/collectionPath";
+import { buildCollectionPath } from "@/utils/collectionPath";
 import { buildCategoryPath } from "@/utils/categorySlug";
 import { getCategoryThemeBySlug } from "@/features/categories/categoryThemes";
 import { GuestHistoryCard } from "@/features/guestHistory/GuestHistoryCard";
@@ -18,8 +18,6 @@ import { useInterests } from "@/features/interests/useInterests";
 import { TopicOnboardingPrompt } from "../TopicOnboardingPrompt";
 import { PersonalizedLanes } from "../PersonalizedLanes";
 import {
-  HOME_SAMPLE_COLLECTION_ID,
-  HOME_SAMPLE_COLLECTION_NAME,
   homeCategoryCards,
 } from "../homePageData";
 
@@ -322,18 +320,14 @@ const HomePage = () => {
                 <p className="mt-1 text-xs font-semibold text-sky-200">Learn, Test and Review are free.</p>
                 {!focused && (
                   <p className="mt-1.5 max-w-2xl text-xs leading-5 text-slate-200 lg:text-sm">
-                    Start with Fun Trivia Facts, then browse public topics or create private practice sets when you are ready.
+                    Five quick questions, from flags to space to AI. Then pick what to explore next.
                   </p>
                 )}
                 {(!focused || !isAuthenticated) && <p className="mt-1 text-xs font-semibold text-sky-200">No account needed.</p>}
               </div>
               <div className="mt-3 flex shrink-0 items-center sm:mt-0">
                 <Link
-                  to={buildCollectionStudyPath(
-                    "quiz",
-                    HOME_SAMPLE_COLLECTION_ID,
-                    HOME_SAMPLE_COLLECTION_NAME
-                  )}
+                  to="/start"
                   className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[linear-gradient(135deg,#38bdf8_0%,#2563eb_100%)] px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-sky-500/30 transition hover:scale-[1.02] hover:shadow-sky-400/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 sm:w-auto"
                 >
                   Play a 5-question quiz

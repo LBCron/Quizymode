@@ -13,8 +13,9 @@ test("AC 3.0 @smoke - anonymous visitor can start the five-question home quiz", 
 
   await quickQuizLink.click();
 
+  // /start (#462) plays the starter pool, or falls back to the fixed Fun Trivia Facts quiz until the pool is seeded.
   await expect(page).toHaveURL(
-    /\/quiz\/collections\/8f9b8c14-8d30-4d94-9b20-4c7bb7f7f511\/fun\+trivia\+facts/
+    /\/start|\/quiz\/collections\/8f9b8c14-8d30-4d94-9b20-4c7bb7f7f511\/fun\+trivia\+facts/
   );
   // Role + exact name: the collection description on the quiz page also contains "question" (#152).
   await expect(page.getByRole("heading", { name: "Question", exact: true })).toBeVisible({
@@ -64,8 +65,8 @@ test.describe("guest history return card", () => {
   test("AC 3.0.15 - anonymous completion shows one return card after reload and can be cleared", async ({
     page,
   }) => {
-    await page.goto("/");
-    await page.getByRole("link", { name: /play a 5-question quiz/i }).click();
+    // The home action opens /start (random starter pool, #462); this test needs the fixed collection, which /start falls back to.
+    await page.goto("/quiz/collections/8f9b8c14-8d30-4d94-9b20-4c7bb7f7f511/fun+trivia+facts");
     await expect(page.getByRole("heading", { name: "Question", exact: true })).toBeVisible({
       timeout: 10_000,
     });

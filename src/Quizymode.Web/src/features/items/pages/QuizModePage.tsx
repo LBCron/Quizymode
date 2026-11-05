@@ -32,7 +32,7 @@ import { StarIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
 import type { CollectionRatingResponse } from "@/types/api";
 import { getCategoryScopeModeConfig } from "@/features/categories/utils/categoryScopeMode";
-import { getStudyScopeKeywords } from "@/features/items/utils/studyScopeParams";
+import { getStudyScopeKeywords, parseSizeParam } from "@/features/items/utils/studyScopeParams";
 import { QuizCompletionView } from "@/features/items/quiz/QuizCompletionView";
 import { useStudyHotkeys } from "@/components/study/useStudyHotkeys";
 import { useQuestionPictureStatuses } from "@/components/study/pictureGate";
@@ -178,7 +178,7 @@ const QuizModePageContent = () => {
   const pendingSwitchRef = useRef<QuizRunMode | null>(null);
   const completionPublishedRunIds = useRef(new Set<string>());
   /** Quiz uses random N items (default 10); changing this refetches items */
-  const [initialQuizSize] = useState<number>(() => readSavedQuizSize());
+  const [initialQuizSize] = useState<number>(() => parseSizeParam(searchParams.get("size")) ?? readSavedQuizSize());
   const [quizSize, setQuizSize] = useState<number>(initialQuizSize);
   /** Controlled display value for the quiz size input; committed on blur */
   const [quizSizeInput, setQuizSizeInput] = useState<string>(() => String(initialQuizSize));

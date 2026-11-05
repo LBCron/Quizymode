@@ -77,7 +77,7 @@ describe("HomePage", () => {
     expect(screen.getByText(/no account needed/i)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /play a 5-question quiz/i })).toHaveAttribute(
       "href",
-      "/quiz/collections/8f9b8c14-8d30-4d94-9b20-4c7bb7f7f511/fun+trivia+facts"
+      "/start"
     );
 
     await waitFor(() => {

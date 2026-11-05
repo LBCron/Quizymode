@@ -38,6 +38,9 @@ public static class AnalyticsEventCatalog
     public const string GameStarted = "game_started";
     public const string GameCompleted = "game_completed";
 
+    // Start page (#462). One per run: the card or button tapped on the end screen. Not a funnel step.
+    public const string StarterNextClicked = "starter_next_clicked";
+
     /// <summary>Optional fields an event may carry beyond name, session, path, and context.</summary>
     [Flags]
     public enum EventFields
@@ -99,7 +102,10 @@ public static class AnalyticsEventCatalog
         [GameStarted] = new(EventFields.RunId | EventFields.Total, EventFields.RunId | EventFields.Total),
         [GameCompleted] = new(
             EventFields.RunId | EventFields.Score | EventFields.Total,
-            EventFields.RunId | EventFields.Score | EventFields.Total)
+            EventFields.RunId | EventFields.Score | EventFields.Total),
+        // Start page end screen: Position 1-3 is an explore-next card, 4 is "Another random five", 5 is "Explore all
+        // topics"; the context id is next:{world} for cards. One per run per session.
+        [StarterNextClicked] = new(EventFields.RunId | EventFields.Position, EventFields.RunId | EventFields.Position)
     };
 
     /// <summary>The initial conversion funnel, in step order, as reported to admins.</summary>
