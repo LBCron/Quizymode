@@ -180,8 +180,9 @@ internal sealed class UserUpsertMiddleware
         
         if (string.IsNullOrWhiteSpace(subject))
         {
-            _logger.LogWarning("User is authenticated but no subject claim found. Available claims: {Claims}",
-                string.Join(", ", user.Claims.Select(c => $"{c.Type}={c.Value}")));
+            // Claim types only: claim values can hold email and name (#476).
+            _logger.LogWarning("User is authenticated but no subject claim found. Available claim types: {ClaimTypes}",
+                string.Join(", ", user.Claims.Select(c => c.Type).Distinct()));
             return;
         }
 
@@ -199,8 +200,8 @@ internal sealed class UserUpsertMiddleware
         
         string name = displayName ?? subject; // Fallback to Subject if no name claim
 
-        _logger.LogDebug("Processing user upsert for subject: {Subject}, email: {Email}, name: {Name}",
-            subject, email ?? "null", name ?? "null");
+        // Subject only: email and name are personal data and stay out of logs (#476).
+        _logger.LogDebug("Processing user upsert for subject: {Subject}", subject);
 
         // Resolve db and upsert
         var db = context.RequestServices.GetRequiredService<ApplicationDbContext>();

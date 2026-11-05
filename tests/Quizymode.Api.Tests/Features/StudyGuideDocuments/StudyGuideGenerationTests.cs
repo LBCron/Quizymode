@@ -4,6 +4,7 @@ using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Quizymode.Api.Data;
 using Quizymode.Api.Features.StudyGuideDocuments;
@@ -197,6 +198,54 @@ public sealed class StudyGuideGenerationTests : DatabaseTestFixture
 
         handler.Vendors.Should().Equal(LlmVendors.DeepSeek);
         completed.Vendor.Should().Be(LlmVendors.DeepSeek);
+    }
+
+    [Fact]
+    public async Task Processor_LogsOneAttemptLinePerVendorWithOutcomeAndHttpStatus()
+    {
+        SectionGeneration generation = await QueueAsync();
+        FakeVendorHandler handler = new((vendor, _) => vendor == LlmVendors.Gemini
+            ? FakeVendorHandler.Status(HttpStatusCode.NotFound)
+            : FakeVendorHandler.Completion(StudyGuideTestData.QuestionsJson()));
+        CapturingLoggerProvider logs = new();
+        using ILoggerFactory loggerFactory = LoggerFactory.Create(builder => builder.AddProvider(logs));
+        await Queue().ClaimDueAsync(2, CancellationToken.None);
+        DbContext.ChangeTracker.Clear();
+
+        await StudyGuideTestData.Processor(DbContext, handler, _clock, logger: loggerFactory.CreateLogger<SectionGenerationProcessor>())
+            .ProcessAsync(generation.Id, CancellationToken.None);
+
+        List<CapturingLoggerProvider.CapturedLog> attemptLines = logs.Entries.Where(e => e.Message.Contains(" attempt with ")).ToList();
+        attemptLines.Should().HaveCount(2);
+        attemptLines[0].Level.Should().Be(LogLevel.Warning);
+        attemptLines[0].Message.Should().Contain($"attempt with {LlmVendors.Gemini} (")
+            .And.Contain("ended ProviderError")
+            .And.Contain("HTTP 404");
+        attemptLines[1].Level.Should().Be(LogLevel.Information);
+        attemptLines[1].Message.Should().Contain("ended Success").And.Contain("HTTP 200").And.Contain(" ms, tokens in ");
+    }
+
+    [Fact]
+    public async Task Processor_WarnsOncePerGenerationWhenRouteVendorsHaveNoKey()
+    {
+        SectionGeneration generation = await QueueAsync();
+        FakeVendorHandler handler = new((_, _) => FakeVendorHandler.Completion(StudyGuideTestData.QuestionsJson()));
+        CapturingLoggerProvider logs = new();
+        using ILoggerFactory loggerFactory = LoggerFactory.Create(builder => builder.AddProvider(logs));
+        await Queue().ClaimDueAsync(2, CancellationToken.None);
+        DbContext.ChangeTracker.Clear();
+
+        await StudyGuideTestData.Processor(
+                DbContext,
+                handler,
+                _clock,
+                StudyGuideTestData.Keys(deepSeek: true, openAi: false, gemini: false),
+                logger: loggerFactory.CreateLogger<SectionGenerationProcessor>())
+            .ProcessAsync(generation.Id, CancellationToken.None);
+
+        CapturingLoggerProvider.CapturedLog skipped = logs.Entries.Should().ContainSingle(e => e.Message.Contains("skipped vendor(s) without a key")).Subject;
+        skipped.Level.Should().Be(LogLevel.Warning);
+        skipped.Message.Should().Contain($"{LlmVendors.Gemini}, {LlmVendors.OpenAI}");
     }
 
     [Fact]

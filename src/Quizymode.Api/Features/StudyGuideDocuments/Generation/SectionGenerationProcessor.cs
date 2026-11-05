@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Quizymode.Api.Data;
 using Quizymode.Api.Services;
@@ -55,9 +56,19 @@ internal sealed class SectionGenerationProcessor(
         }
 
         LlmProviderSettings settings = await LlmProviderSettingsStore.GetOrCreateAsync(_db, cancellationToken);
-        List<string> route = LlmProviderSettingsStore.RouteFor(settings, generation.Tier)
-            .Where(_vendors.IsConfigured)
-            .ToList();
+        List<string> configuredRoute = LlmProviderSettingsStore.RouteFor(settings, generation.Tier);
+        List<string> route = configuredRoute.Where(_vendors.IsConfigured).ToList();
+        List<string> skipped = configuredRoute.Except(route).ToList();
+        if (skipped.Count > 0)
+        {
+            // A missing key is not a vendor outage, so it gets its own line for every generation it affects.
+            _logger.LogWarning(
+                "StudyGuideGeneration: {GenerationId} skipped vendor(s) without a key in the {Tier} route: {Vendors}.",
+                generation.Id,
+                generation.Tier,
+                string.Join(", ", skipped));
+        }
+
         if (route.Count == 0)
         {
             _logger.LogWarning("StudyGuideGeneration: no configured vendor in the {Tier} route.", generation.Tier);
@@ -113,6 +124,7 @@ internal sealed class SectionGenerationProcessor(
                 HttpStatus = result.HttpStatus,
                 CreatedUtc = Now()
             });
+            LogAttempt(generation.Id, vendor, model, outcome, result);
 
             if (outcome == LlmAttemptOutcome.Success && parsed is not null)
             {
@@ -121,11 +133,6 @@ internal sealed class SectionGenerationProcessor(
             }
 
             await _db.SaveChangesAsync(cancellationToken);
-            _logger.LogInformation(
-                "StudyGuideGeneration: {GenerationId} attempt with {Vendor} ended {Outcome}; trying the next vendor.",
-                generation.Id,
-                vendor,
-                outcome);
         }
 
         if (best is not null)
@@ -176,11 +183,35 @@ internal sealed class SectionGenerationProcessor(
 
         await _db.SaveChangesAsync(cancellationToken);
         _logger.LogInformation(
-            "StudyGuideGeneration: {GenerationId} completed by {Vendor} with {Kept} question(s), {Dropped} dropped.",
+            "StudyGuideGeneration: {GenerationId} completed by {Vendor} ({Model}) with {Kept} question(s), {Dropped} dropped.",
             generation.Id,
             vendor,
+            model,
             parsed.Kept.Count,
             parsed.DroppedCount);
+    }
+
+    /// <summary>
+    /// One line per vendor attempt, the same data as the LlmAttempts row (AC 5.12.3) so a failure is diagnosable from Grafana alone.
+    /// The redacted vendor error excerpt is logged by OpenAiCompatibleChatClient on the same attempt (AC 5.12.5).
+    /// </summary>
+    private void LogAttempt(Guid generationId, string vendor, string model, LlmAttemptOutcome outcome, ChatCompletionResult result)
+    {
+        // Success, low yield and content-filter replies are normal results. Everything else means the vendor did not deliver a usable answer.
+        LogLevel level = outcome is LlmAttemptOutcome.Success or LlmAttemptOutcome.LowQuoteYield or LlmAttemptOutcome.ContentFilter
+            ? LogLevel.Information
+            : LogLevel.Warning;
+        _logger.Log(
+            level,
+            "StudyGuideGeneration: {GenerationId} attempt with {Vendor} ({Model}) ended {Outcome}; HTTP {HttpStatus}, {DurationMs} ms, tokens in {InputTokens} out {OutputTokens}.",
+            generationId,
+            vendor,
+            model,
+            outcome,
+            result.HttpStatus?.ToString() ?? "none",
+            result.DurationMs,
+            result.InputTokens?.ToString() ?? "n/a",
+            result.OutputTokens?.ToString() ?? "n/a");
     }
 
     /// <summary>Marks the job Failed with a user-safe error and refunds every quota charge attached to it.</summary>

@@ -4,6 +4,7 @@ using System.Text.Json;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Quizymode.Api.Data;
@@ -230,7 +231,8 @@ internal static class StudyGuideTestData
         FakeVendorHandler handler,
         TimeProvider clock,
         IConfiguration? keys = null,
-        StudyGuideGenerationOptions? options = null) =>
+        StudyGuideGenerationOptions? options = null,
+        ILogger<SectionGenerationProcessor>? logger = null) =>
         new(
             db,
             new OpenAiCompatibleChatClient(new HttpClient(handler), NullLogger<OpenAiCompatibleChatClient>.Instance),
@@ -238,7 +240,7 @@ internal static class StudyGuideTestData
             Moderation(),
             MsOptions.Create(options ?? new StudyGuideGenerationOptions()),
             clock,
-            NullLogger<SectionGenerationProcessor>.Instance);
+            logger ?? NullLogger<SectionGenerationProcessor>.Instance);
 
     public static Mock<IUserContext> User(string userId)
     {

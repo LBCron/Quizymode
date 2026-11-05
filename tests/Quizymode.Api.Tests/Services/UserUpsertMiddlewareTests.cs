@@ -168,6 +168,29 @@ public sealed class UserUpsertMiddlewareTests : DatabaseTestFixture
     }
 
     [Fact]
+    public async Task InvokeAsync_LogsNoEmailOrName_ForUpsertDebugOrMissingSubject()
+    {
+        // #476: email and name are personal data, so no log line may contain them.
+        const string email = "pii-check@example.com";
+        const string name = "Pat Privacy";
+        CapturingLoggerProvider logs = new();
+        using ILoggerFactory loggerFactory = LoggerFactory.Create(builder => builder.AddProvider(logs).SetMinimumLevel(LogLevel.Debug));
+        UserUpsertMiddleware middleware = new(_ => Task.CompletedTask, loggerFactory.CreateLogger<UserUpsertMiddleware>());
+
+        await middleware.InvokeAsync(BuildHttpContext(sub: Guid.NewGuid().ToString(), email: email, name: name));
+
+        DefaultHttpContext noSubject = new();
+        noSubject.User = new ClaimsPrincipal(new ClaimsIdentity(
+            new[] { new Claim("email", email), new Claim("name", name) }, "test"));
+        noSubject.RequestServices = BuildHttpContext().RequestServices;
+        await middleware.InvokeAsync(noSubject);
+
+        logs.Entries.Should().Contain(e => e.Message.Contains("Processing user upsert for subject"));
+        logs.Entries.Should().Contain(e => e.Message.Contains("Available claim types: email, name"));
+        logs.Entries.Should().OnlyContain(e => !e.Message.Contains(email) && !e.Message.Contains(name));
+    }
+
+    [Fact]
     public async Task InvokeAsync_CallsNextExactlyOnce_WhenAuthenticatedUserHasNoSubAndNextThrows()
     {
         int calls = 0;
