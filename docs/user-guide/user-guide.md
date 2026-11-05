@@ -19,7 +19,7 @@ _Screenshots are generated automatically - run `npx playwright test --project=sc
 
 ### Home
 
-The home page is the main entry point for Quizymode. Its primary action opens the five-question **Fun Trivia Facts** collection directly in Quiz mode, with no account or intermediate collection page. Category cards remain available immediately, while featured sets and recently added public collections add more ways to browse when those services are available. The footer provides access to the User Guide, Feedback, Categories Map, and About from anywhere in the app.
+The home page is the main entry point for Quizymode. Its primary action starts a five-question quiz of quick questions from flags to space to AI, with no account or intermediate page; after each answer a short "Did you know?" card appears, and at the end you can pick what to explore next. Category cards remain available immediately, while featured sets and recently added public collections add more ways to browse when those services are available. The footer provides access to the User Guide, Feedback, Categories Map, and About from anywhere in the app.
 
 ![Home](screenshots/user/home.png "Home")
 

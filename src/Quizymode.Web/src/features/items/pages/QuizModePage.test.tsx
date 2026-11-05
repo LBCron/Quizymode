@@ -161,6 +161,7 @@ function renderPageWithEntries(initialEntries: string[], initialIndex?: number) 
           <Routes>
             <Route path="/quiz/item/:itemId" element={page} />
             <Route path="/quiz/:category/item/:itemId" element={page} />
+            <Route path="/quiz/:category" element={page} />
             <Route path="/quiz/collections/:collectionId/item/:itemId" element={page} />
             <Route path="/quiz/collections/:collectionId/:slug/item/:itemId" element={page} />
             <Route path="/quiz/collections/:collectionId/:slug" element={page} />
@@ -238,6 +239,21 @@ describe("QuizModePage", () => {
       count: 0,
       myStars: null,
     });
+  });
+
+  it("seeds the quiz size from the size deep link (clamped to 1-50) and strips it from the URL (#462)", async () => {
+    renderPage("/quiz/exams?size=999");
+
+    expect(await screen.findByLabelText("Quiz size:")).toHaveValue(50);
+    await waitFor(() => expect(itemsApi.getRandom).toHaveBeenCalled());
+    expect(vi.mocked(itemsApi.getRandom).mock.calls[0][1]).toBe(50);
+    await waitFor(() => expect(screen.getByTestId("location")).not.toHaveTextContent("size="));
+  });
+
+  it("ignores an invalid size deep link and keeps the default size (#462)", async () => {
+    renderPage("/quiz/exams/item/item-1?size=abc");
+
+    expect(await screen.findByLabelText("Quiz size:")).toHaveValue(10);
   });
 
   it("shows the shared leaf scope header and keeps Sets hidden in quiz mode", async () => {

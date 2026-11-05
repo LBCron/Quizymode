@@ -259,8 +259,22 @@ public sealed class TrackAnalyticsEventsTests : DatabaseTestFixture
         { "grade position zero", new(AnalyticsEventCatalog.FlashcardGraded, "/", RunId: "r", ItemId: Guid.NewGuid(), Position: 0, IsCorrect: true) },
         { "quick quiz start total above run cap", new(AnalyticsEventCatalog.QuickQuizStarted, "/", RunId: "r", Total: 1001) },
         { "share total above run cap", new(AnalyticsEventCatalog.QuizResultShared, "/", RunId: "r", Score: 1, Total: 1001) },
+        { "starter next without position", new(AnalyticsEventCatalog.StarterNextClicked, "/start", "home", "next:flags", RunId: "r") },
+        { "starter next without run", new(AnalyticsEventCatalog.StarterNextClicked, "/start", "home", "next:flags", Position: 1) },
+        { "starter next with score", new(AnalyticsEventCatalog.StarterNextClicked, "/start", "home", "next:flags", RunId: "r", Position: 1, Score: 1) },
         { "flashcards start without run", new(AnalyticsEventCatalog.FlashcardsStarted, "/", "flashcards") },
     };
+
+    [Fact]
+    public void Validator_AcceptsStarterNextClicked()
+    {
+        TrackAnalyticsEvents.Request request = new("session",
+        [
+            new(AnalyticsEventCatalog.StarterNextClicked, "/start", "home", "next:flags", RunId: "r", Position: 1)
+        ]);
+
+        new TrackAnalyticsEvents.Validator().Validate(request).IsValid.Should().BeTrue();
+    }
 
     [Theory]
     [InlineData(501)]

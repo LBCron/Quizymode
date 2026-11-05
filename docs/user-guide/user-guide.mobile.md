@@ -19,7 +19,7 @@ _Screenshots are generated automatically - run `npx playwright test --project=sc
 
 ### Home
 
-On mobile, the five-question quick quiz remains the primary home action and states that no account is needed. It opens **Fun Trivia Facts** directly in Quiz mode, while the category carousel stays immediately below it for browsing. The primary navigation moves behind the hamburger menu and the hero content wraps for a narrow screen.
+On mobile, the five-question quick quiz remains the primary home action and states that no account is needed. It starts a mixed five-question quiz directly, while the category carousel stays immediately below it for browsing. The primary navigation moves behind the hamburger menu and the hero content wraps for a narrow screen.
 
 ![Home](screenshots/mobile/home.png "Home")
 

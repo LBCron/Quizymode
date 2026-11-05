@@ -20,6 +20,7 @@ import { LazyRoute } from "./components/LazyRoute";
 import { lazyPage } from "./utils/lazyPage";
 import FeaturedPage from "./features/featured/pages/FeaturedPage";
 import DailyQuizPage from "./features/learningLoop/pages/DailyQuizPage";
+import StarterQuizPage from "./features/starter/StarterQuizPage";
 
 // Route-level code splitting (PERF-001): anonymous landing/study pages stay eager; admin, authoring,
 // study guide, community and legal pages load on demand. Keep this list in sync with docs/AC.md.
@@ -138,6 +139,7 @@ function App() {
         <Route path="/games/sort-it/:category?" element={<SortItPage />} />
         <Route path="/games/:category?" element={<GamesHubPage />} />
         <Route path="/daily" element={<DailyQuizPage />} />
+        <Route path="/start" element={<StarterQuizPage />} />
         <Route path="/progress" element={<ProgressPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignUpPage />} />

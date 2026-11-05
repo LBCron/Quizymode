@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { ItemResponse } from "@/types/api";
 import { useStudyHotkeys } from "@/components/study/useStudyHotkeys";
 import { StudyHotkeysDialog } from "@/components/study/StudyHotkeysDialog";
@@ -7,6 +7,7 @@ import { StudyHotkeysHint } from "@/components/study/StudyHotkeysHint";
 import { QuizRenderer } from "@/components/study/QuizRenderer";
 import { useQuestionPictureStatuses } from "@/components/study/pictureGate";
 import { usePreloadNextPicture } from "@/components/study/preloadPicture";
+import { WowCard } from "@/features/starter/WowCard";
 import { QuizCompletionView } from "@/features/items/quiz/QuizCompletionView";
 import type { ResultShareDescriptor } from "@/features/items/quiz/resultShare";
 import {
@@ -24,7 +25,7 @@ import {
 } from "@/features/analytics/analyticsEvents";
 
 export interface FixedSetQuizAnalytics {
-  contextType: Extract<AnalyticsContextType, "daily" | "review">;
+  contextType: Extract<AnalyticsContextType, "daily" | "review" | "home">;
   contextId?: string;
 }
 
@@ -41,6 +42,18 @@ export interface FixedSetQuizProps {
   onComplete?: (run: QuizRunState) => void;
   /** Builds the Share result descriptor for the finished run; omitted for the review queue (no Share). */
   share?: (run: QuizRunState) => ResultShareDescriptor | null;
+  /**
+   * Starter quiz (#462): answer feedback is a short wow card (verdict, answer, one fact from `wowLines` by item id)
+   * instead of the option list and explanation, Previous is hidden, and the results screen uses the starter layout.
+   */
+  feedback?: "wow";
+  wowLines?: Record<string, string>;
+  /** Called once per item the first time its question is shown. */
+  onQuestionShown?: (item: ItemResponse) => void;
+  /** Starter results: the "explore next" content shown under the score. */
+  endExtras?: (run: QuizRunState) => ReactNode;
+  /** Starter results: replaces the local reset behind the primary "Another random five" button. */
+  onRestart?: (run: QuizRunState) => void;
 }
 
 function newRun(items: ItemResponse[], identityKey: string): QuizRunState {
@@ -65,6 +78,11 @@ export function FixedSetQuiz({
   onAnswer,
   onComplete,
   share,
+  feedback,
+  wowLines,
+  onQuestionShown,
+  endExtras,
+  onRestart,
 }: FixedSetQuizProps) {
   const [run, setRun] = useState<QuizRunState>(() => newRun(items, identityKey));
   const [index, setIndex] = useState(0);
@@ -88,6 +106,16 @@ export function FixedSetQuiz({
     // context is derived from props that do not change during a run.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [run.runId]);
+
+  const isWow = feedback === "wow";
+  const shownItemIds = useRef(new Set<string>());
+  useEffect(() => {
+    if (!item || shownItemIds.current.has(item.id)) return;
+    shownItemIds.current.add(item.id);
+    onQuestionShown?.(item);
+    // Fires when the displayed question changes; the callback identity is not a trigger.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [item?.id]);
 
   useEffect(() => {
     if (!summary.isComplete || completedRunIds.current.has(run.runId)) return;
@@ -144,19 +172,17 @@ export function FixedSetQuiz({
   const isActive = run.view === "active" && !!item;
   const handled = Boolean(outcome) || isSkipped;
   const canGoNext = !isLast && handled;
+  const advance = () => {
+    if (summary.isComplete) setRun((current) => reduceQuizRun(current, { type: "show-summary" }));
+    else if (canGoNext) goTo(index + 1);
+  };
   const { isHelpOpen, openHelp, closeHelp } = useStudyHotkeys({
     enabled: true,
     letter: isActive && !outcome && !pictureBlocked ? (i) => options[i] !== undefined && handleAnswer(options[i]) : undefined,
     digit: isActive && !outcome && !pictureBlocked ? (n) => options[n - 1] !== undefined && handleAnswer(options[n - 1]) : undefined,
-    prev: isActive && index > 0 ? () => goTo(index - 1) : undefined,
+    prev: isActive && !isWow && index > 0 ? () => goTo(index - 1) : undefined,
     next: isActive && !summary.isComplete && canGoNext ? () => goTo(index + 1) : undefined,
-    enter:
-      isActive && handled
-        ? () => {
-            if (summary.isComplete) setRun((current) => reduceQuizRun(current, { type: "show-summary" }));
-            else if (canGoNext) goTo(index + 1);
-          }
-        : undefined,
+    enter: isActive && handled ? advance : undefined,
   });
   const helpDialog = <StudyHotkeysDialog open={isHelpOpen} onClose={closeHelp} shortcuts={isActive ? QUIZ_SHORTCUTS : []} />;
 
@@ -171,9 +197,15 @@ export function FixedSetQuiz({
         onReviewMistakes={() => setRun((current) => reduceQuizRun(current, { type: "review-mistakes" }))}
         onBackToResults={() => setRun((current) => ({ ...current, view: "summary" }))}
         onPlayAgain={() => {
+          if (onRestart) {
+            onRestart(run);
+            return;
+          }
           setRun(newRun(items, identityKey));
           setIndex(0);
         }}
+        {...(isWow ? { variant: "starter" as const } : {})}
+        {...(isWow && endExtras ? { endExtras: endExtras(run) } : {})}
         share={run.view === "summary" ? share?.(run) : null}
         analyticsContext={context}
       />
@@ -209,12 +241,30 @@ export function FixedSetQuiz({
           ...pictures.controlsFor(item, isSkipped ? undefined : handleSkipUnavailable),
           blocked: pictureBlocked,
         }}
+        {...(isWow
+          ? {
+              answerPanel: outcome ? (
+                <WowCard
+                  key={item.id}
+                  isCorrect={outcome.isCorrect}
+                  selectedAnswer={outcome.selectedAnswer}
+                  correctAnswer={item.correctAnswer}
+                  wowLine={wowLines?.[item.id] ?? ""}
+                  isLast={isLast}
+                  onNext={advance}
+                />
+              ) : null,
+            }
+          : {})}
       />
+      {/* Wow mode: the card holds Next. Only a last question skipped for its picture still needs a way to the score. */}
+      {isWow && !(summary.isComplete && !outcome) ? null : (
       <div className="mt-4 flex items-center justify-between gap-3">
         <button
           type="button"
           onClick={() => goTo(index - 1)}
           disabled={index === 0}
+          hidden={isWow}
           className="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
         >
           Previous
@@ -238,6 +288,7 @@ export function FixedSetQuiz({
           </button>
         )}
       </div>
+      )}
       {helpDialog}
     </section>
   );

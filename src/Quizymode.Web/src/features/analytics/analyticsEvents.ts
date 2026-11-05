@@ -27,7 +27,8 @@ export type AnalyticsEventName =
   | "topic_suggestion_accepted"
   | "topic_suggestion_overridden"
   | "game_started"
-  | "game_completed";
+  | "game_completed"
+  | "starter_next_clicked";
 
 export type AnalyticsContextType =
   | "auth"

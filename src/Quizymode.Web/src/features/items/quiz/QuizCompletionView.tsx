@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import type { ItemResponse } from "@/types/api";
 import { QuestionImage } from "@/components/study/QuestionImage";
@@ -25,6 +25,10 @@ interface QuizCompletionViewProps {
   share?: ResultShareDescriptor | null;
   /** The run's own analytics context for the share event. */
   analyticsContext?: StudyEventContext;
+  /** Starter quiz results (#462, AC 3.0.28): one-line score, "Another random five", and `endExtras` instead of browse. */
+  variant?: "default" | "starter";
+  /** Starter results: the explore-next cards and the explore-all link, shown under Share result. */
+  endExtras?: ReactNode;
 }
 
 export function QuizCompletionView({
@@ -38,7 +42,10 @@ export function QuizCompletionView({
   onPlayAgain,
   share,
   analyticsContext,
+  variant = "default",
+  endExtras,
 }: QuizCompletionViewProps) {
+  const isStarter = variant === "starter";
   const headingRef = useRef<HTMLHeadingElement>(null);
   const summary = summarizeQuizRun(run);
 
@@ -132,7 +139,7 @@ export function QuizCompletionView({
   }
 
   return (
-    <section className="mx-auto max-w-2xl rounded-lg bg-white p-4 text-center shadow sm:p-6">
+    <section className={`mx-auto ${isStarter ? "max-w-3xl" : "max-w-2xl"} rounded-lg bg-white p-4 text-center shadow sm:p-6`}>
       <h2 ref={headingRef} tabIndex={-1} className="text-2xl font-bold text-gray-900 focus:outline-none">
         {isTest ? "Test complete" : "Quiz complete"}
       </h2>
@@ -144,6 +151,10 @@ export function QuizCompletionView({
       {tier && <p className="mt-2 text-lg font-semibold text-gray-800">{tier.label}</p>}
       {summary.scoredTotal === 0 ? (
         <p className="mt-3 text-xl font-semibold text-gray-800">No questions were scored</p>
+      ) : isStarter ? (
+        <p className="mt-3 text-2xl font-bold text-indigo-700">
+          You got {summary.correct} of {summary.scoredTotal}.
+        </p>
       ) : (
         <>
           <p className="mt-3 text-3xl font-bold text-indigo-700">{summary.correct} / {summary.scoredTotal}</p>
@@ -172,7 +183,7 @@ export function QuizCompletionView({
             Review all
           </button>
         )}
-        {summary.missedItemIds.length > 0 && (
+        {!isStarter && summary.missedItemIds.length > 0 && (
           <button type="button" onClick={onReviewMistakes} className="rounded-md border border-indigo-600 px-4 py-2 font-semibold text-indigo-700 hover:bg-indigo-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
             Review mistakes
           </button>
@@ -186,7 +197,7 @@ export function QuizCompletionView({
               : "rounded-md bg-indigo-600 px-4 py-2 font-semibold text-white hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
           }
         >
-          Play again
+          {isStarter ? "Another random five" : "Play again"}
         </button>
         {share && summary.scoredTotal > 0 && (
           <ShareResultButton
@@ -198,10 +209,20 @@ export function QuizCompletionView({
             emphasized={isPerfect}
           />
         )}
-        <Link to={browsePath} className="rounded-md border border-gray-300 px-4 py-2 font-semibold text-gray-700 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
-          {browseLabel}
-        </Link>
+        {!isStarter && (
+          <Link to={browsePath} className="rounded-md border border-gray-300 px-4 py-2 font-semibold text-gray-700 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
+            {browseLabel}
+          </Link>
+        )}
       </div>
+      {isStarter && endExtras}
+      {isStarter && summary.missedItemIds.length > 0 && (
+        <div className="mt-4">
+          <button type="button" onClick={onReviewMistakes} className="rounded-md border border-indigo-600 px-4 py-2 font-semibold text-indigo-700 hover:bg-indigo-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
+            Review mistakes
+          </button>
+        </div>
+      )}
       {/* Shown only after the run is complete (never mid-quiz), only to anonymous visitors (AC 4.2.10). */}
       <SignupPrompt reason="save-progress" className="mt-6" />
     </section>

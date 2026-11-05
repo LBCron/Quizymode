@@ -2,7 +2,7 @@
  * Renders a single item in Quiz mode: question, answer options, feedback.
  */
 import { CheckCircleIcon, XCircleIcon } from "@heroicons/react/24/solid";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { ItemResponse } from "@/types/api";
 import { SpeakButton } from "@/components/SpeakButton";
 import { useSpeech } from "@/hooks/useSpeech";
@@ -141,6 +141,11 @@ export interface QuizRendererProps {
   typedAnswer?: TypedAnswerControls;
   /** Gate for the question picture (#403). Omit only where the item can never have one. */
   questionPicture?: QuestionPictureControls;
+  /**
+   * Wow feedback (#462): when defined, a polite live region renders the node (null until answered) and, once answered,
+   * replaces the options, the blue answer box and the score line. Leave undefined for the standard feedback.
+   */
+  answerPanel?: ReactNode;
 }
 
 export function QuizRenderer({
@@ -153,10 +158,13 @@ export function QuizRenderer({
   revealFeedback = true,
   typedAnswer,
   questionPicture,
+  answerPanel,
 }: QuizRendererProps) {
   const { isSupported } = useSpeech();
   const pictureBlocked = questionPicture?.blocked ?? false;
   const typedActive = typedAnswer !== undefined && (typedAnswer.enabled || typedAnswer.result !== null);
+  const hasPanel = answerPanel !== undefined;
+  const panelShowing = hasPanel && showAnswer;
 
   return (
     <div className="space-y-3">
@@ -202,7 +210,7 @@ export function QuizRenderer({
 
       <PictureGateNotes controls={questionPicture} />
 
-      {!typedActive && (
+      {!typedActive && !panelShowing && (
       <div>
         <h3 className="text-base font-medium text-gray-900 mb-1">
           Select an answer:
@@ -283,7 +291,13 @@ export function QuizRenderer({
       </div>
       )}
 
-      {revealFeedback && showAnswer && (
+      {hasPanel && (
+        <div role="status" aria-live="polite">
+          {showAnswer ? answerPanel : null}
+        </div>
+      )}
+
+      {revealFeedback && showAnswer && !hasPanel && (
         <div className="p-3 bg-blue-50 rounded-lg">
           <div className="flex items-center gap-1.5">
             <p className="text-sm font-medium text-blue-900">
@@ -314,7 +328,7 @@ export function QuizRenderer({
         </div>
       )}
 
-      {revealFeedback && (
+      {revealFeedback && !hasPanel && (
         <div className="px-3 py-2 bg-gray-50 rounded-lg">
           <div className="text-sm text-gray-600">
             Score: {stats.correct} / {stats.total} correct
