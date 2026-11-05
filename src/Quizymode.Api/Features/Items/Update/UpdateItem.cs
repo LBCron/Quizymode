@@ -234,7 +234,7 @@ public static class UpdateItem
                     Error.Validation("Item.ExplanationRequiredForImage", ItemImageReferenceHelper.ExplanationRequiredForUpdateMessage));
             }
 
-            string questionText = $"{request.Question} {request.CorrectAnswer} {string.Join(" ", request.IncorrectAnswers)}";
+            string questionText = ItemSimHashInput.Normalize(request.Question);
             string fuzzySignature = simHashService.ComputeSimHash(questionText);
             int fuzzyBucket = simHashService.GetFuzzyBucket(fuzzySignature);
 
@@ -314,6 +314,32 @@ public static class UpdateItem
             if (explanationPictureError is not null)
             {
                 return Result.Failure<Response>(explanationPictureError);
+            }
+
+            // Include all creator/category peers: older edits may have answer-derived buckets.
+            var candidateItems = await (
+                from existing in db.Items
+                where existing.Id != itemId && existing.CreatedBy == item.CreatedBy && existing.CategoryId == category.Id
+                join asset in db.MediaAssets on existing.QuestionImageAssetId equals asset.Id into assets
+                from asset in assets.DefaultIfEmpty()
+                select new
+                {
+                    existing.Question,
+                    existing.FuzzySignature,
+                    existing.QuestionImageKey,
+                    existing.QuestionImageAssetId,
+                    AssetSha256 = asset == null ? null : asset.Sha256
+                }).ToListAsync(cancellationToken);
+
+            string? newImageIdentity = questionPicture is not null
+                ? ItemImageReviewRules.DuplicateIdentity(null, questionPicture.AssetId, questionPicture.Sha256)
+                : ItemImageSubmission.IsCurated(item.QuestionImageKey, item.QuestionImageAssetId) ? item.QuestionImageKey : null;
+            if (candidateItems.Any(existing => ItemDuplicateRules.IsDuplicate(
+                existing.Question, existing.FuzzySignature,
+                ItemImageReviewRules.DuplicateIdentity(existing.QuestionImageKey, existing.QuestionImageAssetId, existing.AssetSha256),
+                request.Question, fuzzySignature, newImageIdentity)))
+            {
+                return Result.Failure<Response>(ItemDuplicateRules.Duplicate(category.Name));
             }
 
             ItemSpeechSupport? questionSpeech = ItemSpeechSupportHelper.Normalize(request.QuestionSpeech, 1000);

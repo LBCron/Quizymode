@@ -297,6 +297,28 @@ describe("EditItemPage", () => {
     expect(screen.getByTestId("location")).toHaveTextContent("/items/item-1/edit");
   });
 
+  it("explains a duplicate save, keeps values and permits a corrected retry (#466)", async () => {
+    const user = userEvent.setup({ delay: null });
+    const detail = "An item with the same question already exists in category 'science'. Questions are compared case-insensitively.";
+    vi.mocked(itemsApi.update).mockRejectedValueOnce({
+      response: { status: 400, data: { title: "Item.Duplicate", detail } },
+    });
+    renderPage("/items/item-1/edit");
+    await user.click(await screen.findByRole("button", { name: /^save$/i }));
+    expect(await screen.findByText(detail)).toBeInTheDocument();
+    expect(screen.queryByText("Item.Duplicate")).not.toBeInTheDocument();
+    expect(screen.getByDisplayValue("Old question?")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("Old answer")).toBeInTheDocument();
+    expect(screen.getByTestId("location")).toHaveTextContent("/items/item-1/edit");
+    expect(screen.getByRole("button", { name: /^save$/i })).toBeEnabled();
+    const question = screen.getByDisplayValue("Old question?");
+    await user.clear(question);
+    await user.type(question, "Corrected question?");
+    await user.click(screen.getByRole("button", { name: /^save$/i }));
+    await waitFor(() => expect(itemsApi.update).toHaveBeenLastCalledWith("item-1", expect.objectContaining({ question: "Corrected question?" })));
+    await waitFor(() => expect(screen.queryByText(detail)).not.toBeInTheDocument());
+  });
+
   it("calls update API with correct payload on submit", async () => {
     // AC 2.1.5/2.1.6
     const user = userEvent.setup({ delay: null });

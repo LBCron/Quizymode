@@ -26,7 +26,7 @@ internal static class AddItemHandler
         {
             bool effectiveIsPrivate = userContext.IsAdmin ? request.IsPrivate : true;
 
-            string questionText = request.Question.Trim().ToLowerInvariant();
+            string questionText = ItemSimHashInput.Normalize(request.Question);
             string fuzzySignature = simHashService.ComputeSimHash(questionText);
             int fuzzyBucket = simHashService.GetFuzzyBucket(fuzzySignature);
 
@@ -94,11 +94,11 @@ internal static class AddItemHandler
                 return Result.Failure<AddItem.Response>(explanationPictureError);
             }
 
+            // Compare all creator/category peers in .NET: SQL trimming/casing differs for Unicode and legacy buckets can be stale.
             // Duplicate identity (AC 2.1.21): the curated key, or the picture bytes for an upload; the explanation picture is not part of it.
             var candidateItems = await (
                 from existing in db.Items
                 where existing.CreatedBy == userId &&
-                    existing.FuzzyBucket == fuzzyBucket &&
                     existing.CategoryId == category.Id
                 join asset in db.MediaAssets on existing.QuestionImageAssetId equals asset.Id into assets
                 from asset in assets.DefaultIfEmpty()
@@ -121,7 +121,7 @@ internal static class AddItemHandler
             if (isDuplicate)
             {
                 return Result.Failure<AddItem.Response>(
-                    Error.Validation("Item.Duplicate", $"An item with the same question already exists in category '{category.Name}'. Questions are compared case-insensitively."));
+                    ItemDuplicateRules.Duplicate(category.Name));
             }
 
             ItemSpeechSupport? questionSpeech = ItemSpeechSupportHelper.Normalize(request.QuestionSpeech, 1000);
