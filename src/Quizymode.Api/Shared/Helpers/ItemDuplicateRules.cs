@@ -1,3 +1,5 @@
+using Quizymode.Api.Shared.Kernel;
+
 namespace Quizymode.Api.Shared.Helpers;
 
 /// <summary>
@@ -6,6 +8,9 @@ namespace Quizymode.Api.Shared.Helpers;
 /// </summary>
 internal static class ItemDuplicateRules
 {
+    internal static Error Duplicate(string categoryName) =>
+        Error.Validation("Item.Duplicate", $"An item with the same question already exists in category '{categoryName}'. Questions are compared case-insensitively.");
+
     internal static bool IsDuplicate(
         string existingQuestion,
         string existingFuzzySignature,
@@ -14,7 +19,7 @@ internal static class ItemDuplicateRules
         string newFuzzySignature,
         string? newImageKey)
     {
-        bool sameText = string.Equals(existingQuestion, newQuestion, StringComparison.OrdinalIgnoreCase)
+        bool sameText = string.Equals(ItemSimHashInput.Normalize(existingQuestion), ItemSimHashInput.Normalize(newQuestion), StringComparison.Ordinal)
             || existingFuzzySignature == newFuzzySignature;
 
         return sameText && string.Equals(existingImageKey, newImageKey, StringComparison.Ordinal);

@@ -226,6 +226,9 @@ const EditItemPage = () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return data.map((e: any) => e.errorMessage ?? e.message ?? JSON.stringify(e)).join(", ");
     if (typeof data === "string") return data;
+    if (data.title === "Item.Duplicate") {
+      return data.detail ?? "An item with the same question already exists in this category.";
+    }
     return data.title ?? data.detail ?? "Failed to update item.";
   };
 

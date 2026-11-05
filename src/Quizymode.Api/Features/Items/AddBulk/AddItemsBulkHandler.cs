@@ -153,7 +153,7 @@ internal static class AddItemsBulkHandler
                             continue;
                         }
 
-                        string questionText = itemRequest.Question.Trim().ToLowerInvariant();
+                        string questionText = ItemSimHashInput.Normalize(itemRequest.Question);
                         string fuzzySignature = simHashService.ComputeSimHash(questionText);
                         int fuzzyBucket = simHashService.GetFuzzyBucket(fuzzySignature);
 
@@ -161,16 +161,18 @@ internal static class AddItemsBulkHandler
                         try
                         {
                             List<Guid> existingItemIds = itemsToInsert.Select(it => it.Id).ToList();
+                            // Use .NET normalization for all scoped peers, including legacy buckets and Unicode whitespace.
                             List<Item> candidateItems = await db.Items
                                 .Where(item =>
                                     item.CreatedBy == userId &&
-                                    item.FuzzyBucket == fuzzyBucket &&
                                     item.CategoryId == category.Id &&
                                     !existingItemIds.Contains(item.Id))
                                 .ToListAsync(cancellationToken);
 
+                            // Bulk creates text-only items: a non-null upload identity is enough to distinguish pictured peers.
                             isDuplicate = candidateItems.Any(item => ItemDuplicateRules.IsDuplicate(
-                                item.Question, item.FuzzySignature, item.QuestionImageKey,
+                                item.Question, item.FuzzySignature,
+                                ItemImageReviewRules.DuplicateIdentity(item.QuestionImageKey, item.QuestionImageAssetId, null),
                                 itemRequest.Question, fuzzySignature, null));
                         }
                         catch (Exception ex)
