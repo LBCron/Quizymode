@@ -1,7 +1,7 @@
 {
   "name": "quizymode-web",
   "private": true,
-  "version": "3.121.0",
+  "version": "3.121.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -54,7 +54,7 @@
     "globals": "^17.13.0",
     "jsdom": "^25.0.1",
     "marked": "^18.1.2",
-    "typescript": "~7.0.2",
+    "typescript": "~6.0.3",
     "typescript-eslint": "^8.72.1",
     "vite": "^8.3.5",
     "vitest": "^5.0.5"
