@@ -13446,6 +13446,16 @@
                 "$ref": "#/components/schemas/Quizymode.Api.Shared.Models.ImageSlotInput"
               }
             ]
+          },
+          "incorrectAnswerRationale": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.Collections.Generic.DictionaryOfSystem.Int32AndSystem.String"
+              }
+            ]
           }
         }
       },
@@ -13576,6 +13586,16 @@
                 "$ref": "#/components/schemas/Quizymode.Api.Shared.Helpers.ItemImageReviewInfo"
               }
             ]
+          },
+          "incorrectAnswerRationale": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.Collections.Generic.DictionaryOfSystem.Int32AndSystem.String"
+              }
+            ]
           }
         }
       },
@@ -13684,6 +13704,16 @@
           },
           "explanationImage": {
             "description": "Not supported; omit or send null. A non-null value is rejected with 400 (curated pictures are added through seed data)."
+          },
+          "incorrectAnswerRationale": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.Collections.Generic.DictionaryOfSystem.Int32AndSystem.String"
+              }
+            ]
           }
         }
       },
@@ -13896,6 +13926,16 @@
                 "$ref": "#/components/schemas/System.String"
               }
             ]
+          },
+          "incorrectAnswerRationale": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.Collections.Generic.DictionaryOfSystem.Int32AndSystem.String"
+              }
+            ]
           }
         }
       },
@@ -14071,6 +14111,16 @@
               },
               {
                 "$ref": "#/components/schemas/Quizymode.Api.Shared.Helpers.ItemImageReviewInfo"
+              }
+            ]
+          },
+          "incorrectAnswerRationale": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.Collections.Generic.DictionaryOfSystem.Int32AndSystem.String"
               }
             ]
           }
@@ -14334,6 +14384,16 @@
               },
               {
                 "$ref": "#/components/schemas/Quizymode.Api.Shared.Helpers.ItemImageReviewInfo"
+              }
+            ]
+          },
+          "incorrectAnswerRationale": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.Collections.Generic.DictionaryOfSystem.Int32AndSystem.String"
               }
             ]
           }
@@ -14723,6 +14783,16 @@
                 "$ref": "#/components/schemas/Quizymode.Api.Shared.Models.ItemImageReference"
               }
             ]
+          },
+          "incorrectAnswerRationale": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.Collections.Generic.DictionaryOfSystem.Int32AndSystem.String"
+              }
+            ]
           }
         }
       },
@@ -14846,6 +14916,16 @@
                 "$ref": "#/components/schemas/Quizymode.Api.Shared.Models.ItemImageReference"
               }
             ]
+          },
+          "incorrectAnswerRationale": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.Collections.Generic.DictionaryOfSystem.Int32AndSystem.String"
+              }
+            ]
           }
         }
       },
@@ -14955,6 +15035,16 @@
               },
               {
                 "$ref": "#/components/schemas/Quizymode.Api.Shared.Models.ItemImageReference"
+              }
+            ]
+          },
+          "incorrectAnswerRationale": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.Collections.Generic.DictionaryOfSystem.Int32AndSystem.String"
               }
             ]
           }
@@ -15145,6 +15235,16 @@
                 "$ref": "#/components/schemas/Quizymode.Api.Shared.Models.ImageSlotInput"
               }
             ]
+          },
+          "incorrectAnswerRationale": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.Collections.Generic.DictionaryOfSystem.Int32AndSystem.String"
+              }
+            ]
           }
         }
       },
@@ -15263,6 +15363,16 @@
               },
               {
                 "$ref": "#/components/schemas/Quizymode.Api.Shared.Helpers.ItemImageReviewInfo"
+              }
+            ]
+          },
+          "incorrectAnswerRationale": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.Collections.Generic.DictionaryOfSystem.Int32AndSystem.String"
               }
             ]
           }
@@ -18084,6 +18194,12 @@
         "type": "object",
         "additionalProperties": {
           "$ref": "#/components/schemas/Quizymode.Api.Shared.Models.ItemSpeechSupport"
+        }
+      },
+      "System.Collections.Generic.DictionaryOfSystem.Int32AndSystem.String": {
+        "type": "object",
+        "additionalProperties": {
+          "$ref": "#/components/schemas/System.String"
         }
       },
       "System.Collections.Generic.DictionaryOfSystem.StringAndSystem.String": {

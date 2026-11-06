@@ -79,6 +79,18 @@ internal sealed class ItemConfiguration : IEntityTypeConfiguration<Item>
                     value => CloneSpeechSupportDictionary(value)))
             .IsRequired();
 
+        builder.Property(x => x.IncorrectAnswerRationale)
+            .HasColumnType("jsonb")
+            .HasDefaultValueSql("'{}'::jsonb")
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null!),
+                v => JsonSerializer.Deserialize<Dictionary<int, string>>(v, (JsonSerializerOptions?)null!) ?? new Dictionary<int, string>(),
+                new Microsoft.EntityFrameworkCore.ChangeTracking.ValueComparer<Dictionary<int, string>>(
+                    (left, right) => Quizymode.Api.Shared.Helpers.IncorrectAnswerRationaleHelper.AreEquivalent(left, right),
+                    value => value.Aggregate(0, (hash, pair) => HashCode.Combine(hash, pair.Key, pair.Value)),
+                    value => new Dictionary<int, string>(value)))
+            .IsRequired();
+
         builder.Property(x => x.Explanation)
             .HasMaxLength(4000);
 

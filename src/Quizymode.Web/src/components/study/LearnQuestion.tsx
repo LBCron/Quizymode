@@ -76,6 +76,8 @@ export function LearnQuestion({
             const letter = String.fromCharCode(65 + index);
             const isCorrect = option === item.correctAnswer;
             const isSelected = selectedAnswer === option;
+            const wrongIndex = isCorrect ? -1 : item.incorrectAnswers.findIndex((candidate) => candidate === option);
+            const wrongRationale = wrongIndex >= 0 ? item.incorrectAnswerRationale?.[wrongIndex] : undefined;
             const optionSpeech = isCorrect
               ? item.correctAnswerSpeech
               : getIndexedSpeech(
@@ -112,6 +114,11 @@ export function LearnQuestion({
                     speech={optionSpeech}
                     className="mt-1 text-sm italic text-gray-500"
                   />
+                  {showsWrong && wrongRationale && (
+                    <p className="mt-1 text-sm text-red-800" data-testid="option-rationale">
+                      <ForeignPhraseText text={wrongRationale} />
+                    </p>
+                  )}
                 </div>
               </button>
             );

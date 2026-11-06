@@ -28,7 +28,8 @@ public static class GetReviewBoardItems
         Dictionary<int, ItemSpeechSupport>? IncorrectAnswerSpeech = null,
         string? GroupLabel = null,
         ItemImageReference? QuestionImage = null,
-        ItemImageReference? ExplanationImage = null);
+        ItemImageReference? ExplanationImage = null,
+        Dictionary<int, string>? IncorrectAnswerRationale = null);
 
     public sealed class Endpoint : IEndpoint
     {
@@ -86,7 +87,8 @@ public static class GetReviewBoardItems
                     i.IncorrectAnswerSpeech.Count > 0 ? i.IncorrectAnswerSpeech : null,
                     i.GroupLabel,
                     ItemImageReferenceHelper.FromColumns(i.QuestionImageKey, i.QuestionImageAlt),
-                    ItemImageReferenceHelper.FromColumns(i.ExplanationImageKey, i.ExplanationImageAlt));
+                    ItemImageReferenceHelper.FromColumns(i.ExplanationImageKey, i.ExplanationImageAlt),
+                    i.IncorrectAnswerRationale.Count > 0 ? i.IncorrectAnswerRationale : null);
             }).ToList();
 
             return Result.Success(new Response(itemResponses));

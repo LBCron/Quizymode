@@ -100,6 +100,7 @@ export function toItemSnapshot(item: ItemResponse): ItemResponse {
     correctAnswerSpeech: item.correctAnswerSpeech,
     incorrectAnswers: [...item.incorrectAnswers],
     incorrectAnswerSpeech: item.incorrectAnswerSpeech,
+    ...(item.incorrectAnswerRationale ? { incorrectAnswerRationale: item.incorrectAnswerRationale } : {}),
     ...(item.questionImage ? { questionImage: item.questionImage } : {}),
     ...(item.explanationImage ? { explanationImage: item.explanationImage } : {}),
     explanation: item.explanation ?? "",

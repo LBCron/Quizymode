@@ -23,6 +23,7 @@ import { ActiveCollectionNotice } from "@/components/items/ActiveCollectionNotic
 import {
   normalizeSpeechSupportInput,
   compactIncorrectAnswersWithSpeech,
+  compactIncorrectAnswerRationale,
 } from "@/utils/itemSpeech";
 
 interface ApiValidationError {
@@ -241,6 +242,7 @@ function CreateItemEditor({
       correctAnswerSpeech: normalizeSpeechSupportInput(formData.correctAnswerSpeech),
       incorrectAnswers: compacted.incorrectAnswers,
       incorrectAnswerSpeech: compacted.incorrectAnswerSpeech,
+      incorrectAnswerRationale: compactIncorrectAnswerRationale(formData.incorrectAnswers, formData.incorrectAnswerRationale),
       explanation: formData.explanation.trim(),
       keywords: otherKeywords.length > 0 ? otherKeywords : undefined,
       source: formData.source.trim() || undefined,

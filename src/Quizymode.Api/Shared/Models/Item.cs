@@ -21,6 +21,9 @@ public sealed class Item
 
     public Dictionary<int, ItemSpeechSupport> IncorrectAnswerSpeech { get; set; } = new();
 
+    /// <summary>Optional short rationale (max 200) per incorrect answer index (#367). The correct answer uses <see cref="Explanation"/>.</summary>
+    public Dictionary<int, string> IncorrectAnswerRationale { get; set; } = new();
+
     public string Explanation { get; set; } = string.Empty;
 
     public string FuzzySignature { get; set; } = string.Empty; // hex of 64-bit SimHash

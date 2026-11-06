@@ -8,7 +8,7 @@ import { useCurrentUserIdState } from "@/hooks/useCurrentUserId";
 import { Navigate } from "react-router-dom";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import ErrorMessage from "@/components/ErrorMessage";
-import { ItemForm } from "@/components/items/ItemForm";
+import { ItemForm, type ItemFormValues } from "@/components/items/ItemForm";
 import { type TopicScopeFieldsHandle } from "@/components/items/ItemTopicScopeFields";
 import { isTopicComplete, TOPIC_REQUIRED_MESSAGE } from "@/features/topics/topicScope";
 import { useTaxonomy } from "@/features/topics/useTaxonomy";
@@ -19,6 +19,7 @@ import { useExtraKeywordAutocompleteSource } from "@/hooks/useExtraKeywordAutoco
 import {
   normalizeSpeechSupportInput,
   compactIncorrectAnswersWithSpeech,
+  compactIncorrectAnswerRationale,
 } from "@/utils/itemSpeech";
 
 const MIN_INCORRECT_ANSWER_FIELDS = 3;
@@ -35,7 +36,7 @@ const EditItemPage = () => {
   const { userId: currentUserId, isLoading: isLoadingUserId } = useCurrentUserIdState();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<ItemFormValues>({
     category: "",
     isPrivate: true,
     navigationRank1: "",
@@ -46,6 +47,7 @@ const EditItemPage = () => {
     correctAnswerSpeech: {},
     incorrectAnswers: ["", "", ""],
     incorrectAnswerSpeech: {},
+    incorrectAnswerRationale: {},
     explanation: "",
     keywords: [] as KeywordRequest[],
     source: "",
@@ -103,6 +105,7 @@ const EditItemPage = () => {
         correctAnswerSpeech: itemData.correctAnswerSpeech ?? {},
         incorrectAnswers: padIncorrectAnswers(itemData.incorrectAnswers ?? []),
         incorrectAnswerSpeech: itemData.incorrectAnswerSpeech ?? {},
+        incorrectAnswerRationale: itemData.incorrectAnswerRationale ?? {},
         explanation: itemData.explanation || "",
         keywords: itemData.keywords
           ? itemData.keywords
@@ -202,6 +205,7 @@ const EditItemPage = () => {
       correctAnswerSpeech: normalizeSpeechSupportInput(formData.correctAnswerSpeech),
       incorrectAnswers: compacted.incorrectAnswers,
       incorrectAnswerSpeech: compacted.incorrectAnswerSpeech,
+      incorrectAnswerRationale: compactIncorrectAnswerRationale(formData.incorrectAnswers, formData.incorrectAnswerRationale),
       explanation: formData.explanation.trim(),
       keywords: otherKeywords,
       source: formData.source.trim() || undefined,

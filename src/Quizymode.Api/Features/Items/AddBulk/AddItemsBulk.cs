@@ -29,7 +29,8 @@ public static class AddItemsBulk
         Dictionary<int, ItemSpeechSupport>? IncorrectAnswerSpeech = null,
         string? GroupLabel = null,
         System.Text.Json.JsonElement? QuestionImage = null,
-        System.Text.Json.JsonElement? ExplanationImage = null);
+        System.Text.Json.JsonElement? ExplanationImage = null,
+        Dictionary<int, string>? IncorrectAnswerRationale = null);
 
     public sealed record Request(
         bool IsPrivate,
@@ -134,6 +135,7 @@ public static class AddItemsBulk
                     .WithMessage("Each incorrect answer must not exceed 500 characters"));
 
             this.AddIncorrectAnswerSpeechRules(x => x.IncorrectAnswerSpeech, req => req.IncorrectAnswers?.Count ?? 0);
+            this.AddIncorrectAnswerRationaleRules(x => x.IncorrectAnswerRationale, req => req.IncorrectAnswers?.Count ?? 0);
 
             RuleFor(x => x.Explanation)
                 .MaximumLength(4000)

@@ -26,7 +26,8 @@ public static class ExportItems
         [property: JsonPropertyName("questionImage")] ItemImageReference? QuestionImage = null,
         [property: JsonPropertyName("explanationImage")] ItemImageReference? ExplanationImage = null,
         [property: JsonPropertyName("starterWorld")] string? StarterWorld = null,
-        [property: JsonPropertyName("wowLine")] string? WowLine = null);
+        [property: JsonPropertyName("wowLine")] string? WowLine = null,
+        [property: JsonPropertyName("incorrectAnswerRationale")] Dictionary<int, string>? IncorrectAnswerRationale = null);
 
     public sealed class Endpoint : IEndpoint
     {
@@ -102,7 +103,8 @@ public static class ExportItems
                     item.QuestionImageAssetId is null ? ItemImageReferenceHelper.FromColumns(item.QuestionImageKey, item.QuestionImageAlt) : null,
                     item.ExplanationImageAssetId is null ? ItemImageReferenceHelper.FromColumns(item.ExplanationImageKey, item.ExplanationImageAlt) : null,
                     item.StarterWorld,
-                    item.WowLine);
+                    item.WowLine,
+                    item.IncorrectAnswerRationale.Count > 0 ? item.IncorrectAnswerRationale : null);
             }).ToList();
 
             return Results.Ok(result);

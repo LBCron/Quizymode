@@ -34,7 +34,8 @@ public static class UpdateItem
         Dictionary<int, ItemSpeechSupport>? IncorrectAnswerSpeech = null,
         string? GroupLabel = null,
         ImageSlotInput? QuestionImage = null,
-        ImageSlotInput? ExplanationImage = null);
+        ImageSlotInput? ExplanationImage = null,
+        Dictionary<int, string>? IncorrectAnswerRationale = null);
 
     public sealed record Response(
         string Id,
@@ -52,7 +53,8 @@ public static class UpdateItem
         string? GroupLabel = null,
         ItemImageReference? QuestionImage = null,
         ItemImageReference? ExplanationImage = null,
-        ItemImageReviewInfo? ImageReview = null);
+        ItemImageReviewInfo? ImageReview = null,
+        Dictionary<int, string>? IncorrectAnswerRationale = null);
 
     public sealed class Validator : AbstractValidator<Request>
     {
@@ -103,6 +105,7 @@ public static class UpdateItem
                     .WithMessage("Each incorrect answer must not exceed 500 characters"));
 
             this.AddIncorrectAnswerSpeechRules(x => x.IncorrectAnswerSpeech, req => req.IncorrectAnswers?.Count ?? 0);
+            this.AddIncorrectAnswerRationaleRules(x => x.IncorrectAnswerRationale, req => req.IncorrectAnswers?.Count ?? 0);
 
             RuleFor(x => x.Explanation)
                 .MaximumLength(4000)
@@ -389,6 +392,9 @@ public static class UpdateItem
                 request.IncorrectAnswerSpeech,
                 request.IncorrectAnswers.Count,
                 500);
+            item.IncorrectAnswerRationale = IncorrectAnswerRationaleHelper.Normalize(
+                request.IncorrectAnswerRationale,
+                request.IncorrectAnswers.Count);
             item.Explanation = request.Explanation;
             item.IsPrivate = effectiveIsPrivate;
             item.CategoryId = category.Id;
@@ -518,7 +524,8 @@ public static class UpdateItem
                 item.GroupLabel,
                 ItemImageReferenceHelper.FromColumns(item.QuestionImageKey, item.QuestionImageAlt, item.QuestionImageAttribution),
                 ItemImageReferenceHelper.FromColumns(item.ExplanationImageKey, item.ExplanationImageAlt, item.ExplanationImageAttribution),
-                ItemImageReviewRules.InfoOf(item, rejectionReason));
+                ItemImageReviewRules.InfoOf(item, rejectionReason),
+                item.IncorrectAnswerRationale.Count > 0 ? item.IncorrectAnswerRationale : null);
 
             return Result.Success(response);
         }

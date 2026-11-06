@@ -1066,6 +1066,12 @@ namespace Quizymode.Api.Migrations
                         .HasColumnType("integer")
                         .HasDefaultValue(0);
 
+                    b.Property<string>("IncorrectAnswerRationale")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasDefaultValueSql("'{}'::jsonb");
+
                     b.Property<string>("IncorrectAnswerSpeech")
                         .IsRequired()
                         .ValueGeneratedOnAdd()

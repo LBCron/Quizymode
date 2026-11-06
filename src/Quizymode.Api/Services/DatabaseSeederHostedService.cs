@@ -320,7 +320,8 @@ internal sealed class DatabaseSeederHostedService(
                     item.QuestionImage,
                     item.ExplanationImage,
                     item.StarterWorld,
-                    item.WowLine));
+                    item.WowLine,
+                    item.IncorrectAnswerRationale));
             }
         }
 
@@ -712,6 +713,7 @@ internal sealed class RepoManagedItemSeedData
     public ItemImageReference? ExplanationImage { get; set; }
     public string? StarterWorld { get; set; }
     public string? WowLine { get; set; }
+    public Dictionary<int, string>? IncorrectAnswerRationale { get; set; }
 
     [JsonPropertyName("navigationKeyword1")]
     public string NavigationKeyword1 { get; set; } = string.Empty;

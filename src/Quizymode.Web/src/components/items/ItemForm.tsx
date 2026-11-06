@@ -29,6 +29,8 @@ export interface ItemFormValues {
   correctAnswerSpeech: ItemSpeechSupport;
   incorrectAnswers: string[];
   incorrectAnswerSpeech: Record<number, ItemSpeechSupport>;
+  /** Optional "why this option is wrong" text per incorrect answer index, max 200 chars (#367). */
+  incorrectAnswerRationale?: Record<number, string>;
   explanation: string;
   keywords: KeywordRequest[];
   source: string;
@@ -192,6 +194,16 @@ export function ItemForm({
     ...(current ?? {}),
     [key]: value,
   });
+
+  const handleIncorrectAnswerRationaleChange = (index: number, value: string) => {
+    onChange({
+      ...values,
+      incorrectAnswerRationale: {
+        ...values.incorrectAnswerRationale,
+        [index]: value,
+      },
+    });
+  };
 
   const handleIncorrectAnswerSpeechChange = (
     index: number,
@@ -418,6 +430,15 @@ export function ItemForm({
                 aria-label={`Incorrect answer ${index + 1}`}
                 placeholder={`Incorrect answer ${index + 1}`}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white text-gray-900 placeholder:text-gray-500"
+              />
+              <input
+                type="text"
+                value={values.incorrectAnswerRationale?.[index] ?? ""}
+                maxLength={200}
+                onChange={(e) => handleIncorrectAnswerRationaleChange(index, e.target.value)}
+                aria-label={`Why incorrect answer ${index + 1} is wrong (optional)`}
+                placeholder="Why this is wrong (optional, max 200 characters)"
+                className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white text-gray-900 placeholder:text-gray-500"
               />
             </div>
           ))}

@@ -26,7 +26,8 @@ public static class SeedSyncAdmin
         ItemImageReference? QuestionImage = null,
         ItemImageReference? ExplanationImage = null,
         string? StarterWorld = null,
-        string? WowLine = null);
+        string? WowLine = null,
+        Dictionary<int, string>? IncorrectAnswerRationale = null);
 
     public sealed record SeedCollectionRequest(
         Guid CollectionId,
@@ -364,6 +365,7 @@ public static class SeedSyncAdmin
                     .WithMessage("Each incorrect answer must not exceed 500 characters."));
 
             this.AddIncorrectAnswerSpeechRules(x => x.IncorrectAnswerSpeech, req => req.IncorrectAnswers?.Count ?? 0);
+            this.AddIncorrectAnswerRationaleRules(x => x.IncorrectAnswerRationale, req => req.IncorrectAnswers?.Count ?? 0);
 
             RuleFor(x => x.Explanation)
                 .MaximumLength(4000)

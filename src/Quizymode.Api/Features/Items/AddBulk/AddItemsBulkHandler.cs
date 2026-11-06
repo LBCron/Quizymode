@@ -202,6 +202,9 @@ internal static class AddItemsBulkHandler
                                 itemRequest.IncorrectAnswerSpeech,
                                 itemRequest.IncorrectAnswers.Count,
                                 500),
+                            IncorrectAnswerRationale = IncorrectAnswerRationaleHelper.Normalize(
+                                itemRequest.IncorrectAnswerRationale,
+                                itemRequest.IncorrectAnswers.Count),
                             Explanation = itemRequest.Explanation,
                             FuzzySignature = fuzzySignature,
                             FuzzyBucket = fuzzyBucket,

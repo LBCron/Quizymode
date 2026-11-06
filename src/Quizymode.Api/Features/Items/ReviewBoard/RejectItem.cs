@@ -26,7 +26,8 @@ public static class RejectItem
         ItemSpeechSupport? CorrectAnswerSpeech = null,
         Dictionary<int, ItemSpeechSupport>? IncorrectAnswerSpeech = null,
         ItemImageReference? QuestionImage = null,
-        ItemImageReference? ExplanationImage = null);
+        ItemImageReference? ExplanationImage = null,
+        Dictionary<int, string>? IncorrectAnswerRationale = null);
 
     public sealed class Endpoint : IEndpoint
     {
@@ -115,7 +116,8 @@ public static class RejectItem
                 item.CorrectAnswerSpeech,
                 item.IncorrectAnswerSpeech.Count > 0 ? item.IncorrectAnswerSpeech : null,
                 ItemImageReferenceHelper.FromColumns(item.QuestionImageKey, item.QuestionImageAlt),
-                ItemImageReferenceHelper.FromColumns(item.ExplanationImageKey, item.ExplanationImageAlt));
+                ItemImageReferenceHelper.FromColumns(item.ExplanationImageKey, item.ExplanationImageAlt),
+                item.IncorrectAnswerRationale.Count > 0 ? item.IncorrectAnswerRationale : null);
 
             return Result.Success(response);
         }

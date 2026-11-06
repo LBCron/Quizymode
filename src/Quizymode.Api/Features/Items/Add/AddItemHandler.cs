@@ -153,6 +153,9 @@ internal static class AddItemHandler
                     request.IncorrectAnswerSpeech,
                     request.IncorrectAnswers.Count,
                     500),
+                IncorrectAnswerRationale = IncorrectAnswerRationaleHelper.Normalize(
+                    request.IncorrectAnswerRationale,
+                    request.IncorrectAnswers.Count),
                 Explanation = request.Explanation,
                 FuzzySignature = fuzzySignature,
                 FuzzyBucket = fuzzyBucket,
@@ -270,7 +273,8 @@ internal static class AddItemHandler
                 item.GroupLabel,
                 ItemImageReferenceHelper.FromColumns(item.QuestionImageKey, item.QuestionImageAlt, item.QuestionImageAttribution),
                 ItemImageReferenceHelper.FromColumns(item.ExplanationImageKey, item.ExplanationImageAlt, item.ExplanationImageAttribution),
-                ItemImageReviewRules.InfoOf(item));
+                ItemImageReviewRules.InfoOf(item),
+                item.IncorrectAnswerRationale.Count > 0 ? item.IncorrectAnswerRationale : null);
 
             return Result.Success(response);
         }

@@ -33,7 +33,8 @@ public static class GetItemById
         string? GroupLabel = null,
         ItemImageReference? QuestionImage = null,
         ItemImageReference? ExplanationImage = null,
-        ItemImageReviewInfo? ImageReview = null);
+        ItemImageReviewInfo? ImageReview = null,
+        Dictionary<int, string>? IncorrectAnswerRationale = null);
 
     public sealed record KeywordResponse(
         string Id,
@@ -185,7 +186,8 @@ public static class GetItemById
                 item.GroupLabel,
                 ItemImageReferenceHelper.FromColumns(item.QuestionImageKey, item.QuestionImageAlt, item.QuestionImageAttribution),
                 ItemImageReferenceHelper.FromColumns(item.ExplanationImageKey, item.ExplanationImageAlt, item.ExplanationImageAttribution),
-                canSeeImageReview ? ItemImageReviewRules.InfoOf(item, rejectionReason) : null);
+                canSeeImageReview ? ItemImageReviewRules.InfoOf(item, rejectionReason) : null,
+                item.IncorrectAnswerRationale.Count > 0 ? item.IncorrectAnswerRationale : null);
 
             return Result.Success(response);
         }

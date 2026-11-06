@@ -42,7 +42,8 @@ internal sealed class ItemResponseMapper
             item.GroupLabel,
             ItemImageReferenceHelper.FromColumns(item.QuestionImageKey, item.QuestionImageAlt, item.QuestionImageAttribution),
             ItemImageReferenceHelper.FromColumns(item.ExplanationImageKey, item.ExplanationImageAlt, item.ExplanationImageAttribution),
-            imageReview);
+            imageReview,
+            item.IncorrectAnswerRationale.Count > 0 ? item.IncorrectAnswerRationale : null);
     }
 
     private List<GetItems.KeywordResponse> FilterVisibleKeywords(Item item)

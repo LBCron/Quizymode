@@ -61,7 +61,8 @@ public static class GetItems
         string? GroupLabel = null,
         ItemImageReference? QuestionImage = null,
         ItemImageReference? ExplanationImage = null,
-        ItemImageReviewInfo? ImageReview = null);
+        ItemImageReviewInfo? ImageReview = null,
+        Dictionary<int, string>? IncorrectAnswerRationale = null);
 
     public sealed record KeywordResponse(
         string Id,

@@ -2,6 +2,7 @@ import { useEffect, useRef, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import type { ItemResponse } from "@/types/api";
 import { QuestionImage } from "@/components/study/QuestionImage";
+import { getOptionRationale } from "@/utils/itemSpeech";
 import type { QuizRunState } from "./quizRun";
 import { summarizeQuizRun } from "./quizRun";
 import { formatDuration } from "./test/testSetup";
@@ -117,7 +118,23 @@ export function QuizCompletionView({
                     <strong>Your answer:</strong> {outcome.selectedAnswer}
                   </p>
                 )}
+                {outcome && !outcome.isCorrect && getOptionRationale(item.incorrectAnswers, item.incorrectAnswerRationale, outcome.selectedAnswer) && (
+                  <p className="mt-1 text-sm text-red-800" data-testid="option-rationale">
+                    {getOptionRationale(item.incorrectAnswers, item.incorrectAnswerRationale, outcome.selectedAnswer)}
+                  </p>
+                )}
                 <p className="mt-1 text-sm text-green-700"><strong>Correct answer:</strong> {item.correctAnswer}</p>
+                {item.incorrectAnswers.some((_answer, index) => item.incorrectAnswerRationale?.[index]) && (
+                  <ul className="mt-2 space-y-1 text-sm text-gray-700" aria-label="Why the other options are wrong">
+                    {item.incorrectAnswers.map((answer, index) =>
+                      item.incorrectAnswerRationale?.[index] ? (
+                        <li key={index}>
+                          <strong>{answer}:</strong> {item.incorrectAnswerRationale[index]}
+                        </li>
+                      ) : null
+                    )}
+                  </ul>
+                )}
                 {(item.explanation || item.explanationImage) && (
                   <div className="mt-2 flex items-start gap-3">
                     <QuestionImage image={item.explanationImage} slot="explanation" size="sm" />

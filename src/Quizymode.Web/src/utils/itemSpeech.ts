@@ -87,3 +87,45 @@ export function compactIncorrectAnswersWithSpeech(
     incorrectAnswerSpeech: Object.keys(speechMap).length > 0 ? speechMap : undefined,
   };
 }
+
+/** Max length of a per-answer rationale (#367); matches the API. */
+export const INCORRECT_ANSWER_RATIONALE_MAX = 200;
+
+/**
+ * Drops blank answers and keeps each rationale attached to its answer, re-indexed the same way as
+ * {@link compactIncorrectAnswersWithSpeech}. Blank rationales are dropped.
+ */
+export function compactIncorrectAnswerRationale(
+  answers: string[],
+  rationaleByIndex?: Record<number, string> | null
+): Record<number, string> | undefined {
+  const rationaleMap: Record<number, string> = {};
+  let newIndex = 0;
+
+  answers.forEach((answer, originalIndex) => {
+    if (answer.trim() === "") {
+      return;
+    }
+
+    const text = (rationaleByIndex?.[originalIndex] ?? "").trim();
+    if (text !== "") {
+      rationaleMap[newIndex] = text.slice(0, INCORRECT_ANSWER_RATIONALE_MAX);
+    }
+    newIndex += 1;
+  });
+
+  return Object.keys(rationaleMap).length > 0 ? rationaleMap : undefined;
+}
+
+/** The rationale for one answer, or undefined when it is the correct answer, not an incorrect option, or has none. */
+export function getOptionRationale(
+  incorrectAnswers: string[],
+  rationaleByIndex: Record<number, string> | null | undefined,
+  answer: string | null | undefined
+): string | undefined {
+  if (answer == null) {
+    return undefined;
+  }
+  const index = incorrectAnswers.findIndex((candidate) => candidate === answer);
+  return index >= 0 ? rationaleByIndex?.[index] || undefined : undefined;
+}
