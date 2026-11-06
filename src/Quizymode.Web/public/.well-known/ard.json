@@ -1,0 +1,15 @@
+{
+  "specVersion": "1.0",
+  "entries": [
+    {
+      "identifier": "urn:air:quizymode.com:docs:llms-txt",
+      "displayName": "Quizymode site overview for LLMs",
+      "type": "text/plain",
+      "url": "https://www.quizymode.com/llms.txt",
+      "representativeQueries": [
+        "Find a free quiz on a school or professional topic",
+        "Where can I study multiple-choice questions by category?"
+      ]
+    }
+  ]
+}
