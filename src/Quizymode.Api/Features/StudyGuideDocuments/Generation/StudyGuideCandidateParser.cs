@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Quizymode.Api.Features.StudyGuideDocuments.Extraction;
 using Quizymode.Api.Services;
 
@@ -29,7 +30,32 @@ internal sealed record CandidateParseResult(bool IsValidJson, int ReturnedCount,
 /// </summary>
 internal static class StudyGuideCandidateParser
 {
-    public static CandidateParseResult Parse(string rawText, string sectionText, int maxQuestions, ITextModerationService moderation)
+    private static readonly Regex ClinicalPatientCue = new(
+        @"\b(client|clients|patient|patients|resident|residents|child|children|infant|newborn|toddler|older adult|adult|woman|man)\b",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    private static readonly Regex ClinicalActionCue = new(
+        @"\b(first|priority|priorities|initial|immediate|immediately|red flag|most urgent|urgent)\b",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    /// <summary>
+    /// AC 6.6.34: a clinical-style question is at most two sentences, describes a client or patient, and asks a priority,
+    /// first-action or red-flag question. The processor drops recall-style questions returned under the clinical request.
+    /// </summary>
+    internal static bool IsClinicalStyle(string question)
+    {
+        int sentences = question.Split(['.', '?', '!'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Length;
+        return sentences is >= 1 and <= 2 &&
+            ClinicalPatientCue.IsMatch(question) &&
+            ClinicalActionCue.IsMatch(question);
+    }
+
+    public static CandidateParseResult Parse(
+        string rawText,
+        string sectionText,
+        int maxQuestions,
+        ITextModerationService moderation,
+        bool clinicalScenario = false)
     {
         List<JsonElement> elements;
         try
@@ -77,6 +103,11 @@ internal static class StudyGuideCandidateParser
 
             string questionKey = StudyGuideQuoteMatcher.Normalize(candidate.Question);
             if (!seenQuestions.Add(questionKey))
+            {
+                continue;
+            }
+
+            if (clinicalScenario && !IsClinicalStyle(candidate.Question))
             {
                 continue;
             }

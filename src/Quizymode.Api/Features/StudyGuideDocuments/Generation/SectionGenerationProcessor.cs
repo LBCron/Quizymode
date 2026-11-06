@@ -133,7 +133,7 @@ internal sealed class SectionGenerationProcessor(
             CandidateParseResult? parsed = null;
             if (outcome == LlmAttemptOutcome.Success)
             {
-                parsed = StudyGuideCandidateParser.Parse(result.Content ?? string.Empty, sourceText, maxQuestions, _moderation);
+                parsed = StudyGuideCandidateParser.Parse(result.Content ?? string.Empty, sourceText, maxQuestions, _moderation, clinicalScenario);
                 if (!parsed.IsValidJson)
                 {
                     outcome = LlmAttemptOutcome.InvalidJson;
@@ -220,8 +220,9 @@ internal sealed class SectionGenerationProcessor(
 
         await _db.SaveChangesAsync(cancellationToken);
         _logger.LogInformation(
-            "StudyGuideGeneration: {GenerationId} completed by {Vendor} ({Model}) with {Kept} question(s), {Dropped} dropped.",
+            "StudyGuideGeneration: {GenerationId} ({Mode}) completed by {Vendor} ({Model}) with {Kept} question(s), {Dropped} dropped.",
             generation.Id,
+            generation.Mode,
             vendor,
             model,
             parsed.Kept.Count,
