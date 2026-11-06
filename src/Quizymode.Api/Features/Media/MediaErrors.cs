@@ -66,6 +66,23 @@ internal static class MediaErrors
         "The picture could not be stored. Try again later.",
         StatusCodes.Status503ServiceUnavailable);
 
+    public static MediaProblem QuotaExceeded(string what, long limit, string unit = "") => new(
+        "Media.QuotaExceeded",
+        $"You reached your {what} ({limit}{(unit.Length > 0 ? " " + unit : string.Empty)}). Remove unused pictures or try again later.",
+        StatusCodes.Status429TooManyRequests,
+        RetryAfterSeconds: 3600);
+
+    public static readonly MediaProblem GlobalCeiling = new(
+        "Media.CapacityReached",
+        "Picture uploads are temporarily at capacity. Try again later.",
+        StatusCodes.Status429TooManyRequests,
+        RetryAfterSeconds: 3600);
+
+    public static readonly MediaProblem Disabled = new(
+        "Media.Disabled",
+        "Picture uploads are temporarily turned off.",
+        StatusCodes.Status503ServiceUnavailable);
+
     public static readonly MediaProblem Withdrawn = new(
         "Media.Withdrawn",
         "This picture was removed while it was being processed.",

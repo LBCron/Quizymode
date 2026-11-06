@@ -59,6 +59,24 @@ internal sealed class MediaOptions
     /// <summary>Upper bound for the storage write that follows the database insert.</summary>
     public TimeSpan StorageWriteTimeout { get; set; } = TimeSpan.FromSeconds(30);
 
+    /// <summary>Kill switch: false makes uploads answer 503 Media.Disabled while reads keep working (AC 3.28).</summary>
+    public bool UploadsEnabled { get; set; } = true;
+
+    /// <summary>Uploads one account may attempt in any rolling 24 hours (failed attempts count).</summary>
+    public int MaxUploadsPerUserPerDay { get; set; } = 20;
+
+    /// <summary>Normalized bytes one account may retain (20 MiB).</summary>
+    public long MaxRetainedBytesPerUser { get; set; } = 20L * 1024 * 1024;
+
+    /// <summary>Items of one account that may await picture review at once.</summary>
+    public int MaxPendingReviewsPerUser { get; set; } = 20;
+
+    /// <summary>Global ceiling on uploads in any rolling 24 hours, across all accounts.</summary>
+    public int MaxUploadsGlobalPerDay { get; set; } = 5000;
+
+    /// <summary>Global ceiling on retained normalized bytes (2 GiB).</summary>
+    public long MaxRetainedBytesGlobal { get; set; } = 2L * 1024 * 1024 * 1024;
+
     /// <summary>Returns a description of every invalid value (empty when valid).</summary>
     public IReadOnlyList<string> Validate()
     {
@@ -74,6 +92,11 @@ internal sealed class MediaOptions
         Require(SemaphoreWaitTimeout >= TimeSpan.Zero, nameof(SemaphoreWaitTimeout));
         Require(ProcessingBudget > TimeSpan.Zero, nameof(ProcessingBudget));
         Require(StorageWriteTimeout > TimeSpan.Zero, nameof(StorageWriteTimeout));
+        Require(MaxUploadsPerUserPerDay > 0, nameof(MaxUploadsPerUserPerDay));
+        Require(MaxRetainedBytesPerUser > 0, nameof(MaxRetainedBytesPerUser));
+        Require(MaxPendingReviewsPerUser > 0, nameof(MaxPendingReviewsPerUser));
+        Require(MaxUploadsGlobalPerDay > 0, nameof(MaxUploadsGlobalPerDay));
+        Require(MaxRetainedBytesGlobal > 0, nameof(MaxRetainedBytesGlobal));
         return errors;
 
         void Require(bool condition, string name)
