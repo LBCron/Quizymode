@@ -1,5 +1,5 @@
 import { topicBrowsePath, topicLabel, topicParts } from "@/features/interests/topicPaths";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRightIcon } from "@heroicons/react/24/outline";
@@ -20,6 +20,8 @@ import { StudyPlanTodayCard } from "@/features/studyPlans/StudyPlanTodayCard";
 import { useStudyPlanActions, useStudyPlans } from "@/features/studyPlans/useStudyPlans";
 import { MAX_LANE_PLANS, daysUntil } from "@/features/studyPlans/studyPlanSteps";
 import { homeCategoryCards } from "./homePageData";
+import { MAX_INTERESTS } from "@/features/learningLoop/localLearningState";
+import { addSuppression, readSuppressions, suggestTopics } from "./topicSuggestions";
 import { rankPersonalizedHome, type ActivityRun } from "./personalization";
 
 const laneClass = "rounded-[24px] border border-white/10 bg-slate-950/70 p-2 sm:p-3 shadow-xl shadow-slate-950/25";
@@ -80,7 +82,9 @@ export function PersonalizedLanes({ featuredSets, focused = false }: { featuredS
   const signedIn = isAuthenticated && !isAuthLoading;
   const identityKey = signedIn ? `user:${userId ?? "unknown"}` : "guest";
 
-  const { interests: explicitInterests } = useInterests();
+  const { interests: explicitInterests, status: interestsStatus, save: saveInterests } = useInterests();
+  const [suppressed, setSuppressed] = useState<string[]>(readSuppressions);
+  const [suggestionError, setSuggestionError] = useState(false);
   const sessionsQuery = useQuery({
     queryKey: ["home", "sessions", userId],
     queryFn: () => studySessionsApi.list(20),
@@ -134,6 +138,11 @@ export function PersonalizedLanes({ featuredSets, focused = false }: { featuredS
       }),
     [explicitInterests, runs, featuredSets, popularQuery.data, focused],
   );
+
+  const suggestion =
+    interestsStatus === "ready" && explicitInterests.length < MAX_INTERESTS
+      ? suggestTopics(runs, explicitInterests, suppressed)[0]
+      : undefined;
 
   const today = utcToday();
   const localDaily = signedIn ? [] : readDailyCompletions();
@@ -233,6 +242,34 @@ export function PersonalizedLanes({ featuredSets, focused = false }: { featuredS
           </div>
         ) : (
           <p className="text-xs text-slate-300">Choose a few topics and we'll put them first.</p>
+        )}
+        {suggestion && (
+          <div className="mt-2 flex flex-wrap items-center gap-2 rounded-[18px] border border-sky-300/30 bg-sky-500/10 p-3" role="group" aria-label="Topic suggestion">
+            <p className="min-w-0 flex-1 text-xs text-slate-100">
+              Because you played {topicLabel(suggestion.path, categoryNames)}, add it to My topics?
+              {suggestionError && <span className="block text-rose-300">Could not save. Try again.</span>}
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setSuggestionError(false);
+                saveInterests([...explicitInterests, suggestion.path]).catch(() => setSuggestionError(true));
+              }}
+              className="min-h-[44px] rounded-full bg-sky-400 px-3 text-xs font-semibold text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200"
+            >
+              Add topic
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                addSuppression(suggestion.path);
+                setSuppressed((current) => [...current, suggestion.path]);
+              }}
+              className="min-h-[44px] px-2 text-xs font-semibold text-slate-300 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200"
+            >
+              Not interested
+            </button>
+          </div>
         )}
         {ranked.recommended.length > 0 && (
           <>

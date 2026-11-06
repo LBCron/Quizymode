@@ -345,4 +345,43 @@ describe("PersonalizedLanes test-date plans (#364)", () => {
     expect(screen.queryByText(/Learn the basics/)).not.toBeInTheDocument();
     expect(collectionsApi.getById).not.toHaveBeenCalled();
   });
+
+  it("suggests a topic after 2 runs in 30 days: Add topic saves it, Not interested hides it", async () => {
+    auth.value = { isAuthenticated: true, isLoading: false, userId: "user-1" };
+    vi.mocked(interestsApi.get).mockResolvedValue(["history"]);
+    vi.mocked(interestsApi.replace).mockResolvedValue(["history", "trivia/sports"]);
+    vi.mocked(reviewQueueApi.getSummary).mockResolvedValue({ dueCount: 0, totalCount: 0, nextDueAt: null });
+    vi.mocked(dailyQuizApi.get).mockResolvedValue({ date: utcToday(), items: [], completion: null, streak: 0 });
+    const session = (id: string, nav: string[]) => ({
+      id, origin: "quiz", runId: `run-${id}`, completedAt: new Date().toISOString(), correct: 3, total: 5, missedItemIds: [],
+      source: { kind: "category" as const, categorySlug: "trivia", navigationKeywords: nav, filterKeywords: [] },
+    });
+    vi.mocked(studySessionsApi.list).mockResolvedValue([session("a", ["sports"]), session("b", ["sports", "tennis"])]);
+
+    renderLanes(featured);
+
+    const group = await screen.findByRole("group", { name: "Topic suggestion" });
+    expect(group).toHaveTextContent("Because you played Trivia › Sports");
+    expect(interestsApi.replace).not.toHaveBeenCalled();
+    fireEvent.click(within(group).getByRole("button", { name: "Add topic" }));
+    await waitFor(() => expect(interestsApi.replace).toHaveBeenCalledWith(["history", "trivia/sports"]));
+  });
+
+  it("Not interested hides the suggestion and remembers it", async () => {
+    auth.value = { isAuthenticated: true, isLoading: false, userId: "user-1" };
+    vi.mocked(interestsApi.get).mockResolvedValue([]);
+    vi.mocked(reviewQueueApi.getSummary).mockResolvedValue({ dueCount: 0, totalCount: 0, nextDueAt: null });
+    vi.mocked(dailyQuizApi.get).mockResolvedValue({ date: utcToday(), items: [], completion: null, streak: 0 });
+    const session = (id: string) => ({
+      id, origin: "quiz", runId: `run-${id}`, completedAt: new Date().toISOString(), correct: 3, total: 5, missedItemIds: [],
+      source: { kind: "category" as const, categorySlug: "science", navigationKeywords: [], filterKeywords: [] },
+    });
+    vi.mocked(studySessionsApi.list).mockResolvedValue([session("a"), session("b")]);
+
+    renderLanes(featured);
+
+    fireEvent.click(within(await screen.findByRole("group", { name: "Topic suggestion" })).getByRole("button", { name: "Not interested" }));
+    expect(screen.queryByRole("group", { name: "Topic suggestion" })).not.toBeInTheDocument();
+    expect(JSON.parse(localStorage.getItem("quizymode.topicSuppressions.v1") ?? "[]")).toEqual(["science"]);
+  });
 });
