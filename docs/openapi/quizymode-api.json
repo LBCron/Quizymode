@@ -5134,6 +5134,30 @@
         }
       }
     },
+    "/users/me/topic-activity": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Get the current user's recent topic activity",
+        "description": "Category runs (Quiz and Learn) completed in the last 30 days, rolled up to category[/l1] paths with at least 2 runs, ordered by run count, most recent run, then path (top 10). Collection, global, Daily and Review runs are not attributable. Private to the caller. Requires authentication.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Quizymode.Api.Features.Personalization.GetTopicActivity.Response"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
     "/users/me/interests": {
       "get": {
         "tags": [
@@ -15968,6 +15992,40 @@
           }
         }
       },
+      "Quizymode.Api.Features.Personalization.GetTopicActivity.Response": {
+        "required": [
+          "windowDays",
+          "topics"
+        ],
+        "type": "object",
+        "properties": {
+          "windowDays": {
+            "$ref": "#/components/schemas/System.Int32"
+          },
+          "topics": {
+            "$ref": "#/components/schemas/System.Collections.Generic.ListOfQuizymode.Api.Features.Personalization.GetTopicActivity.TopicDto"
+          }
+        }
+      },
+      "Quizymode.Api.Features.Personalization.GetTopicActivity.TopicDto": {
+        "required": [
+          "path",
+          "runs",
+          "lastCompletedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "path": {
+            "$ref": "#/components/schemas/System.String"
+          },
+          "runs": {
+            "$ref": "#/components/schemas/System.Int32"
+          },
+          "lastCompletedAt": {
+            "$ref": "#/components/schemas/System.DateTime"
+          }
+        }
+      },
       "Quizymode.Api.Features.Personalization.Personalization.InterestsResponse": {
         "required": [
           "categories"
@@ -19068,6 +19126,12 @@
         "type": "array",
         "items": {
           "$ref": "#/components/schemas/Quizymode.Api.Features.LlmModelAudit.LlmModelAuditAdmin.FindingResponse"
+        }
+      },
+      "System.Collections.Generic.ListOfQuizymode.Api.Features.Personalization.GetTopicActivity.TopicDto": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Quizymode.Api.Features.Personalization.GetTopicActivity.TopicDto"
         }
       },
       "System.Collections.Generic.ListOfQuizymode.Api.Features.Starter.StarterPool.StarterItemResponse": {
