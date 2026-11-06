@@ -386,6 +386,36 @@ export interface PageViewSessionResponse {
   entryArea: PageHitArea | string;
   /** Quiz/Flashcards questions viewed in this session. */
   itemSteps: number;
+  /** Opaque visitor id from the first-hit snapshot; null for Global Privacy Control or no storage. */
+  visitorId?: string | null;
+  visitorType?: SessionVisitorType;
+  /** Retained sessions from the same visitor (0 when the visitor is unknown). */
+  sessionsFromVisitor?: number;
+  channel?: string | null;
+  /** Approximate area from the first hit's IP address (stored per session). */
+  region?: string | null;
+  city?: string | null;
+  gamesPlayed?: number;
+  gamesCompleted?: number;
+  /** Quiz and flashcard runs started in this session. */
+  quizRuns?: number;
+  quizzesCompleted?: number;
+}
+
+export type SessionVisitorType = "new" | "returning" | "unknown";
+
+export type SessionActivityKind = "game" | "quiz" | "flashcards";
+
+/** One game, quiz or flashcards run of a session, built from engagement events by run id. */
+export interface SessionActivity {
+  kind: SessionActivityKind;
+  runId: string;
+  contextType: string | null;
+  contextId: string | null;
+  startedUtc: string;
+  completedUtc: string | null;
+  score: number | null;
+  total: number | null;
 }
 
 export interface PageViewSessionsResponse {
@@ -488,6 +518,13 @@ export interface PageViewSessionDetailResponse {
   isBot: boolean;
   isInternal: boolean;
   steps: SessionJourneyStep[];
+  visitorId?: string | null;
+  visitorType?: SessionVisitorType;
+  sessionsFromVisitor?: number;
+  channel?: string | null;
+  region?: string | null;
+  city?: string | null;
+  activities?: SessionActivity[];
 }
 
 export type FeedbackStatus = "New" | "Reviewed" | "Archived";
@@ -1088,7 +1125,9 @@ export const adminApi = {
     pageSize: number = 25,
     landingPagesLimit: number = 10,
     includeInternal: boolean = false,
-    userId?: string
+    userId?: string,
+    sessionId?: string,
+    visitorId?: string
   ): Promise<PageViewSessionsResponse> => {
     const params: Record<string, string | number | boolean> = {
       days,
@@ -1104,6 +1143,12 @@ export const adminApi = {
     }
     if (userId) {
       params.userId = userId;
+    }
+    if (sessionId) {
+      params.sessionId = sessionId;
+    }
+    if (visitorId) {
+      params.visitorId = visitorId;
     }
     if (includeInternal) {
       params.includeInternal = true;

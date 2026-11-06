@@ -185,6 +185,17 @@ describe("adminApi", () => {
     expect(opts.params.sortBy).toBe("pages");
   });
 
+  it("getPageViewSessions sends sessionId and visitorId only when set", async () => {
+    mockGet.mockResolvedValue({ data: {} });
+    await adminApi.getPageViewSessions(7, "all", undefined, false, "recent", 1, 25, 10, false, undefined, "s-1", "8f14e45f-ceea-4672-9a3b-1f2d3c4b5a69");
+    expect(mockGet.mock.calls[0][1].params.sessionId).toBe("s-1");
+    expect(mockGet.mock.calls[0][1].params.visitorId).toBe("8f14e45f-ceea-4672-9a3b-1f2d3c4b5a69");
+
+    await adminApi.getPageViewSessions();
+    expect(mockGet.mock.calls[1][1].params.sessionId).toBeUndefined();
+    expect(mockGet.mock.calls[1][1].params.visitorId).toBeUndefined();
+  });
+
   it("getPageViewSessionDetail encodes the session id in the path", async () => {
     const data = { sessionId: "a/b", steps: [] };
     mockGet.mockResolvedValueOnce({ data });

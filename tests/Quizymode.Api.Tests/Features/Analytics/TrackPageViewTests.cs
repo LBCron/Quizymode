@@ -403,6 +403,29 @@ public sealed class TrackPageViewTests : DatabaseTestFixture
         session.UtmSource.Should().HaveLength(100);
     }
 
+    [Fact]
+    public async Task HandleAsync_StoresRegionAndCityOnTheSessionSnapshot()
+    {
+        Mock<IIpGeolocationService> geo = new();
+        geo.Setup(g => g.GetLocationAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new IpLocation("US", "Washington", "Seattle"));
+
+        var result = await TrackPageView.HandleAsync(
+            new TrackPageView.Request("/", string.Empty, "session-geo"),
+            CreateHttpContext("198.51.100.77"),
+            DbContext,
+            _userContextMock.Object,
+            _classifier,
+            geo.Object,
+            CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+        AnalyticsSession session = await DbContext.AnalyticsSessions.SingleAsync();
+        session.Country.Should().Be("US");
+        session.Region.Should().Be("Washington");
+        session.City.Should().Be("Seattle");
+    }
+
     private Task<Result<TrackPageView.Response>> HandleAsync(TrackPageView.Request request, DefaultHttpContext httpContext)
     {
         return TrackPageView.HandleAsync(

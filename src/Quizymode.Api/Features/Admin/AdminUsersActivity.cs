@@ -211,10 +211,10 @@ public static class AdminUsersActivity
         IIpGeolocationService geoService,
         CancellationToken cancellationToken)
     {
-        if (request.ActivityDays is < 1 or > 365)
+        if (request.ActivityDays is < 1 or > PageViewRetentionService.RetentionDays)
         {
             return Result.Failure<UsersResponse>(
-                Error.Validation("Admin.Users.InvalidActivityDays", "ActivityDays must be between 1 and 365."));
+                Error.Validation("Admin.Users.InvalidActivityDays", $"ActivityDays must be between 1 and {PageViewRetentionService.RetentionDays}. Page hits are kept for {PageViewRetentionService.RetentionDays} days."));
         }
 
         ActivityFilter activityFilter;
@@ -464,10 +464,10 @@ public static class AdminUsersActivity
         ApplicationDbContext db,
         CancellationToken cancellationToken)
     {
-        if (request.Days is < 1 or > 365)
+        if (request.Days is < 1 or > PageViewRetentionService.RetentionDays)
         {
             return Result.Failure<UserActivityResponse>(
-                Error.Validation("Admin.UserActivity.InvalidDays", "Days must be between 1 and 365."));
+                Error.Validation("Admin.UserActivity.InvalidDays", $"Days must be between 1 and {PageViewRetentionService.RetentionDays}. Page hits are kept for {PageViewRetentionService.RetentionDays} days."));
         }
 
         if (!Guid.TryParse(request.UserId, out Guid userId))

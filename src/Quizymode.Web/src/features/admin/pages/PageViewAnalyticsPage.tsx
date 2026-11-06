@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link, Navigate } from "react-router-dom";
+import { Link, Navigate, useSearchParams } from "react-router-dom";
 import {
   adminApi,
   type PageViewVisitorType,
@@ -19,6 +19,13 @@ import QuestionQualityTab from "../components/QuestionQualityTab";
 import { ContentScopeTables, FeatureAreaTable } from "../components/PagesBreakdown";
 import { GROUP_BY_OPTIONS, type PagesGroupBy } from "../components/pagesGroupBy";
 import SessionsTab from "../components/SessionsTab";
+import {
+  parseSessionIdParam,
+  parseTabParam,
+  parseVisitorIdParam,
+  sessionFilterHref,
+  type AnalyticsTab,
+} from "../components/sessionFilter";
 import TrendsTab from "../components/TrendsTab";
 
 const RANGE_OPTIONS: Array<{ label: string; days: number }> = [
@@ -37,8 +44,6 @@ const VISITOR_OPTIONS: Array<{ label: string; value: PageViewVisitorType }> = [
 const PAGE_SIZE = 25;
 const TOP_PAGES_LIMIT = 10;
 
-type AnalyticsTab = "pages" | "sessions" | "acquisition" | "funnel" | "learning" | "content" | "questions" | "lifecycle" | "trends";
-
 const TAB_OPTIONS: Array<{ label: string; value: AnalyticsTab; hint: string }> = [
   { label: "Pages", value: "pages", hint: "Which features and content were used" },
   { label: "Sessions", value: "sessions", hint: "Whether visitors stayed" },
@@ -53,7 +58,31 @@ const TAB_OPTIONS: Array<{ label: string; value: AnalyticsTab; hint: string }> =
 
 const PageViewAnalyticsPage = () => {
   const { isAuthenticated, isAdmin } = useAuth();
-  const [tab, setTab] = useState<AnalyticsTab>("sessions");
+  const [searchParams, setSearchParams] = useSearchParams();
+  // The tab and the session/visitor filters live in the URL so a filtered view can be shared.
+  const tab = parseTabParam(searchParams.get("tab"));
+  const sessionFilter = parseSessionIdParam(searchParams.get("session"));
+  const visitorFilter = parseVisitorIdParam(searchParams.get("visitor"));
+
+  const updateParams = (changes: Record<string, string | undefined>) => {
+    setSearchParams(
+      (current) => {
+        const next = new URLSearchParams(current);
+        for (const [key, value] of Object.entries(changes)) {
+          if (value) {
+            next.set(key, value);
+          } else {
+            next.delete(key);
+          }
+        }
+        return next;
+      },
+      { replace: true }
+    );
+  };
+
+  const setTab = (value: AnalyticsTab) =>
+    updateParams({ tab: value, session: undefined, visitor: undefined });
   const [days, setDays] = useState(7);
   const [includeBots, setIncludeBots] = useState(false);
   const [includeInternal, setIncludeInternal] = useState(false);
@@ -231,6 +260,10 @@ const PageViewAnalyticsPage = () => {
           includeBots={includeBots}
           includeInternal={includeInternal}
           formatDateTime={formatDateTime}
+          sessionId={sessionFilter}
+          visitorId={visitorFilter}
+          onSessionIdChange={(value) => updateParams({ session: value })}
+          onVisitorIdChange={(value) => updateParams({ visitor: value })}
         />
       )}
 
@@ -546,9 +579,12 @@ const PageViewAnalyticsPage = () => {
                         </div>
                       </td>
                       <td className="px-5 py-4 text-sm text-slate-700">
-                        <div className="font-mono text-xs text-slate-800">
+                        <Link
+                          to={sessionFilterHref(pageView.sessionId)}
+                          className="font-mono text-xs text-indigo-600 hover:text-indigo-800"
+                        >
                           {pageView.sessionId}
-                        </div>
+                        </Link>
                         <div className="mt-2 font-mono text-xs text-slate-500">
                           {pageView.ipAddress}
                           {pageView.country && (

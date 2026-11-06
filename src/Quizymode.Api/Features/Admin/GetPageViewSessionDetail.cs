@@ -30,7 +30,25 @@ public static class GetPageViewSessionDetail
         string? UserAgent,
         bool IsBot,
         bool IsInternal,
-        List<JourneyStepResponse> Steps);
+        List<JourneyStepResponse> Steps,
+        string? VisitorId,
+        string VisitorType,
+        int SessionsFromVisitor,
+        string? Channel,
+        List<ActivityResponse> Activities,
+        string? Region,
+        string? City);
+
+    /// <summary>One game, quiz or flashcards run of the session, built from engagement events by run id.</summary>
+    public sealed record ActivityResponse(
+        string Kind,
+        string RunId,
+        string? ContextType,
+        string? ContextId,
+        DateTime StartedUtc,
+        DateTime? CompletedUtc,
+        int? Score,
+        int? Total);
 
     public sealed record JourneyStepResponse(
         int StepNumber,
@@ -50,7 +68,7 @@ public static class GetPageViewSessionDetail
             app.MapGet("admin/page-view-sessions/{sessionId}", Handler)
                 .WithTags("Admin")
                 .WithSummary("Get the ordered page journey for one session (Admin only)")
-                .WithDescription("Returns every page hit in a session in order, with its feature area and dwell time per step. The final step has no dwell time because no exit event is recorded. Internal sessions return 404 unless includeInternal=true.")
+                .WithDescription("Returns every page hit in a session in order, with its feature area and dwell time per step. Also returns the visitor id and type (new, returning, unknown), traffic channel, and the game, quiz and flashcards runs of the session. The final step has no dwell time because no exit event is recorded. Internal sessions return 404 unless includeInternal=true.")
                 .RequireAuthorization("Admin")
                 .Produces<Response>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status400BadRequest)
@@ -157,7 +175,45 @@ public static class GetPageViewSessionDetail
                 .FirstOrDefaultAsync(cancellationToken);
         }
 
-        string? country = await geoService.GetCountryAsync(firstHit.IpAddress, cancellationToken);
+        AnalyticsSession? snapshot = await db.AnalyticsSessions
+            .AsNoTracking()
+            .Where(session => session.SessionId == sessionId)
+            .OrderBy(session => session.FirstSeenUtc)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        string visitorType = GetPageViewSessions.VisitorTypeUnknown;
+        int sessionsFromVisitor = 0;
+        if (snapshot?.VisitorId is string visitorId)
+        {
+            List<string> visitorSessionIds = await db.AnalyticsSessions
+                .AsNoTracking()
+                .Where(session => session.VisitorId == visitorId)
+                .OrderBy(session => session.FirstSeenUtc)
+                .ThenBy(session => session.SessionId)
+                .Select(session => session.SessionId)
+                .ToListAsync(cancellationToken);
+
+            sessionsFromVisitor = visitorSessionIds.Count;
+            visitorType = visitorSessionIds.Count > 0 && string.Equals(visitorSessionIds[0], sessionId, StringComparison.Ordinal)
+                ? GetPageViewSessions.VisitorTypeNew
+                : GetPageViewSessions.VisitorTypeReturning;
+        }
+
+        Dictionary<string, List<SessionActivityBuilder.Activity>> activitiesBySession =
+            await SessionActivityBuilder.LoadAsync(db, [sessionId], cancellationToken);
+        List<ActivityResponse> activities = activitiesBySession.GetValueOrDefault(sessionId)?
+            .Select(activity => new ActivityResponse(
+                activity.Kind,
+                activity.RunId,
+                activity.ContextType,
+                activity.ContextId,
+                activity.StartedUtc,
+                activity.CompletedUtc,
+                activity.Score,
+                activity.Total))
+            .ToList() ?? [];
+
+        string? country = snapshot?.Country ?? await geoService.GetCountryAsync(firstHit.IpAddress, cancellationToken);
 
         return Result.Success(new Response(
             SessionId: sessionId,
@@ -168,12 +224,19 @@ public static class GetPageViewSessionDetail
             DistinctPages: hits.Select(hit => hit.Path).Distinct().Count(),
             DurationSeconds: (int)Math.Round((lastHit.CreatedUtc - firstHit.CreatedUtc).TotalSeconds),
             IsBounce: hits.Count == 1,
-            IpAddress: firstHit.IpAddress,
+            IpAddress: IpTruncation.Truncate(firstHit.IpAddress),
             Country: country,
             UserEmail: userEmail,
             UserAgent: firstHit.UserAgent,
             IsBot: firstHit.IsBot,
             IsInternal: isInternal,
-            Steps: steps));
+            Steps: steps,
+            VisitorId: snapshot?.VisitorId,
+            VisitorType: visitorType,
+            SessionsFromVisitor: sessionsFromVisitor,
+            Channel: snapshot?.Channel,
+            Activities: activities,
+            Region: snapshot?.Region,
+            City: snapshot?.City));
     }
 }

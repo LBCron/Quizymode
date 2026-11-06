@@ -1,6 +1,11 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { adminApi, type PageViewSessionResponse } from "@/api/admin";
+import {
+  adminApi,
+  type PageViewSessionResponse,
+  type SessionActivity,
+} from "@/api/admin";
+import { toSafeRelativeHref } from "./sessionFilter";
 import {
   OUTCOME_BADGE_CLASSES,
   OUTCOME_LABELS,
@@ -13,10 +18,52 @@ import {
 interface SessionRowProps {
   session: PageViewSessionResponse;
   formatDateTime: (value: string) => string;
+  /** When set, the expanded view offers "Filter to this session". */
+  onFilterToSession?: (sessionId: string) => void;
+  /** When set, a known visitor with other sessions offers "N sessions from this visitor". */
+  onFilterToVisitor?: (visitorId: string) => void;
 }
 
-const SessionRow = ({ session, formatDateTime }: SessionRowProps) => {
+const ACTIVITY_LABELS: Record<SessionActivity["kind"], string> = {
+  game: "Game",
+  quiz: "Quiz",
+  flashcards: "Flashcards",
+};
+
+const VISITOR_TYPE_LABELS = {
+  new: "New visitor",
+  returning: "Returning visitor",
+  unknown: "Visitor unavailable",
+} as const;
+
+function formatActivityContext(activity: SessionActivity): string {
+  if (!activity.contextType && !activity.contextId) {
+    return "";
+  }
+  return [activity.contextType, activity.contextId].filter(Boolean).join(": ");
+}
+
+const SessionRow = ({
+  session,
+  formatDateTime,
+  onFilterToSession,
+  onFilterToVisitor,
+}: SessionRowProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const copySessionId = async () => {
+    try {
+      await navigator.clipboard.writeText(session.sessionId);
+      setCopied(true);
+    } catch {
+      setCopied(false);
+    }
+  };
+
+  const gamesPlayed = session.gamesPlayed ?? 0;
+  const quizRuns = session.quizRuns ?? 0;
+  const visitorType = session.visitorType ?? "unknown";
 
   // The journey is only fetched once a row is actually opened, so the list
   // endpoint stays light no matter how many sessions are on screen.
@@ -63,6 +110,19 @@ const SessionRow = ({ session, formatDateTime }: SessionRowProps) => {
           {session.userEmail && (
             <div className="mt-2 text-xs text-slate-500">{session.userEmail}</div>
           )}
+          <div className="mt-2 text-xs text-slate-500">
+            {VISITOR_TYPE_LABELS[visitorType]}
+            {session.channel ? ` · ${session.channel}` : ""}
+          </div>
+          {(gamesPlayed > 0 || quizRuns > 0) && (
+            <div className="mt-1 text-xs text-slate-500">
+              {gamesPlayed > 0 &&
+                `${gamesPlayed} game${gamesPlayed === 1 ? "" : "s"} (${session.gamesCompleted ?? 0} completed)`}
+              {gamesPlayed > 0 && quizRuns > 0 && " · "}
+              {quizRuns > 0 &&
+                `${quizRuns} quiz run${quizRuns === 1 ? "" : "s"} (${session.quizzesCompleted ?? 0} completed)`}
+            </div>
+          )}
         </td>
         <td className="px-5 py-4 text-sm text-slate-900">
           <div className="max-w-xs break-all font-medium">{session.entryPath}</div>
@@ -86,12 +146,13 @@ const SessionRow = ({ session, formatDateTime }: SessionRowProps) => {
         <td className="px-5 py-4 text-sm text-slate-700">
           <div className="font-mono text-xs text-slate-800">
             {session.ipAddress}
-            {session.country && (
-              <span className="ml-1.5 font-sans font-medium text-indigo-600">
-                {session.country}
-              </span>
-            )}
           </div>
+          {(session.city || session.region || session.country) && (
+            <div className="mt-1 text-xs font-medium text-indigo-600">
+              {[session.city, session.region, session.country].filter(Boolean).join(", ")}
+              <span className="ml-1 font-normal text-slate-400">(approximate)</span>
+            </div>
+          )}
           <div
             className="mt-2 text-xs text-slate-500"
             title={session.userAgent ?? undefined}
@@ -118,12 +179,48 @@ const SessionRow = ({ session, formatDateTime }: SessionRowProps) => {
               <div>
                 <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600">
                   <span className="font-mono">{detail.sessionId}</span>
+                  <button
+                    type="button"
+                    onClick={copySessionId}
+                    className="font-medium text-indigo-600 hover:text-indigo-800"
+                  >
+                    {copied ? "Copied" : "Copy session id"}
+                  </button>
+                  {onFilterToSession && (
+                    <button
+                      type="button"
+                      onClick={() => onFilterToSession(session.sessionId)}
+                      className="font-medium text-indigo-600 hover:text-indigo-800"
+                    >
+                      Filter to this session
+                    </button>
+                  )}
+                  {detail.visitorId ? (
+                    onFilterToVisitor && (detail.sessionsFromVisitor ?? 0) > 1 ? (
+                      <button
+                        type="button"
+                        onClick={() => onFilterToVisitor(detail.visitorId as string)}
+                        className="font-medium text-indigo-600 hover:text-indigo-800"
+                      >
+                        {detail.sessionsFromVisitor} sessions from this visitor
+                      </button>
+                    ) : (
+                      <span>{detail.sessionsFromVisitor ?? 0} session from this visitor</span>
+                    )
+                  ) : (
+                    <span className="italic text-slate-400">Visitor history unavailable</span>
+                  )}
                   {detail.userAgent && (
                     <span className="break-all">
                       {shortenUserAgent(detail.userAgent)}
                     </span>
                   )}
                 </div>
+
+                <p className="mb-2 text-xs text-slate-500">
+                  Links open in a new tab. Use &quot;Mark this browser internal&quot; first so
+                  your own checks stay out of the reports.
+                </p>
 
                 <ol className="space-y-2">
                   {detail.steps.map((step) => (
@@ -140,7 +237,21 @@ const SessionRow = ({ session, formatDateTime }: SessionRowProps) => {
                             <span className="mr-2 inline-flex rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-700">
                               {formatArea(step.area)}
                             </span>
-                            {step.url}
+                            {(() => {
+                              const href = toSafeRelativeHref(step.path, step.queryString);
+                              return href ? (
+                                <a
+                                  href={href}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-indigo-700 underline hover:text-indigo-900"
+                                >
+                                  {step.url}
+                                </a>
+                              ) : (
+                                step.url
+                              );
+                            })()}
                           </div>
                           <div className="mt-0.5 text-xs text-slate-500">
                             {formatDateTime(step.createdUtc)}
@@ -167,6 +278,41 @@ const SessionRow = ({ session, formatDateTime }: SessionRowProps) => {
                     </li>
                   ))}
                 </ol>
+
+                <div className="mt-4">
+                  <h4 className="text-sm font-semibold text-slate-900">Activities</h4>
+                  {(detail.activities ?? []).length === 0 ? (
+                    <p className="mt-1 text-xs text-slate-500">
+                      No games, quizzes or flashcards in this session.
+                    </p>
+                  ) : (
+                    <ul className="mt-2 space-y-1.5">
+                      {(detail.activities ?? []).map((activity) => (
+                        <li
+                          key={activity.runId}
+                          className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs text-slate-700"
+                        >
+                          <span className="font-semibold text-slate-900">
+                            {ACTIVITY_LABELS[activity.kind]}
+                          </span>
+                          {formatActivityContext(activity) && (
+                            <span className="ml-2">{formatActivityContext(activity)}</span>
+                          )}
+                          <span className="ml-2 text-slate-500">
+                            started {formatDateTime(activity.startedUtc)}
+                          </span>
+                          <span className="ml-2">
+                            {activity.completedUtc
+                              ? activity.score !== null && activity.total !== null
+                                ? `completed, score ${activity.score}/${activity.total}`
+                                : "completed"
+                              : "not completed"}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
               </div>
             )}
           </td>

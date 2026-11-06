@@ -68,6 +68,12 @@ internal sealed class AnalyticsSessionConfiguration : IEntityTypeConfiguration<A
         builder.Property(analyticsSession => analyticsSession.Country)
             .HasMaxLength(8);
 
+        builder.Property(analyticsSession => analyticsSession.Region)
+            .HasMaxLength(100);
+
+        builder.Property(analyticsSession => analyticsSession.City)
+            .HasMaxLength(100);
+
         builder.Property(analyticsSession => analyticsSession.AppVersion)
             .HasMaxLength(32);
 

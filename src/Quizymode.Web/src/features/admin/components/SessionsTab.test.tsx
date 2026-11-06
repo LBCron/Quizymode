@@ -222,7 +222,7 @@ describe("SessionsTab", () => {
 
     expect(await screen.findByText("Internal")).toBeInTheDocument();
     expect(mockAdminApi.getPageViewSessions).toHaveBeenCalledWith(
-      7, "all", undefined, false, "recent", 1, 25, 10, true
+      7, "all", undefined, false, "recent", 1, 25, 10, true, undefined, undefined, undefined
     );
     expect(screen.queryByText(/internal sessions? (was|were) excluded/i)).toBeNull();
 
@@ -348,7 +348,10 @@ describe("SessionsTab", () => {
         1,
         25,
         10,
-        false
+        false,
+        undefined,
+        undefined,
+        undefined
       )
     );
   });
@@ -373,7 +376,10 @@ describe("SessionsTab", () => {
         1,
         25,
         10,
-        false
+        false,
+        undefined,
+        undefined,
+        undefined
       )
     );
   });

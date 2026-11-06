@@ -155,4 +155,37 @@ public sealed class GetPageViewSessionDetailTests : DatabaseTestFixture
         result.IsFailure.Should().BeTrue();
         result.Error.Code.Should().Be("Admin.PageViewSessionDetail.InvalidSessionId");
     }
+
+    [Fact]
+    public async Task HandleAsync_ReturnsActivitiesVisitorAndChannel()
+    {
+        DateTime start = DateTime.UtcNow.AddMinutes(-30);
+        string visitor = Guid.NewGuid().ToString();
+
+        await DbContext.PageViews.AddAsync(Hit("act-d", "/", start));
+        await DbContext.AnalyticsSessions.AddRangeAsync(
+            new AnalyticsSession { Id = Guid.NewGuid(), SessionId = "earlier", VisitorId = visitor, FirstSeenUtc = start.AddDays(-1), Channel = "direct", DeviceClass = "desktop", CreatedUtc = start.AddDays(-1) },
+            new AnalyticsSession { Id = Guid.NewGuid(), SessionId = "act-d", VisitorId = visitor, FirstSeenUtc = start, Channel = "search", DeviceClass = "desktop", CreatedUtc = start });
+        await DbContext.AnalyticsEvents.AddRangeAsync(
+            new AnalyticsEvent { Id = Guid.NewGuid(), EventName = AnalyticsEventCatalog.QuickQuizStarted, SessionId = "act-d", RunId = "r1", ContextType = "category", ContextId = "science", Path = "/quiz", OccurredUtc = start.AddMinutes(1) },
+            new AnalyticsEvent { Id = Guid.NewGuid(), EventName = AnalyticsEventCatalog.QuizCompleted, SessionId = "act-d", RunId = "r1", Score = 4, Total = 5, Path = "/quiz", OccurredUtc = start.AddMinutes(3) },
+            new AnalyticsEvent { Id = Guid.NewGuid(), EventName = AnalyticsEventCatalog.GameStarted, SessionId = "act-d", RunId = "r2", Path = "/games", OccurredUtc = start.AddMinutes(5) },
+            new AnalyticsEvent { Id = Guid.NewGuid(), EventName = AnalyticsEventCatalog.GameStarted, SessionId = "other-session", RunId = "r9", Path = "/games", OccurredUtc = start.AddMinutes(5) });
+        await DbContext.SaveChangesAsync();
+
+        var result = await GetPageViewSessionDetail.HandleAsync(
+            new GetPageViewSessionDetail.QueryRequest("act-d"), DbContext, GeoService(), CancellationToken.None);
+
+        result.Value!.VisitorId.Should().Be(visitor);
+        result.Value.VisitorType.Should().Be("returning");
+        result.Value.SessionsFromVisitor.Should().Be(2);
+        result.Value.Channel.Should().Be("search");
+        result.Value.Activities.Should().HaveCount(2);
+        result.Value.Activities[0].Kind.Should().Be("quiz");
+        result.Value.Activities[0].Score.Should().Be(4);
+        result.Value.Activities[0].Total.Should().Be(5);
+        result.Value.Activities[0].CompletedUtc.Should().NotBeNull();
+        result.Value.Activities[1].Kind.Should().Be("game");
+        result.Value.Activities[1].CompletedUtc.Should().BeNull();
+    }
 }

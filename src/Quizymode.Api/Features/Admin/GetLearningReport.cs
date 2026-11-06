@@ -113,10 +113,10 @@ public static class GetLearningReport
         ApplicationDbContext db,
         CancellationToken cancellationToken)
     {
-        if (request.Days is < 1 or > 365)
+        if (request.Days is < 1 or > PageViewRetentionService.RetentionDays)
         {
             return Result.Failure<Response>(
-                Error.Validation("Admin.LearningReport.InvalidDays", "Days must be between 1 and 365."));
+                Error.Validation("Admin.LearningReport.InvalidDays", $"Days must be between 1 and {PageViewRetentionService.RetentionDays}. Engagement data is kept for {PageViewRetentionService.RetentionDays} days; use the daily rollups report for longer ranges."));
         }
 
         string? channelFilter = string.IsNullOrWhiteSpace(request.Channel) ? null : request.Channel.Trim().ToLowerInvariant();

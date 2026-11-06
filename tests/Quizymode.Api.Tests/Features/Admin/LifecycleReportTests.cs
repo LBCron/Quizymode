@@ -122,7 +122,7 @@ public sealed class LifecycleReportTests : DatabaseTestFixture
     public async Task HandleAsync_RejectsInvalidWeeks()
     {
         (await GetLifecycleReport.HandleAsync(new GetLifecycleReport.QueryRequest(0), DbContext, CancellationToken.None)).IsFailure.Should().BeTrue();
-        (await GetLifecycleReport.HandleAsync(new GetLifecycleReport.QueryRequest(53), DbContext, CancellationToken.None)).IsFailure.Should().BeTrue();
+        (await GetLifecycleReport.HandleAsync(new GetLifecycleReport.QueryRequest(26), DbContext, CancellationToken.None)).IsFailure.Should().BeTrue();
     }
 
     [Fact]

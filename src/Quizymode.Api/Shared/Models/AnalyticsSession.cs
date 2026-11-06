@@ -55,6 +55,12 @@ public sealed class AnalyticsSession
 
     public string? Country { get; set; }
 
+    /// <summary>Approximate region from the first hit's IP address; admin session review only, never rolled up.</summary>
+    public string? Region { get; set; }
+
+    /// <summary>Approximate city from the first hit's IP address; admin session review only, never rolled up.</summary>
+    public string? City { get; set; }
+
     public string? AppVersion { get; set; }
 
     public DateTime CreatedUtc { get; set; }

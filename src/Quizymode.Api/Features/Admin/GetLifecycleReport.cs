@@ -19,6 +19,9 @@ public static class GetLifecycleReport
 {
     public const string UnknownChannel = "unknown";
 
+    /// <summary>Largest week count whose window stays inside the retention period.</summary>
+    public const int MaxWeeks = Quizymode.Api.Services.PageViewRetentionService.RetentionDays / 7;
+
     public sealed record QueryRequest(int Weeks = 12);
 
     public sealed record Response(
@@ -85,10 +88,10 @@ public static class GetLifecycleReport
         ApplicationDbContext db,
         CancellationToken cancellationToken)
     {
-        if (request.Weeks is < 1 or > 52)
+        if (request.Weeks is < 1 or > MaxWeeks)
         {
             return Result.Failure<Response>(
-                Error.Validation("Admin.Lifecycle.InvalidWeeks", "Weeks must be between 1 and 52."));
+                Error.Validation("Admin.Lifecycle.InvalidWeeks", $"Weeks must be between 1 and {MaxWeeks} ({Quizymode.Api.Services.PageViewRetentionService.RetentionDays} days of retained engagement data)."));
         }
 
         DateTime nowUtc = DateTime.UtcNow;

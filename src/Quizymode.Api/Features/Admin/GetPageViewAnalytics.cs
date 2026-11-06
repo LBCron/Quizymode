@@ -321,7 +321,7 @@ public static class GetPageViewAnalytics
                 pageView.Path,
                 pageView.QueryString,
                 pageView.SessionId,
-                pageView.IpAddress,
+                IpTruncation.Truncate(pageView.IpAddress),
                 countryByIp.GetValueOrDefault(pageView.IpAddress),
                 pageView.IsAuthenticated,
                 pageView.UserId.HasValue && userEmails.TryGetValue(pageView.UserId.Value, out string? email) ? email : null,

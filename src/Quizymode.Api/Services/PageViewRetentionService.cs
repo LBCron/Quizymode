@@ -11,7 +11,9 @@ namespace Quizymode.Api.Services;
 /// <item>rolls every complete UTC day not yet rolled up into <see cref="PageViewDailyRollup"/> rows
 /// (bots and internal sessions excluded, matching the default report view); then</item>
 /// <item>deletes raw <see cref="PageView"/> hits older than <see cref="RetentionDays"/> days, and
-/// <see cref="AnalyticsSession"/> snapshots older than the same cutoff that no longer have any hits.</item>
+/// <see cref="AnalyticsSession"/> snapshots older than the same cutoff that no longer have any hits; and
+/// finally, only when <see cref="EventsPruningEnabledKey"/> is true (default false), deletes
+/// <see cref="AnalyticsEvent"/> rows older than the same cutoff.</item>
 /// </list>
 /// Raw hits are never deleted for a day that has not been rolled up: pruning only runs after the
 /// rollup pass has completed through yesterday, and its cutoff is capped at that point.
@@ -37,7 +39,10 @@ internal sealed class PageViewRetentionService(
 
     private static readonly TimeSpan Interval = TimeSpan.FromHours(24);
 
-    public sealed record RunResult(int DaysRolledUp, int HitsDeleted, int SessionsDeleted);
+    /// <summary>Configuration key that turns on the 180-day <see cref="AnalyticsEvent"/> prune; off unless set to true.</summary>
+    public const string EventsPruningEnabledKey = "PageViewRetention:EventsPruningEnabled";
+
+    public sealed record RunResult(int DaysRolledUp, int HitsDeleted, int SessionsDeleted, int EventsDeleted = 0);
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -48,12 +53,15 @@ internal sealed class PageViewRetentionService(
                 await using AsyncServiceScope scope = scopeFactory.CreateAsyncScope();
                 ApplicationDbContext db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-                RunResult result = await RunAsync(db, DateTime.UtcNow, stoppingToken);
-                if (result.DaysRolledUp > 0 || result.HitsDeleted > 0 || result.SessionsDeleted > 0)
+                IConfiguration configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+                bool pruneEvents = configuration.GetValue<bool>(EventsPruningEnabledKey);
+
+                RunResult result = await RunAsync(db, DateTime.UtcNow, stoppingToken, pruneEvents);
+                if (result.DaysRolledUp > 0 || result.HitsDeleted > 0 || result.SessionsDeleted > 0 || result.EventsDeleted > 0)
                 {
                     logger.LogInformation(
-                        "PageViewRetention: rolled up {Days} day(s); deleted {Hits} page hit(s) and {Sessions} session snapshot(s) older than {RetentionDays} days.",
-                        result.DaysRolledUp, result.HitsDeleted, result.SessionsDeleted, RetentionDays);
+                        "PageViewRetention: rolled up {Days} day(s); deleted {Hits} page hit(s), {Sessions} session snapshot(s) and {Events} engagement event(s) older than {RetentionDays} days.",
+                        result.DaysRolledUp, result.HitsDeleted, result.SessionsDeleted, result.EventsDeleted, RetentionDays);
                 }
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
@@ -67,7 +75,12 @@ internal sealed class PageViewRetentionService(
     }
 
     /// <summary>Rolls up every pending complete day, then prunes. Safe to run repeatedly.</summary>
-    public static async Task<RunResult> RunAsync(ApplicationDbContext db, DateTime nowUtc, CancellationToken cancellationToken)
+    /// <param name="pruneEvents">Deletes engagement events past the retention window; false by default so nothing is removed until enabled.</param>
+    public static async Task<RunResult> RunAsync(
+        ApplicationDbContext db,
+        DateTime nowUtc,
+        CancellationToken cancellationToken,
+        bool pruneEvents = false)
     {
         // Classify historical rows first so rollups read stored classification and the backfill
         // never updates a row that this pass is about to prune.
@@ -101,7 +114,16 @@ internal sealed class PageViewRetentionService(
                 !db.PageViews.Any(pageView => pageView.SessionId == session.SessionId))
             .ExecuteDeleteAsync(cancellationToken);
 
-        return new RunResult(daysRolledUp, hitsDeleted, sessionsDeleted);
+        // Engagement events are not rolled up (daily rollups are page-hit based), so they use the plain retention cutoff.
+        int eventsDeleted = 0;
+        if (pruneEvents)
+        {
+            eventsDeleted = await db.AnalyticsEvents
+                .Where(analyticsEvent => analyticsEvent.OccurredUtc < cutoffUtc)
+                .ExecuteDeleteAsync(cancellationToken);
+        }
+
+        return new RunResult(daysRolledUp, hitsDeleted, sessionsDeleted, eventsDeleted);
     }
 
     private static async Task<DateOnly?> FirstPendingDayAsync(ApplicationDbContext db, CancellationToken cancellationToken)

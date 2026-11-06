@@ -135,6 +135,10 @@ namespace Quizymode.Api.Migrations
                         .HasMaxLength(16)
                         .HasColumnType("character varying(16)");
 
+                    b.Property<string>("City")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
                     b.Property<string>("ClickIdPlatform")
                         .HasMaxLength(32)
                         .HasColumnType("character varying(32)");
@@ -169,6 +173,10 @@ namespace Quizymode.Api.Migrations
                     b.Property<string>("ReferrerHost")
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
+
+                    b.Property<string>("Region")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("SessionId")
                         .IsRequired()

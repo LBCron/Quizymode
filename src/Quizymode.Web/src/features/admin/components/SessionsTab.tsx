@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   adminApi,
@@ -12,6 +12,7 @@ import LandingPagesTable from "./LandingPagesTable";
 import SessionRow from "./SessionRow";
 import VisitorCohortPanel from "./VisitorCohortPanel";
 import { OUTCOME_LABELS, formatDuration } from "./sessionFormatting";
+import { MAX_SESSION_ID_LENGTH, parseSessionIdParam } from "./sessionFilter";
 
 const OUTCOME_OPTIONS: Array<{ label: string; value: SessionOutcomeFilter }> = [
   { label: "All sessions", value: "all" },
@@ -34,6 +35,12 @@ interface SessionsTabProps {
   includeBots: boolean;
   includeInternal?: boolean;
   formatDateTime: (value: string) => string;
+  /** Session id filter (from the URL); undefined means no filter. */
+  sessionId?: string;
+  /** Visitor id filter (from the URL); undefined means no filter. */
+  visitorId?: string;
+  onSessionIdChange?: (sessionId: string | undefined) => void;
+  onVisitorIdChange?: (visitorId: string | undefined) => void;
 }
 
 const SessionsTab = ({
@@ -41,7 +48,21 @@ const SessionsTab = ({
   includeBots,
   includeInternal = false,
   formatDateTime,
+  sessionId,
+  visitorId,
+  onSessionIdChange,
+  onVisitorIdChange,
 }: SessionsTabProps) => {
+  const [sessionInput, setSessionInput] = useState(sessionId ?? "");
+  const [sessionInputError, setSessionInputError] = useState<string | null>(null);
+  const [syncedSessionId, setSyncedSessionId] = useState(sessionId);
+  // Keep the input in step with the URL (back/forward, chip removal, deep links).
+  if (syncedSessionId !== sessionId) {
+    setSyncedSessionId(sessionId);
+    setSessionInput(sessionId ?? "");
+    setSessionInputError(null);
+  }
+
   const [outcome, setOutcome] = useState<SessionOutcomeFilter>("all");
   const [sortBy, setSortBy] = useState<SessionSortBy>("recent");
   const [engagedOnly, setEngagedOnly] = useState(false);
@@ -60,6 +81,8 @@ const SessionsTab = ({
       sortBy,
       page,
       includeInternal,
+      sessionId,
+      visitorId,
     ],
     queryFn: () =>
       adminApi.getPageViewSessions(
@@ -71,9 +94,50 @@ const SessionsTab = ({
         page,
         PAGE_SIZE,
         LANDING_PAGES_LIMIT,
-        includeInternal
+        includeInternal,
+        undefined,
+        sessionId,
+        visitorId
       ),
   });
+
+  const applySessionFilter = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const trimmed = sessionInput.trim();
+    if (trimmed === "") {
+      setSessionInputError(null);
+      onSessionIdChange?.(undefined);
+      setPage(1);
+      return;
+    }
+    const parsed = parseSessionIdParam(trimmed);
+    if (!parsed) {
+      setSessionInputError(`Session id must be 1-${MAX_SESSION_ID_LENGTH} characters.`);
+      return;
+    }
+    setSessionInputError(null);
+    onSessionIdChange?.(parsed);
+    setPage(1);
+  };
+
+  const clearSessionFilter = () => {
+    setSessionInput("");
+    setSessionInputError(null);
+    onSessionIdChange?.(undefined);
+    setPage(1);
+  };
+
+  const filterToSession = (id: string) => {
+    setSessionInput(id);
+    setSessionInputError(null);
+    onSessionIdChange?.(id);
+    setPage(1);
+  };
+
+  const filterToVisitor = (id: string) => {
+    onVisitorIdChange?.(id);
+    setPage(1);
+  };
 
   if (isLoading) {
     return <LoadingSpinner />;
@@ -299,6 +363,72 @@ const SessionsTab = ({
           </div>
         </div>
 
+        <div className="border-b border-slate-200 px-5 py-3">
+          <form
+            onSubmit={applySessionFilter}
+            className="flex flex-col gap-2 sm:flex-row sm:items-center"
+          >
+            <input
+              type="text"
+              aria-label="Session id"
+              placeholder="Filter by session id"
+              value={sessionInput}
+              maxLength={MAX_SESSION_ID_LENGTH + 1}
+              onChange={(event) => setSessionInput(event.target.value)}
+              className="w-full rounded-xl border border-slate-300 px-3 py-2 font-mono text-sm text-slate-900 sm:max-w-md"
+            />
+            <button
+              type="submit"
+              className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+            >
+              Apply
+            </button>
+            <button
+              type="button"
+              onClick={clearSessionFilter}
+              className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            >
+              Clear
+            </button>
+          </form>
+          {sessionInputError && (
+            <p role="alert" className="mt-1 text-xs text-rose-600">
+              {sessionInputError}
+            </p>
+          )}
+          {(sessionId || visitorId) && (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {sessionId && (
+                <span className="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-800">
+                  Session: <span className="font-mono">{sessionId}</span>
+                  <button
+                    type="button"
+                    aria-label="Remove session filter"
+                    onClick={clearSessionFilter}
+                  >
+                    ×
+                  </button>
+                </span>
+              )}
+              {visitorId && (
+                <span className="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-800">
+                  Visitor: <span className="font-mono">{visitorId}</span>
+                  <button
+                    type="button"
+                    aria-label="Remove visitor filter"
+                    onClick={() => {
+                      onVisitorIdChange?.(undefined);
+                      setPage(1);
+                    }}
+                  >
+                    ×
+                  </button>
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+
         {isFetching && (
           <div className="px-5 pt-3 text-xs text-slate-500">Refreshing…</div>
         )}
@@ -335,6 +465,8 @@ const SessionsTab = ({
                       key={session.sessionId}
                       session={session}
                       formatDateTime={formatDateTime}
+                      onFilterToSession={onSessionIdChange ? filterToSession : undefined}
+                      onFilterToVisitor={onVisitorIdChange ? filterToVisitor : undefined}
                     />
                   ))}
                 </tbody>

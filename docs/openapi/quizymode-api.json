@@ -1742,7 +1742,7 @@
           "Admin"
         ],
         "summary": "Get the ordered page journey for one session (Admin only)",
-        "description": "Returns every page hit in a session in order, with its feature area and dwell time per step. The final step has no dwell time because no exit event is recorded. Internal sessions return 404 unless includeInternal=true.",
+        "description": "Returns every page hit in a session in order, with its feature area and dwell time per step. Also returns the visitor id and type (new, returning, unknown), traffic channel, and the game, quiz and flashcards runs of the session. The final step has no dwell time because no exit event is recorded. Internal sessions return 404 unless includeInternal=true.",
         "parameters": [
           {
             "name": "sessionId",
@@ -1800,7 +1800,7 @@
           "Admin"
         ],
         "summary": "Get session-level page-view engagement (Admin only)",
-        "description": "Groups page hits into sessions and reports bounce rate, session depth, study activity (sessions with a Quiz or Flashcards question view), landing pages grouped by feature area and content scope, and per-session journeys split by anonymous, converted, and authenticated visitors. Internal sessions are excluded unless includeInternal=true.",
+        "description": "Groups page hits into sessions and reports bounce rate, session depth, study activity (sessions with a Quiz or Flashcards question view), landing pages grouped by feature area and content scope, and per-session journeys split by anonymous, converted, and authenticated visitors. Internal sessions are excluded unless includeInternal=true. Optional sessionId (max 128 characters) and visitorId (GUID) narrow the window to one session or to the sessions of one visitor; each session row also carries visitor type, channel, and game and quiz counts.",
         "parameters": [
           {
             "name": "days",
@@ -1876,6 +1876,20 @@
             "in": "query",
             "schema": {
               "$ref": "#/components/schemas/System.NullableOfSystem.Guid"
+            }
+          },
+          {
+            "name": "sessionId",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/System.String"
+            }
+          },
+          {
+            "name": "visitorId",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/System.String"
             }
           }
         ],
@@ -9742,6 +9756,81 @@
         },
         "description": "Hits and item steps per category or collection (sessions are not additive across areas, so not reported)."
       },
+      "Quizymode.Api.Features.Admin.GetPageViewSessionDetail.ActivityResponse": {
+        "required": [
+          "kind",
+          "runId",
+          "contextType",
+          "contextId",
+          "startedUtc",
+          "completedUtc",
+          "score",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/System.String"
+          },
+          "runId": {
+            "$ref": "#/components/schemas/System.String"
+          },
+          "contextType": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.String"
+              }
+            ]
+          },
+          "contextId": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.String"
+              }
+            ]
+          },
+          "startedUtc": {
+            "$ref": "#/components/schemas/System.DateTime"
+          },
+          "completedUtc": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.NullableOfSystem.DateTime"
+              }
+            ]
+          },
+          "score": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.NullableOfSystem.Int32"
+              }
+            ]
+          },
+          "total": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.NullableOfSystem.Int32"
+              }
+            ]
+          }
+        },
+        "description": "One game, quiz or flashcards run of the session, built from engagement events by run id."
+      },
       "Quizymode.Api.Features.Admin.GetPageViewSessionDetail.JourneyStepResponse": {
         "required": [
           "stepNumber",
@@ -9808,7 +9897,14 @@
           "userAgent",
           "isBot",
           "isInternal",
-          "steps"
+          "steps",
+          "visitorId",
+          "visitorType",
+          "sessionsFromVisitor",
+          "channel",
+          "activities",
+          "region",
+          "city"
         ],
         "type": "object",
         "properties": {
@@ -9877,6 +9973,55 @@
           },
           "steps": {
             "$ref": "#/components/schemas/System.Collections.Generic.ListOfQuizymode.Api.Features.Admin.GetPageViewSessionDetail.JourneyStepResponse"
+          },
+          "visitorId": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.String"
+              }
+            ]
+          },
+          "visitorType": {
+            "$ref": "#/components/schemas/System.String"
+          },
+          "sessionsFromVisitor": {
+            "$ref": "#/components/schemas/System.Int32"
+          },
+          "channel": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.String"
+              }
+            ]
+          },
+          "activities": {
+            "$ref": "#/components/schemas/System.Collections.Generic.ListOfQuizymode.Api.Features.Admin.GetPageViewSessionDetail.ActivityResponse"
+          },
+          "region": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.String"
+              }
+            ]
+          },
+          "city": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.String"
+              }
+            ]
           }
         }
       },
@@ -10055,7 +10200,17 @@
           "isBot",
           "isInternal",
           "entryArea",
-          "itemSteps"
+          "itemSteps",
+          "visitorId",
+          "visitorType",
+          "sessionsFromVisitor",
+          "channel",
+          "gamesPlayed",
+          "gamesCompleted",
+          "quizRuns",
+          "quizzesCompleted",
+          "region",
+          "city"
         ],
         "type": "object",
         "properties": {
@@ -10133,6 +10288,64 @@
           },
           "itemSteps": {
             "$ref": "#/components/schemas/System.Int32"
+          },
+          "visitorId": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.String"
+              }
+            ]
+          },
+          "visitorType": {
+            "$ref": "#/components/schemas/System.String"
+          },
+          "sessionsFromVisitor": {
+            "$ref": "#/components/schemas/System.Int32"
+          },
+          "channel": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.String"
+              }
+            ]
+          },
+          "gamesPlayed": {
+            "$ref": "#/components/schemas/System.Int32"
+          },
+          "gamesCompleted": {
+            "$ref": "#/components/schemas/System.Int32"
+          },
+          "quizRuns": {
+            "$ref": "#/components/schemas/System.Int32"
+          },
+          "quizzesCompleted": {
+            "$ref": "#/components/schemas/System.Int32"
+          },
+          "region": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.String"
+              }
+            ]
+          },
+          "city": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.String"
+              }
+            ]
           }
         }
       },
@@ -18615,6 +18828,12 @@
         "type": "array",
         "items": {
           "$ref": "#/components/schemas/Quizymode.Api.Features.Admin.GetPageViewRollups.ScopeRow"
+        }
+      },
+      "System.Collections.Generic.ListOfQuizymode.Api.Features.Admin.GetPageViewSessionDetail.ActivityResponse": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Quizymode.Api.Features.Admin.GetPageViewSessionDetail.ActivityResponse"
         }
       },
       "System.Collections.Generic.ListOfQuizymode.Api.Features.Admin.GetPageViewSessionDetail.JourneyStepResponse": {

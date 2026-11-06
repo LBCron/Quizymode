@@ -1,3 +1,4 @@
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Quizymode.Api.Data;
 using Quizymode.Api.Services;
@@ -26,7 +27,26 @@ public static class GetPageViewSessions
         int PageSize = 25,
         int LandingPagesLimit = 10,
         bool IncludeInternal = false,
-        Guid? UserId = null);
+        Guid? UserId = null,
+        string? SessionId = null,
+        string? VisitorId = null);
+
+    /// <summary>Longest session id accepted by the filter; mirrors the tracker's own limit.</summary>
+    public const int MaxSessionIdLength = 128;
+
+    public sealed class QueryValidator : AbstractValidator<QueryRequest>
+    {
+        public QueryValidator()
+        {
+            RuleFor(request => request.SessionId)
+                .Must(sessionId => sessionId is null || sessionId.Trim().Length <= MaxSessionIdLength)
+                .WithMessage($"SessionId must be at most {MaxSessionIdLength} characters.");
+
+            RuleFor(request => request.VisitorId)
+                .Must(visitorId => string.IsNullOrWhiteSpace(visitorId) || Guid.TryParse(visitorId.Trim(), out _))
+                .WithMessage("VisitorId must be a GUID.");
+        }
+    }
 
     public sealed record Response(
         SummaryResponse Summary,
@@ -103,7 +123,21 @@ public static class GetPageViewSessions
         bool IsBot,
         bool IsInternal,
         string EntryArea,
-        int ItemSteps);
+        int ItemSteps,
+        string? VisitorId,
+        string VisitorType,
+        int SessionsFromVisitor,
+        string? Channel,
+        int GamesPlayed,
+        int GamesCompleted,
+        int QuizRuns,
+        int QuizzesCompleted,
+        string? Region,
+        string? City);
+
+    public const string VisitorTypeNew = "new";
+    public const string VisitorTypeReturning = "returning";
+    public const string VisitorTypeUnknown = "unknown";
 
     private enum OutcomeFilter
     {
@@ -131,7 +165,7 @@ public static class GetPageViewSessions
             app.MapGet("admin/page-view-sessions", Handler)
                 .WithTags("Admin")
                 .WithSummary("Get session-level page-view engagement (Admin only)")
-                .WithDescription("Groups page hits into sessions and reports bounce rate, session depth, study activity (sessions with a Quiz or Flashcards question view), landing pages grouped by feature area and content scope, and per-session journeys split by anonymous, converted, and authenticated visitors. Internal sessions are excluded unless includeInternal=true.")
+                .WithDescription("Groups page hits into sessions and reports bounce rate, session depth, study activity (sessions with a Quiz or Flashcards question view), landing pages grouped by feature area and content scope, and per-session journeys split by anonymous, converted, and authenticated visitors. Internal sessions are excluded unless includeInternal=true. Optional sessionId (max 128 characters) and visitorId (GUID) narrow the window to one session or to the sessions of one visitor; each session row also carries visitor type, channel, and game and quiz counts.")
                 .RequireAuthorization("Admin")
                 .Produces<Response>(StatusCodes.Status200OK)
                 .ProducesProblem(StatusCodes.Status400BadRequest);
@@ -148,11 +182,13 @@ public static class GetPageViewSessions
             int landingPagesLimit = 10,
             bool includeInternal = false,
             Guid? userId = null,
+            string? sessionId = null,
+            string? visitorId = null,
             ApplicationDbContext db = null!,
             IIpGeolocationService geoService = null!,
             CancellationToken cancellationToken = default)
         {
-            QueryRequest request = new(days, outcome, minPages, includeBots, sortBy, page, pageSize, landingPagesLimit, includeInternal, userId);
+            QueryRequest request = new(days, outcome, minPages, includeBots, sortBy, page, pageSize, landingPagesLimit, includeInternal, userId, sessionId, visitorId);
             Result<Response> result = await HandleAsync(request, db, geoService, cancellationToken);
 
             return result.Match(
@@ -174,6 +210,13 @@ public static class GetPageViewSessions
                 Error.Validation(
                     "Admin.PageViewSessions.InvalidDays",
                     $"Days must be between 1 and {PageViewRetentionService.RetentionDays}. Raw page hits are kept for {PageViewRetentionService.RetentionDays} days; use the daily rollups report for longer ranges."));
+        }
+
+        FluentValidation.Results.ValidationResult validation = new QueryValidator().Validate(request);
+        if (!validation.IsValid)
+        {
+            return Result.Failure<Response>(
+                Error.Validation("Admin.PageViewSessions.InvalidFilter", validation.Errors[0].ErrorMessage));
         }
 
         OutcomeFilter outcomeFilter;
@@ -208,6 +251,26 @@ public static class GetPageViewSessions
                 .Where(pageView => pageView.UserId == filterUserId)
                 .Select(pageView => pageView.SessionId);
             windowQuery = windowQuery.Where(pageView => userSessionIds.Contains(pageView.SessionId));
+        }
+
+        // A session filter narrows to exactly one session id (admin deep link and "filter to this session").
+        string? sessionIdFilter = string.IsNullOrWhiteSpace(request.SessionId) ? null : request.SessionId.Trim();
+        if (sessionIdFilter is not null)
+        {
+            windowQuery = windowQuery.Where(pageView => pageView.SessionId == sessionIdFilter);
+        }
+
+        // A visitor filter keeps the sessions the stored visitor id snapshot links together. Only the
+        // opaque visitor id is used; never IP, user agent or a fingerprint.
+        string? visitorIdFilter = string.IsNullOrWhiteSpace(request.VisitorId)
+            ? null
+            : Guid.Parse(request.VisitorId.Trim()).ToString();
+        if (visitorIdFilter is not null)
+        {
+            IQueryable<string> visitorSessionIds = db.AnalyticsSessions
+                .Where(session => session.VisitorId == visitorIdFilter)
+                .Select(session => session.SessionId);
+            windowQuery = windowQuery.Where(pageView => visitorSessionIds.Contains(pageView.SessionId));
         }
 
         // Bot sessions are reported even when excluded: the gap between the two numbers is
@@ -319,8 +382,57 @@ public static class GetPageViewSessions
             uniqueIps.Select(async ip => (ip, country: await geoService.GetCountryAsync(ip, cancellationToken)))))
             .ToDictionary(entry => entry.ip, entry => entry.country);
 
+        List<string> pageSessionIds = pageRows.Select(session => session.SessionId).ToList();
+
+        Dictionary<string, SessionSnapshot> snapshots = (await db.AnalyticsSessions
+                .AsNoTracking()
+                .Where(snapshot => pageSessionIds.Contains(snapshot.SessionId))
+                .Select(snapshot => new SessionSnapshot(snapshot.SessionId, snapshot.VisitorId, snapshot.Channel, snapshot.Country, snapshot.FirstSeenUtc, snapshot.Region, snapshot.City))
+                .ToListAsync(cancellationToken))
+            .GroupBy(snapshot => snapshot.SessionId, StringComparer.Ordinal)
+            .ToDictionary(group => group.Key, group => group.First(), StringComparer.Ordinal);
+
+        List<string> visitorIds = snapshots.Values
+            .Where(snapshot => snapshot.VisitorId != null)
+            .Select(snapshot => snapshot.VisitorId!)
+            .Distinct()
+            .ToList();
+
+        // Retained snapshots per visitor (page is bounded), used for new/returning and the sessions link.
+        Dictionary<string, List<SessionSnapshot>> sessionsByVisitor = visitorIds.Count == 0
+            ? new Dictionary<string, List<SessionSnapshot>>(StringComparer.Ordinal)
+            : (await db.AnalyticsSessions
+                    .AsNoTracking()
+                    .Where(snapshot => snapshot.VisitorId != null && visitorIds.Contains(snapshot.VisitorId))
+                    .Select(snapshot => new SessionSnapshot(snapshot.SessionId, snapshot.VisitorId, snapshot.Channel, snapshot.Country, snapshot.FirstSeenUtc))
+                    .ToListAsync(cancellationToken))
+                .GroupBy(snapshot => snapshot.VisitorId!, StringComparer.Ordinal)
+                .ToDictionary(
+                    group => group.Key,
+                    group => group.OrderBy(snapshot => snapshot.FirstSeenUtc).ThenBy(snapshot => snapshot.SessionId, StringComparer.Ordinal).ToList(),
+                    StringComparer.Ordinal);
+
+        Dictionary<string, List<SessionActivityBuilder.Activity>> activitiesBySession =
+            await SessionActivityBuilder.LoadAsync(db, pageSessionIds, cancellationToken);
+
         List<SessionResponse> sessionResponses = pageRows
-            .Select(session => new SessionResponse(
+            .Select(session =>
+            {
+                snapshots.TryGetValue(session.SessionId, out SessionSnapshot? snapshot);
+                string? visitorId = snapshot?.VisitorId;
+                List<SessionSnapshot>? visitorSessions = visitorId is not null && sessionsByVisitor.TryGetValue(visitorId, out List<SessionSnapshot>? list)
+                    ? list
+                    : null;
+                string visitorType = visitorSessions is null
+                    ? VisitorTypeUnknown
+                    : string.Equals(visitorSessions[0].SessionId, session.SessionId, StringComparison.Ordinal)
+                        ? VisitorTypeNew
+                        : VisitorTypeReturning;
+                SessionActivityBuilder.Counts counts = activitiesBySession.TryGetValue(session.SessionId, out List<SessionActivityBuilder.Activity>? activities)
+                    ? SessionActivityBuilder.Count(activities)
+                    : SessionActivityBuilder.NoActivity;
+
+                return new SessionResponse(
                 session.SessionId,
                 session.Outcome,
                 session.StartedUtc,
@@ -331,8 +443,8 @@ public static class GetPageViewSessions
                 session.IsBounce,
                 session.EntryPath,
                 session.ExitPath,
-                session.IpAddress,
-                countryByIp.GetValueOrDefault(session.IpAddress),
+                IpTruncation.Truncate(session.IpAddress),
+                snapshot?.Country ?? countryByIp.GetValueOrDefault(session.IpAddress),
                 session.UserId.HasValue && userEmails.TryGetValue(session.UserId.Value, out string? email)
                     ? email
                     : null,
@@ -340,7 +452,18 @@ public static class GetPageViewSessions
                 session.IsBot,
                 internalSessionIds.Contains(session.SessionId),
                 session.EntryArea,
-                session.ItemSteps))
+                session.ItemSteps,
+                visitorId,
+                visitorType,
+                visitorSessions?.Count ?? 0,
+                snapshot?.Channel,
+                counts.GamesPlayed,
+                counts.GamesCompleted,
+                counts.QuizRuns,
+                counts.QuizzesCompleted,
+                snapshot?.Region,
+                snapshot?.City);
+            })
             .ToList();
 
         VisitorCohortReport.Response visitors = await VisitorCohortReport.BuildAsync(
@@ -357,6 +480,8 @@ public static class GetPageViewSessions
             totalPages,
             visitors));
     }
+
+    private sealed record SessionSnapshot(string SessionId, string? VisitorId, string Channel, string? Country, DateTime FirstSeenUtc, string? Region = null, string? City = null);
 
     private static SummaryResponse BuildSummary(
         DateTime windowStartUtc,

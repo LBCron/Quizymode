@@ -20,7 +20,7 @@ const RANGE_OPTIONS: Array<{ label: string; days: number }> = [
   { label: "7d", days: 7 },
   { label: "30d", days: 30 },
   { label: "90d", days: 90 },
-  { label: "365d", days: 365 },
+  { label: "180d", days: 180 },
 ];
 
 const ACTIVITY_FILTER_OPTIONS: Array<{

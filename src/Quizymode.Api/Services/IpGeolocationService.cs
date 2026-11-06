@@ -13,7 +13,7 @@ internal sealed class IpGeolocationService : IIpGeolocationService
 
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<IpGeolocationService> _logger;
-    private readonly ConcurrentDictionary<string, string?> _cache = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, IpLocation?> _cache = new(StringComparer.OrdinalIgnoreCase);
 
     public IpGeolocationService(IHttpClientFactory httpClientFactory, ILogger<IpGeolocationService> logger)
     {
@@ -23,17 +23,25 @@ internal sealed class IpGeolocationService : IIpGeolocationService
 
     public async Task<string?> GetCountryAsync(string ipAddress, CancellationToken cancellationToken = default)
     {
+        IpLocation? location = await GetLocationAsync(ipAddress, cancellationToken);
+        return location?.Country;
+    }
+
+    public async Task<IpLocation?> GetLocationAsync(string ipAddress, CancellationToken cancellationToken = default)
+    {
+        IpLocation local = new("Local", null, null);
+
         if (string.IsNullOrWhiteSpace(ipAddress) || ipAddress == "unknown")
             return null;
 
         if (LoopbackAddresses.Contains(ipAddress))
-            return "Local";
+            return local;
 
         // Private/link-local ranges → Local
         if (IPAddress.TryParse(ipAddress, out IPAddress? parsed) && IsPrivate(parsed))
-            return "Local";
+            return local;
 
-        if (_cache.TryGetValue(ipAddress, out string? cached))
+        if (_cache.TryGetValue(ipAddress, out IpLocation? cached))
             return cached;
 
         try
@@ -56,16 +64,13 @@ internal sealed class IpGeolocationService : IIpGeolocationService
             // ipinfo returns { "bogon": true } for private/reserved ranges
             if (root.TryGetProperty("bogon", out JsonElement bogon) && bogon.GetBoolean())
             {
-                _cache[ipAddress] = "Local";
-                return "Local";
+                _cache[ipAddress] = local;
+                return local;
             }
 
-            string? country = root.TryGetProperty("country", out JsonElement countryEl)
-                ? countryEl.GetString()
-                : null;
-
-            _cache[ipAddress] = country;
-            return country;
+            IpLocation location = ParseLocation(root);
+            _cache[ipAddress] = location;
+            return location;
         }
         catch (Exception ex)
         {
@@ -73,6 +78,27 @@ internal sealed class IpGeolocationService : IIpGeolocationService
             _cache[ipAddress] = null;
             return null;
         }
+    }
+
+    /// <summary>Reads country, region and city from an ipinfo response; blank values become null and are length-capped.</summary>
+    internal static IpLocation ParseLocation(JsonElement root)
+    {
+        return new IpLocation(
+            ReadString(root, "country", 8),
+            ReadString(root, "region", 100),
+            ReadString(root, "city", 100));
+    }
+
+    private static string? ReadString(JsonElement root, string name, int maxLength)
+    {
+        if (!root.TryGetProperty(name, out JsonElement element) || element.ValueKind != JsonValueKind.String)
+            return null;
+
+        string? value = element.GetString()?.Trim();
+        if (string.IsNullOrEmpty(value))
+            return null;
+
+        return value.Length > maxLength ? value[..maxLength] : value;
     }
 
     private static bool IsPrivate(IPAddress ip)

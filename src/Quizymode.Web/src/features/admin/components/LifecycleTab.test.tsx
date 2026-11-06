@@ -75,9 +75,9 @@ describe("LifecycleTab", () => {
     });
 
     renderTab();
-    fireEvent.click(await screen.findByRole("button", { name: "26w" }));
+    fireEvent.click(await screen.findByRole("button", { name: "25w" }));
 
-    await waitFor(() => expect(mockGetLifecycleReport).toHaveBeenCalledWith(26));
+    await waitFor(() => expect(mockGetLifecycleReport).toHaveBeenCalledWith(25));
     expect(await screen.findByText("No signups in this period.")).toBeInTheDocument();
   });
 

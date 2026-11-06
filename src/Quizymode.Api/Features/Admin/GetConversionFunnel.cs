@@ -70,10 +70,10 @@ public static class GetConversionFunnel
         ApplicationDbContext db,
         CancellationToken cancellationToken)
     {
-        if (request.Days is < 1 or > 365)
+        if (request.Days is < 1 or > PageViewRetentionService.RetentionDays)
         {
             return Result.Failure<Response>(
-                Error.Validation("Admin.ConversionFunnel.InvalidDays", "Days must be between 1 and 365."));
+                Error.Validation("Admin.ConversionFunnel.InvalidDays", $"Days must be between 1 and {PageViewRetentionService.RetentionDays}. Engagement data is kept for {PageViewRetentionService.RetentionDays} days; use the daily rollups report for longer ranges."));
         }
 
         DateTime windowEndUtc = DateTime.UtcNow;

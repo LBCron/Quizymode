@@ -252,7 +252,8 @@ public static class TrackPageView
             Msclkid: request.Msclkid,
             Ttclid: request.Ttclid));
 
-        string? country = await ResolveCountryBestEffortAsync(geoService, ipAddress, cancellationToken);
+        IpLocation? location = await ResolveLocationBestEffortAsync(geoService, ipAddress, cancellationToken);
+        string? country = location?.Country;
 
         AnalyticsSession analyticsSession = new()
         {
@@ -273,6 +274,8 @@ public static class TrackPageView
             Channel = attribution.Channel,
             DeviceClass = classifier.ClassifyDeviceClass(userAgent),
             Country = country,
+            Region = location?.Region,
+            City = location?.City,
             AppVersion = NormalizeAppVersion(request.AppVersion),
             CreatedUtc = DateTime.UtcNow
         };
@@ -285,10 +288,10 @@ public static class TrackPageView
                 $"""
                 INSERT INTO "AnalyticsSessions" ("Id", "SessionId", "VisitorId", "UserId", "FirstSeenUtc", "LandingPath",
                     "LandingQuery", "ReferrerHost", "UtmSource", "UtmMedium", "UtmCampaign", "UtmContent", "UtmTerm",
-                    "ClickIdPlatform", "Channel", "DeviceClass", "Country", "AppVersion", "CreatedUtc")
+                    "ClickIdPlatform", "Channel", "DeviceClass", "Country", "Region", "City", "AppVersion", "CreatedUtc")
                 VALUES ({analyticsSession.Id}, {analyticsSession.SessionId}, {analyticsSession.VisitorId}, {analyticsSession.UserId}, {analyticsSession.FirstSeenUtc}, {analyticsSession.LandingPath},
                     {analyticsSession.LandingQuery}, {analyticsSession.ReferrerHost}, {analyticsSession.UtmSource}, {analyticsSession.UtmMedium}, {analyticsSession.UtmCampaign}, {analyticsSession.UtmContent}, {analyticsSession.UtmTerm},
-                    {analyticsSession.ClickIdPlatform}, {analyticsSession.Channel}, {analyticsSession.DeviceClass}, {analyticsSession.Country}, {analyticsSession.AppVersion}, {analyticsSession.CreatedUtc})
+                    {analyticsSession.ClickIdPlatform}, {analyticsSession.Channel}, {analyticsSession.DeviceClass}, {analyticsSession.Country}, {analyticsSession.Region}, {analyticsSession.City}, {analyticsSession.AppVersion}, {analyticsSession.CreatedUtc})
                 ON CONFLICT ("SessionId") DO NOTHING
                 """,
                 cancellationToken);
@@ -308,8 +311,8 @@ public static class TrackPageView
         }
     }
 
-    /// <summary>Resolves the hit's country with a strict time budget; never throws, never delays the response.</summary>
-    private static async Task<string?> ResolveCountryBestEffortAsync(
+    /// <summary>Resolves the hit's location with a strict time budget; never throws, never delays the response.</summary>
+    private static async Task<IpLocation?> ResolveLocationBestEffortAsync(
         IIpGeolocationService geoService,
         string ipAddress,
         CancellationToken cancellationToken)
@@ -318,7 +321,14 @@ public static class TrackPageView
         {
             using CancellationTokenSource timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             timeoutCts.CancelAfter(TimeSpan.FromSeconds(2));
-            return await geoService.GetCountryAsync(ipAddress, timeoutCts.Token);
+            IpLocation? location = await geoService.GetLocationAsync(ipAddress, timeoutCts.Token);
+            if (location is not null)
+            {
+                return location;
+            }
+
+            string? country = await geoService.GetCountryAsync(ipAddress, timeoutCts.Token);
+            return country is null ? null : new IpLocation(country, null, null);
         }
         catch
         {

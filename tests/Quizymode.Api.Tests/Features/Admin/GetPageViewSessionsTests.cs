@@ -376,4 +376,159 @@ public sealed class GetPageViewSessionsTests : DatabaseTestFixture
         result.Value!.Summary.TotalSessions.Should().Be(1);
         result.Value.Sessions.Single().SessionId.Should().Be("recent-1");
     }
+
+    private static AnalyticsSession Snapshot(string sessionId, string? visitorId, DateTime firstSeenUtc, string channel = "direct")
+    {
+        return new AnalyticsSession
+        {
+            Id = Guid.NewGuid(),
+            SessionId = sessionId,
+            VisitorId = visitorId,
+            FirstSeenUtc = firstSeenUtc,
+            Channel = channel,
+            DeviceClass = "desktop",
+            CreatedUtc = firstSeenUtc
+        };
+    }
+
+    private static AnalyticsEvent Event(string sessionId, string name, string runId, DateTime occurredUtc, int? score = null, int? total = null)
+    {
+        return new AnalyticsEvent
+        {
+            Id = Guid.NewGuid(),
+            EventName = name,
+            SessionId = sessionId,
+            RunId = runId,
+            ContextType = "category",
+            ContextId = "science",
+            Path = "/quiz",
+            Score = score,
+            Total = total,
+            OccurredUtc = occurredUtc
+        };
+    }
+
+    [Fact]
+    public async Task HandleAsync_SessionIdFilter_KeepsOnlyThatSession_AndComposesWithUserId()
+    {
+        DateTime now = DateTime.UtcNow;
+        Guid userId = Guid.NewGuid();
+
+        await DbContext.PageViews.AddRangeAsync(
+            Hit("s-a", "/", now.AddMinutes(-30), isAuthenticated: true, userId: userId),
+            Hit("s-a", "/categories", now.AddMinutes(-29), isAuthenticated: true, userId: userId),
+            Hit("s-b", "/", now.AddMinutes(-20)),
+            Hit("s-c", "/", now.AddMinutes(-10), isAuthenticated: true, userId: userId));
+        await DbContext.SaveChangesAsync();
+
+        var only = await Run(new GetPageViewSessions.QueryRequest(Days: 7, SessionId: "  s-b "));
+        only.Value!.Sessions.Should().ContainSingle().Which.SessionId.Should().Be("s-b");
+        only.Value.TotalCount.Should().Be(1);
+
+        var both = await Run(new GetPageViewSessions.QueryRequest(Days: 7, UserId: userId, SessionId: "s-b"));
+        both.Value!.Sessions.Should().BeEmpty();
+
+        var match = await Run(new GetPageViewSessions.QueryRequest(Days: 7, UserId: userId, SessionId: "s-a"));
+        match.Value!.Sessions.Should().ContainSingle().Which.SessionId.Should().Be("s-a");
+    }
+
+    [Fact]
+    public async Task HandleAsync_SessionIdFilter_StillExcludesBotsAndInternalByDefault()
+    {
+        DateTime now = DateTime.UtcNow;
+        PageView internalHit = Hit("s-int", "/", now.AddMinutes(-5));
+        internalHit.IsInternal = true;
+
+        await DbContext.PageViews.AddRangeAsync(Hit("s-bot", "/", now.AddMinutes(-5), isBot: true), internalHit);
+        await DbContext.SaveChangesAsync();
+
+        (await Run(new GetPageViewSessions.QueryRequest(Days: 7, SessionId: "s-bot"))).Value!.Sessions.Should().BeEmpty();
+        (await Run(new GetPageViewSessions.QueryRequest(Days: 7, SessionId: "s-int"))).Value!.Sessions.Should().BeEmpty();
+        (await Run(new GetPageViewSessions.QueryRequest(Days: 7, SessionId: "s-bot", IncludeBots: true))).Value!.Sessions.Should().HaveCount(1);
+        (await Run(new GetPageViewSessions.QueryRequest(Days: 7, SessionId: "s-int", IncludeInternal: true))).Value!.Sessions.Should().HaveCount(1);
+    }
+
+    [Fact]
+    public async Task HandleAsync_OverLengthSessionId_ReturnsValidationError()
+    {
+        var accepted = await Run(new GetPageViewSessions.QueryRequest(Days: 7, SessionId: new string('x', 128)));
+        accepted.IsSuccess.Should().BeTrue();
+
+        var rejected = await Run(new GetPageViewSessions.QueryRequest(Days: 7, SessionId: new string('x', 129)));
+        rejected.IsFailure.Should().BeTrue();
+        rejected.Error.Code.Should().Be("Admin.PageViewSessions.InvalidFilter");
+    }
+
+    [Fact]
+    public async Task HandleAsync_NonGuidVisitorId_ReturnsValidationError()
+    {
+        var result = await Run(new GetPageViewSessions.QueryRequest(Days: 7, VisitorId: "not-a-guid"));
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Code.Should().Be("Admin.PageViewSessions.InvalidFilter");
+    }
+
+    [Fact]
+    public async Task HandleAsync_VisitorFilter_ReturnsOnlyThatVisitorsSessions_AndReportsVisitorType()
+    {
+        DateTime now = DateTime.UtcNow;
+        string visitor = Guid.NewGuid().ToString();
+        string other = Guid.NewGuid().ToString();
+
+        await DbContext.PageViews.AddRangeAsync(
+            Hit("v-1", "/", now.AddHours(-3)),
+            Hit("v-2", "/", now.AddHours(-1)),
+            Hit("o-1", "/", now.AddHours(-2)),
+            Hit("n-1", "/", now.AddHours(-2)));
+        await DbContext.AnalyticsSessions.AddRangeAsync(
+            Snapshot("v-1", visitor, now.AddHours(-3), "search"),
+            Snapshot("v-2", visitor, now.AddHours(-1)),
+            Snapshot("o-1", other, now.AddHours(-2)),
+            Snapshot("n-1", null, now.AddHours(-2)));
+        await DbContext.SaveChangesAsync();
+
+        var filtered = await Run(new GetPageViewSessions.QueryRequest(Days: 7, VisitorId: visitor.ToUpperInvariant()));
+        filtered.Value!.Sessions.Select(s => s.SessionId).Should().BeEquivalentTo(["v-1", "v-2"]);
+
+        var all = await Run(new GetPageViewSessions.QueryRequest(Days: 7));
+        GetPageViewSessions.SessionResponse first = all.Value!.Sessions.Single(s => s.SessionId == "v-1");
+        first.VisitorType.Should().Be("new");
+        first.Channel.Should().Be("search");
+        first.SessionsFromVisitor.Should().Be(2);
+        all.Value.Sessions.Single(s => s.SessionId == "v-2").VisitorType.Should().Be("returning");
+
+        GetPageViewSessions.SessionResponse noVisitor = all.Value.Sessions.Single(s => s.SessionId == "n-1");
+        noVisitor.VisitorType.Should().Be("unknown");
+        noVisitor.VisitorId.Should().BeNull();
+        noVisitor.SessionsFromVisitor.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task HandleAsync_CountsGamesAndQuizRunsPerSession()
+    {
+        DateTime now = DateTime.UtcNow;
+        await DbContext.PageViews.AddRangeAsync(
+            Hit("act-1", "/", now.AddMinutes(-30)),
+            Hit("act-2", "/", now.AddMinutes(-30)));
+        await DbContext.AnalyticsEvents.AddRangeAsync(
+            Event("act-1", AnalyticsEventCatalog.GameStarted, "g1", now.AddMinutes(-29)),
+            Event("act-1", AnalyticsEventCatalog.GameCompleted, "g1", now.AddMinutes(-28)),
+            Event("act-1", AnalyticsEventCatalog.GameStarted, "g2", now.AddMinutes(-27)),
+            Event("act-1", AnalyticsEventCatalog.QuickQuizStarted, "q1", now.AddMinutes(-26)),
+            Event("act-1", AnalyticsEventCatalog.QuizCompleted, "q1", now.AddMinutes(-25), score: 3, total: 5),
+            Event("act-1", AnalyticsEventCatalog.FlashcardsStarted, "f1", now.AddMinutes(-24)),
+            Event("act-1", AnalyticsEventCatalog.QuestionAnswered, "q1", now.AddMinutes(-25)));
+        await DbContext.SaveChangesAsync();
+
+        var result = await Run(new GetPageViewSessions.QueryRequest(Days: 7));
+
+        GetPageViewSessions.SessionResponse busy = result.Value!.Sessions.Single(s => s.SessionId == "act-1");
+        busy.GamesPlayed.Should().Be(2);
+        busy.GamesCompleted.Should().Be(1);
+        busy.QuizRuns.Should().Be(2);
+        busy.QuizzesCompleted.Should().Be(1);
+
+        GetPageViewSessions.SessionResponse idle = result.Value.Sessions.Single(s => s.SessionId == "act-2");
+        (idle.GamesPlayed, idle.GamesCompleted, idle.QuizRuns, idle.QuizzesCompleted).Should().Be((0, 0, 0, 0));
+    }
 }

@@ -7,7 +7,7 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 const TH = "px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500";
 const TD = "px-4 py-3 text-sm text-slate-700";
 
-const WEEK_OPTIONS = [4, 8, 12, 26, 52];
+const WEEK_OPTIONS = [4, 8, 12, 25];
 
 /** "active / eligible (pct%)", or an em dash while nobody has reached that mark yet. */
 const ratio = (part: number, eligible: number) =>
