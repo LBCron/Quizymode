@@ -39,3 +39,21 @@ Notes:
 - To rotate the keys: `aws iam create-access-key --user-name quizymode-api-media` for a second key, set the new values in a new deployment, then `aws iam delete-access-key --user-name quizymode-api-media --access-key-id <old id>`.
 - After the deployment is active, check `/health`, then upload a small PNG as a signed-in user (`POST /media/images`, multipart field `file`), download it with `GET /media/images/{id}/content` using the same bearer token, and run the `head-object` and unauthenticated `curl` checks from S3_CLOUDFRONT.md.
 - Memory: decoding is limited to 16 megapixels and one decode at a time per instance (AC 3.24.9); the SkiaSharp native library is bundled in the image, nothing is installed on the host.
+
+## LLM model audit settings (#480)
+
+The daily LLM model-list audit emails the admin through SMTP (the SES SMTP endpoint). Add these environment variables to the container in a **new deployment** (values are not listed here; the SMTP password is a secret and must never be committed, pasted in chat or logged).
+
+| Variable | Purpose |
+| --- | --- |
+| `Llm__ModelAudit__Enabled` | `true` turns the daily job on (default `false`) |
+| `Llm__ModelAudit__AdminAddress` | the single recipient |
+| `Llm__ModelAudit__From` | the SES-verified sender address |
+| `Llm__ModelAudit__Smtp__Host` | the SES SMTP endpoint host |
+| `Llm__ModelAudit__Smtp__Port` | SMTP port (default 587, STARTTLS) |
+| `Llm__ModelAudit__Smtp__UserName` | the SES SMTP user name |
+| `Llm__ModelAudit__Smtp__Password` | the SES SMTP password (secret) |
+
+Without the SMTP variables the audit still records findings and shows the admin banner; the email is retried on each run once the settings exist.
+
+The first audit run happens 24 hours after the API boots, then every 24 hours, so an instance that restarts more often than that may never run the audit on its own. Use `POST /admin/llm-model-audit/run` to run it on demand.

@@ -44,3 +44,24 @@ internal sealed class LlmAttemptConfiguration : IEntityTypeConfiguration<LlmAtte
         builder.HasIndex(x => x.GenerationId);
     }
 }
+
+internal sealed class LlmModelFindingConfiguration : IEntityTypeConfiguration<LlmModelFinding>
+{
+    public void Configure(EntityTypeBuilder<LlmModelFinding> builder)
+    {
+        builder.ToTable("LlmModelFindings");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.Id).ValueGeneratedNever();
+        builder.Property(x => x.Vendor).IsRequired().HasMaxLength(20);
+        builder.Property(x => x.Model).IsRequired().HasMaxLength(100);
+        builder.Property(x => x.Kind).IsRequired().HasConversion<string>().HasMaxLength(30);
+        builder.Property(x => x.Status).IsRequired().HasConversion<string>().HasMaxLength(20);
+        builder.Property(x => x.FirstSeenUtc).IsRequired();
+        builder.Property(x => x.LastSeenUtc).IsRequired();
+        // At most one open finding per vendor and model; resolved rows are history and may repeat.
+        builder.HasIndex(x => new { x.Vendor, x.Model })
+            .IsUnique()
+            .HasDatabaseName("IX_LlmModelFindings_Vendor_Model_Open")
+            .HasFilter("\"Status\" = 'Open'");
+    }
+}

@@ -79,6 +79,19 @@ export interface LlmUsageResponse {
   topUsers: LlmTopUser[];
 }
 
+export interface LlmModelFinding {
+  id: string;
+  vendor: string;
+  model: string;
+  kind: string;
+  firstSeenUtc: string;
+  lastSeenUtc: string;
+}
+
+export interface LlmModelFindingsResponse {
+  findings: LlmModelFinding[];
+}
+
 export const adminLlmProvidersApi = {
   get: async (): Promise<LlmProvidersResponse> => {
     const response = await apiClient.get<LlmProvidersResponse>("/admin/llm-providers");
@@ -101,6 +114,11 @@ export const adminLlmProvidersApi = {
     const response = await apiClient.get<LlmUsageResponse>("/admin/llm-providers/usage", {
       params: { days },
     });
+    return response.data;
+  },
+
+  getModelFindings: async (): Promise<LlmModelFindingsResponse> => {
+    const response = await apiClient.get<LlmModelFindingsResponse>("/admin/llm-model-findings");
     return response.data;
   },
 };

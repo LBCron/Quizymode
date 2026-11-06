@@ -8,6 +8,7 @@ import { TOPIC_RETURN_FOCUS_ATTRIBUTE } from "@/features/interests/TopicPicker";
 import { GuestProgressClaim } from "@/features/guestHistory/GuestProgressClaim";
 import { PolicyAcceptancePrompt } from "@/features/legal/PolicyAcceptancePrompt";
 import { usersApi } from "@/api/users";
+import LlmFindingsBanner from "@/components/LlmFindingsBanner";
 import { getUserGuideUrl } from "@/utils/userGuideLink";
 import { SEO } from "@/components/SEO";
 import FeedbackDialog from "@/features/feedback/components/FeedbackDialog";
@@ -449,6 +450,7 @@ const LayoutContent = ({ children }: LayoutProps) => {
       <div className="print:hidden">
         <GuestProgressClaim />
         <PolicyAcceptancePrompt />
+        <LlmFindingsBanner isAdmin={isAuthenticated && userIsAdmin} />
       </div>
       <main
         className={

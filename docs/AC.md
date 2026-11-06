@@ -2130,6 +2130,22 @@ A public page at `/featured` shows Admin-curated Sets and Collections with modif
 
 ---
 
+## AC 13. LLM model-list audit (#480)
+
+**Design:** A daily background job (`LlmModelAuditService`) calls each configured vendor's model-list endpoint (`GET {BaseUrl}/models`; the key is sent in a header, `x-goog-api-key` for Gemini and `Authorization: Bearer` for the others, never in the URL; no generation, no token spend) and compares it with the model saved for that vendor in the admin AI-provider settings (AC 5.12). The first run happens 24 hours after the API starts, then every 24 hours. The job runs only when `Llm:ModelAudit:Enabled` is `true` (default `false`). Each call has a 15 s timeout, a 1 MB body cap and a 5000-model cap; keys, key-bearing URLs and response bodies are never logged. Nothing here ever changes a model: the admin changes it on the AI providers page.
+
+- **AC 13.1** [System] **Given** a vendor with no API key (or no base URL), **then** it is skipped (logged as skipped) and produces no finding.
+- **AC 13.2** [System] **Given** a vendor answers 401, 403, 5xx, times out, returns an oversized or unreadable body, **then** the check is logged as failed for that vendor and no finding is created or changed.
+- **AC 13.3** [System] **Given** the configured model is in the vendor's list (Gemini ids are compared without the `models/` prefix), **then** no finding is created and no email is sent.
+- **AC 13.4** [System] **Given** the configured model is missing from the list, **then** one open finding (`ModelMissing`, vendor, model, first and last seen) is stored in `LlmModelFindings`. A partial unique index allows only one open finding per vendor and model, so reruns and overlapping runs (timer and manual, or two instances) keep one row.
+- **AC 13.5** [System] **Given** open findings that were not yet notified, **then** each run sends one digest email to `Llm:ModelAudit:AdminAddress` over SMTP (SES endpoint: `Llm:ModelAudit:Smtp:Host`, `Port`, `UserName`, `Password`, and `From`), and marks them notified only after a successful send. A finding is emailed once, not repeated daily. If the SMTP settings are missing or the send fails, a warning without any setting values is logged, the run does not fail, and the next run retries. No email is sent on a clean run. Secrets come only from environment variables or secret configuration, never from `appsettings*.json`.
+- **AC 13.6** [System] **Given** an open finding, **when** the model is listed again, or an admin has switched that vendor to another model, **then** the next audit run marks the finding resolved. There is no manual dismiss.
+- **AC 13.7** [Admin] **Given** `GET /admin/llm-model-findings`, **then** it returns **200** `{ findings: [{ id, vendor, model, kind, firstSeenUtc, lastSeenUtc }] }` with open findings only; anonymous callers get **401**, non-admins **403**.
+- **AC 13.8** [Admin] **Given** `POST /admin/llm-model-audit/run`, **then** it runs the audit now and returns **200** `{ newFindings, resolved, emailSent }`; a second call within `Llm:ModelAudit:ManualRunCooldownMinutes` (default 10) returns **429** with `Retry-After`; anonymous callers get **401**, non-admins **403**. It works even when the daily job is disabled.
+- **AC 13.9** [Admin] **Given** I am an admin and there are open findings, **then** every page shows a warning banner (`role="alert"`) listing each vendor and model with a link to `/admin/ai-providers`. It has no close button and goes away only once a later audit run resolves the findings. With zero findings nothing is shown. Non-admins and signed-out visitors never see it and the page makes no findings request for them. (backend tests: LlmModelAuditRunnerTests, HttpLlmModelCatalogClientTests, LlmModelAuditHttpTests, LlmModelAuditPostgresTests; frontend tests: LlmFindingsBanner.test.tsx)
+
+---
+
 ## Unclarities / questions for product owner
 
 - **Shareable link vs IsPublic**: Resolved — if a collection is **not** shared with others (IsPublic = false), only the owner can access it by ID or link. When **Shared with others** is on (IsPublic = true), anyone with the link (or who finds it by ID or via Discover) can view and quiz, and the collection appears in Discover. The UI uses the label **"Shared with others"** for this toggle. Users can search or enter a collection ID to open it (see AC 1.9.6).

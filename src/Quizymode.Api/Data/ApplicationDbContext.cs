@@ -86,6 +86,8 @@ public sealed class ApplicationDbContext : DbContext
 
     public DbSet<LlmAttempt> LlmAttempts => Set<LlmAttempt>();
 
+    public DbSet<LlmModelFinding> LlmModelFindings => Set<LlmModelFinding>();
+
     public DbSet<FeaturedItem> FeaturedItems => Set<FeaturedItem>();
 
     public DbSet<ReviewQueueEntry> ReviewQueueEntries => Set<ReviewQueueEntry>();
