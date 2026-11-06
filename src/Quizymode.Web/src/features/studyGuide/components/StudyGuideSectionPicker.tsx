@@ -1,13 +1,16 @@
+import * as React from "react";
 import type { StudyGuideQuota, StudyGuideSection } from "@/api/studyGuideDocuments";
 import { formatBytes } from "../studyGuideDocumentSchema";
 import { MAX_SECTIONS_PER_GENERATE, getSectionChip, isSectionSelectable } from "../studyGuideSections";
+
+export type QuestionStyle = "Recall" | "ClinicalScenario";
 
 interface StudyGuideSectionPickerProps {
   sections: StudyGuideSection[];
   quota: StudyGuideQuota;
   selection: Set<string>;
   onToggle: (sectionId: string) => void;
-  onGenerate: () => void;
+  onGenerate: (questionStyle: QuestionStyle) => void;
   isGenerating: boolean;
 }
 
@@ -19,6 +22,7 @@ export function StudyGuideSectionPicker({
   onGenerate,
   isGenerating,
 }: StudyGuideSectionPickerProps) {
+  const [questionStyle, setQuestionStyle] = React.useState<QuestionStyle>("Recall");
   const selectedCount = selection.size;
   const overQuota = selectedCount > quota.remainingToday;
   const overBatch = selectedCount > MAX_SECTIONS_PER_GENERATE;
@@ -96,10 +100,38 @@ export function StudyGuideSectionPicker({
         })}
       </ul>
 
+      <fieldset className="space-y-2">
+        <legend className="text-sm font-medium text-gray-900">Question style</legend>
+        <div className="flex flex-wrap gap-4 text-sm text-gray-700">
+          <label className="flex items-center gap-2">
+            <input
+              type="radio"
+              name="study-guide-question-style"
+              value="Recall"
+              checked={questionStyle === "Recall"}
+              disabled={isGenerating}
+              onChange={() => setQuestionStyle("Recall")}
+            />
+            Recall (facts from the text)
+          </label>
+          <label className="flex items-center gap-2">
+            <input
+              type="radio"
+              name="study-guide-question-style"
+              value="ClinicalScenario"
+              checked={questionStyle === "ClinicalScenario"}
+              disabled={isGenerating}
+              onChange={() => setQuestionStyle("ClinicalScenario")}
+            />
+            Clinical scenario (priority and first-action questions)
+          </label>
+        </div>
+      </fieldset>
+
       <div className="flex flex-wrap items-center gap-3">
         <button
           type="button"
-          onClick={onGenerate}
+          onClick={() => onGenerate(questionStyle)}
           disabled={generateDisabled}
           className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
         >

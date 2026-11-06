@@ -472,4 +472,54 @@ public sealed class StudyGuideDocumentHttpTests : ItemTestFixture, IAsyncLifetim
         (await min.Content.ReadFromJsonAsync<AdminLlmProviders.UsageResponse>())!.Rows.Should().BeEmpty();
         (await max.Content.ReadFromJsonAsync<AdminLlmProviders.UsageResponse>())!.Rows.Single().Attempts.Should().Be(2);
     }
+
+    [Fact]
+    public async Task Generate_QuestionStyle_RejectsUnknownStyles_AndCachesClinicalSeparately()
+    {
+        using HttpResponseMessage created = await SendAsync(HttpMethod.Post, "/study-guides/documents", Token("owner"),
+            Upload(text: "Paris is the capital and most populous city of France."));
+        StudyGuideDocumentContracts.Document document = (await created.Content.ReadFromJsonAsync<StudyGuideDocumentContracts.Document>())!;
+        Guid sectionId = Guid.Parse(document.Sections[0].Id);
+
+        using HttpResponseMessage invalid = await SendAsync(HttpMethod.Post, $"/study-guides/documents/{document.Id}/generate", Token("owner"),
+            JsonContent.Create(new { sectionIds = new[] { sectionId }, questionStyle = "Quiz" }));
+        invalid.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        using HttpResponseMessage clinical = await SendAsync(HttpMethod.Post, $"/study-guides/documents/{document.Id}/generate", Token("owner"),
+            JsonContent.Create(new { sectionIds = new[] { sectionId }, questionStyle = "ClinicalScenario" }));
+        clinical.StatusCode.Should().Be(HttpStatusCode.Accepted);
+        (await clinical.Content.ReadFromJsonAsync<GenerateStudyGuideSections.Response>())!.ChargedSections.Should().Be(1);
+
+        await using (Quizymode.Api.Data.ApplicationDbContext db = CreateDbContext())
+        {
+            db.SectionGenerations.Single().Mode.Should().Be(Quizymode.Api.Shared.Models.SectionGeneration.ClinicalScenarioMode);
+        }
+    }
+
+    [Fact]
+    public async Task Generate_SwitchingStyleOnTheSameSection_ChargesAgainAndRelinks()
+    {
+        using HttpResponseMessage created = await SendAsync(HttpMethod.Post, "/study-guides/documents", Token("owner"),
+            Upload(text: "Paris is the capital and most populous city of France."));
+        StudyGuideDocumentContracts.Document document = (await created.Content.ReadFromJsonAsync<StudyGuideDocumentContracts.Document>())!;
+        Guid sectionId = Guid.Parse(document.Sections[0].Id);
+
+        using HttpResponseMessage clinical = await SendAsync(HttpMethod.Post, $"/study-guides/documents/{document.Id}/generate", Token("owner"),
+            JsonContent.Create(new { sectionIds = new[] { sectionId }, questionStyle = "ClinicalScenario" }));
+        clinical.StatusCode.Should().Be(HttpStatusCode.Accepted);
+
+        using HttpResponseMessage recall = await SendAsync(HttpMethod.Post, $"/study-guides/documents/{document.Id}/generate", Token("owner"),
+            JsonContent.Create(new { sectionIds = new[] { sectionId } }));
+        recall.StatusCode.Should().Be(HttpStatusCode.Accepted);
+        (await recall.Content.ReadFromJsonAsync<GenerateStudyGuideSections.Response>())!.ChargedSections.Should().Be(1,
+            "a section moved to another question style is a new generation, not a free cache hit");
+
+        await using (Quizymode.Api.Data.ApplicationDbContext db = CreateDbContext())
+        {
+            db.SectionGenerations.Select(generation => generation.Mode).ToList()
+                .Should().BeEquivalentTo(new[] { Quizymode.Api.Shared.Models.SectionGeneration.ClinicalScenarioMode, Quizymode.Api.Shared.Models.SectionGeneration.GuideOnlyMode });
+            db.StudyGuideSections.Single(section => section.Id == sectionId).GenerationId.Should()
+                .Be(db.SectionGenerations.Single(generation => generation.Mode == Quizymode.Api.Shared.Models.SectionGeneration.GuideOnlyMode).Id);
+        }
+    }
 }

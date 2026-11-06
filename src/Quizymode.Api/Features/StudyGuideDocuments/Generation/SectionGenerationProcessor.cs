@@ -104,9 +104,10 @@ internal sealed class SectionGenerationProcessor(
 
         string sourceText = generation.SourceText;
         int maxQuestions = Math.Clamp(_options.MaxQuestions, 1, 20);
+        bool clinicalScenario = generation.Mode == SectionGeneration.ClinicalScenarioMode;
         ChatCompletionRequest request = new(
-            StudyGuidePromptV2.SystemPrompt,
-            StudyGuidePromptV2.BuildUserPrompt(sourceText, maxQuestions),
+            StudyGuidePromptV2.SystemPromptFor(clinicalScenario),
+            StudyGuidePromptV2.BuildUserPrompt(sourceText, maxQuestions, clinicalScenario),
             Math.Max(256, _options.MaxTokens),
             _options.Temperature);
 

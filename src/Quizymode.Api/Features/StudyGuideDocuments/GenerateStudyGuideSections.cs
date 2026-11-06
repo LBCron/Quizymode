@@ -22,7 +22,8 @@ public static class GenerateStudyGuideSections
 {
     public const int MaxSectionsPerRequest = 50;
 
-    public sealed record Request(List<Guid>? SectionIds);
+    /// <summary>Question style (#368): <c>Recall</c> (default when null) or <c>ClinicalScenario</c>.</summary>
+    public sealed record Request(List<Guid>? SectionIds, string? QuestionStyle = null);
 
     public sealed record Response(int QueuedCount, int CachedCount, int ChargedSections, StudyGuideDocumentContracts.Quota Quota);
 
@@ -35,6 +36,10 @@ public static class GenerateStudyGuideSections
                 .WithMessage("Select at least one section.")
                 .Must(ids => ids is not null && ids.Count is > 0 and <= MaxSectionsPerRequest)
                 .WithMessage($"Select between 1 and {MaxSectionsPerRequest} sections.");
+
+            RuleFor(x => x.QuestionStyle)
+                .Must(style => style is null || style is "Recall" or "ClinicalScenario")
+                .WithMessage("Question style must be Recall or ClinicalScenario.");
         }
     }
 
@@ -148,19 +153,20 @@ public static class GenerateStudyGuideSections
             return Result.Failure<Response?>(StudyGuideDocumentErrors.InvalidSections);
         }
 
+        string targetMode = SectionGeneration.ModeFor(request.QuestionStyle);
         List<Guid> attachedIds = sections.Where(s => s.GenerationId.HasValue).Select(s => s.GenerationId!.Value).Distinct().ToList();
         List<string> hashes = sections.Select(s => s.TextSha256).Distinct().ToList();
         List<SectionGeneration> known = await db.SectionGenerations
             .Where(generation =>
                 attachedIds.Contains(generation.Id) ||
                 (hashes.Contains(generation.TextSha256) &&
-                 generation.Mode == SectionGeneration.GuideOnlyMode &&
+                 generation.Mode == targetMode &&
                  generation.PromptVersion == SectionGeneration.CurrentPromptVersion))
             .ToListAsync(cancellationToken);
 
         Dictionary<Guid, SectionGeneration> byId = known.ToDictionary(generation => generation.Id);
         Dictionary<string, SectionGeneration> byHash = known
-            .Where(generation => generation.Mode == SectionGeneration.GuideOnlyMode &&
+            .Where(generation => generation.Mode == targetMode &&
                                  generation.PromptVersion == SectionGeneration.CurrentPromptVersion)
             .GroupBy(generation => generation.TextSha256, StringComparer.Ordinal)
             .ToDictionary(group => group.Key, group => group.First(), StringComparer.Ordinal);
@@ -183,6 +189,12 @@ public static class GenerateStudyGuideSections
         foreach (StudyGuideSection section in sections)
         {
             SectionGeneration? attached = section.GenerationId.HasValue ? byId.GetValueOrDefault(section.GenerationId.Value) : null;
+            if (attached is not null && attached.Mode != targetMode)
+            {
+                // Attached to the other question style (#368): relink to the requested style's generation.
+                attached = null;
+            }
+
             if (attached is not null && attached.Status != SectionGenerationStatus.Failed)
             {
                 // Already attached: nothing new to queue or charge.
@@ -258,7 +270,7 @@ public static class GenerateStudyGuideSections
                 {
                     Id = Guid.NewGuid(),
                     TextSha256 = section.TextSha256,
-                    Mode = SectionGeneration.GuideOnlyMode,
+                    Mode = targetMode,
                     PromptVersion = SectionGeneration.CurrentPromptVersion,
                     CreatedUtc = nowUtc
                 };

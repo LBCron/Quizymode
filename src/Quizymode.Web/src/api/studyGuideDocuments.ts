@@ -208,10 +208,15 @@ export const studyGuideDocumentsApi = {
     return response.data;
   },
 
-  generate: async (id: string, sectionIds: string[]): Promise<GenerateStudyGuideSectionsResponse> => {
+  generate: async (
+    id: string,
+    sectionIds: string[],
+    questionStyle?: "Recall" | "ClinicalScenario"
+  ): Promise<GenerateStudyGuideSectionsResponse> => {
+    const body = questionStyle ? { sectionIds, questionStyle } : { sectionIds };
     const response = await apiClient.post<GenerateStudyGuideSectionsResponse>(
       `${documentPath(id)}/generate`,
-      { sectionIds }
+      body
     );
     return response.data;
   },

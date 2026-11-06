@@ -200,8 +200,27 @@ describe("StudyGuideDocumentPage", () => {
 
     fireEvent.click(await screen.findByRole("button", { name: "Generate 3 sections" }));
 
-    await waitFor(() => expect(studyGuideDocumentsApi.generate).toHaveBeenCalledWith("doc-1", ["s0", "s1", "s2"]));
+    await waitFor(() => expect(studyGuideDocumentsApi.generate).toHaveBeenCalledWith("doc-1", ["s0", "s1", "s2"], "Recall"));
     expect(await screen.findByText("Daily limit of 10 sections reached.")).toBeInTheDocument();
+  });
+
+  it("sends the clinical scenario question style when it is chosen", async () => {
+    vi.mocked(studyGuideDocumentsApi.get).mockResolvedValue(makeDocument());
+    vi.mocked(studyGuideDocumentsApi.generate).mockResolvedValueOnce({
+      queuedCount: 3,
+      cachedCount: 0,
+      chargedSections: 3,
+      quota: makeDocument().quota,
+    });
+
+    renderPage();
+
+    fireEvent.click(await screen.findByLabelText(/Clinical scenario/));
+    fireEvent.click(await screen.findByRole("button", { name: "Generate 3 sections" }));
+
+    await waitFor(() =>
+      expect(studyGuideDocumentsApi.generate).toHaveBeenCalledWith("doc-1", ["s0", "s1", "s2"], "ClinicalScenario")
+    );
   });
 
   it("polls while sections are queued and shows the free-tier delay", async () => {

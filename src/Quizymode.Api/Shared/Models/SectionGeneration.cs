@@ -24,6 +24,13 @@ public sealed class SectionGeneration
 {
     public const string GuideOnlyMode = "GuideOnly";
 
+    /// <summary>Mode for the clinical scenario question style (#368); cached separately from <see cref="GuideOnlyMode"/>.</summary>
+    public const string ClinicalScenarioMode = "ClinicalScenario";
+
+    /// <summary>Maps a validated question style (<c>Recall</c>, <c>ClinicalScenario</c> or null) to its cache mode.</summary>
+    public static string ModeFor(string? questionStyle) =>
+        string.Equals(questionStyle, "ClinicalScenario", StringComparison.Ordinal) ? ClinicalScenarioMode : GuideOnlyMode;
+
     /// <summary>Current prompt version for <see cref="GuideOnlyMode"/>.</summary>
     public const int CurrentPromptVersion = 1;
 

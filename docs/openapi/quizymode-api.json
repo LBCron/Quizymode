@@ -16424,8 +16424,19 @@
                 "$ref": "#/components/schemas/System.Collections.Generic.ListOfSystem.Guid"
               }
             ]
+          },
+          "questionStyle": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.String"
+              }
+            ]
           }
-        }
+        },
+        "description": "Question style (#368): `Recall` (default when null) or `ClinicalScenario`."
       },
       "Quizymode.Api.Features.StudyGuideDocuments.GenerateStudyGuideSections.Response": {
         "required": [

@@ -36,7 +36,7 @@ import {
   isSectionSelectable,
   pruneSelection,
 } from "../studyGuideSections";
-import { StudyGuideSectionPicker } from "../components/StudyGuideSectionPicker";
+import { StudyGuideSectionPicker, type QuestionStyle } from "../components/StudyGuideSectionPicker";
 import { StudyGuideCandidateCard } from "../components/StudyGuideCandidateCard";
 import { StudyGuideSteps } from "../components/StudyGuideSteps";
 
@@ -193,7 +193,8 @@ const StudyGuideDocumentPage = () => {
   }, [showQuickFailure]);
 
   const generateMutation = useMutation({
-    mutationFn: (sectionIds: string[]) => studyGuideDocumentsApi.generate(id, sectionIds),
+    mutationFn: ({ sectionIds, questionStyle }: { sectionIds: string[]; questionStyle: QuestionStyle }) =>
+      studyGuideDocumentsApi.generate(id, sectionIds, questionStyle),
     onSuccess: (response) => {
       setGenerateResult(response);
       setGenerateError(null);
@@ -491,7 +492,9 @@ const StudyGuideDocumentPage = () => {
             quota={document.quota}
             selection={effectiveSelection}
             onToggle={toggleSection}
-            onGenerate={() => generateMutation.mutate([...effectiveSelection])}
+            onGenerate={(questionStyle) =>
+              generateMutation.mutate({ sectionIds: [...effectiveSelection], questionStyle })
+            }
             isGenerating={generateMutation.isPending}
           />
         </div>
