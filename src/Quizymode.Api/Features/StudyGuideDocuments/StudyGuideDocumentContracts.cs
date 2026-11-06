@@ -22,7 +22,8 @@ public static class StudyGuideDocumentContracts
         string? CollectionId,
         DateTime CreatedUtc,
         DateTime LastActivityUtc,
-        DateTime ExpiresUtc);
+        DateTime ExpiresUtc,
+        bool IsPrimarySource);
 
     public sealed record Document(
         string Id,
@@ -38,7 +39,8 @@ public static class StudyGuideDocumentContracts
         DateTime ExpiresUtc,
         bool IsDuplicate,
         Quota Quota,
-        List<Section> Sections);
+        List<Section> Sections,
+        bool IsPrimarySource);
 
     /// <summary>
     /// Status: New | Queued | Processing | Generated | Failed. Candidates are listed only when Generated.

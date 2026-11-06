@@ -2145,6 +2145,11 @@ namespace Quizymode.Api.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("character varying(10)");
 
+                    b.Property<bool>("IsPrimarySource")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
                     b.Property<string>("KeywordsJson")
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");

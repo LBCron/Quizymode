@@ -20,6 +20,7 @@ internal sealed class StudyGuideDocumentConfiguration : IEntityTypeConfiguration
         builder.Property(x => x.NavigationKeyword1).IsRequired().HasMaxLength(30);
         builder.Property(x => x.NavigationKeyword2).IsRequired().HasMaxLength(30);
         builder.Property(x => x.KeywordsJson).HasMaxLength(2000);
+        builder.Property(x => x.IsPrimarySource).IsRequired().HasDefaultValue(false);
         builder.Property(x => x.CreatedUtc).IsRequired();
         builder.Property(x => x.LastActivityUtc).IsRequired();
         builder.Property(x => x.ExpiresUtc).IsRequired();

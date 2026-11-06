@@ -62,6 +62,7 @@ public sealed class StudyGuideDocumentHttpTests : ItemTestFixture, IAsyncLifetim
                 new GetStudyGuideDocument.Endpoint().MapEndpoint(app);
                 new GenerateStudyGuideSections.Endpoint().MapEndpoint(app);
                 new AcceptStudyGuideCandidates.Endpoint().MapEndpoint(app);
+                new SetStudyGuideDocumentPrimarySource.Endpoint().MapEndpoint(app);
                 new AdminLlmProviders.Endpoint().MapEndpoint(app);
             });
     }
@@ -150,6 +151,45 @@ public sealed class StudyGuideDocumentHttpTests : ItemTestFixture, IAsyncLifetim
         theirs.StatusCode.Should().Be(HttpStatusCode.NotFound);
         theirGenerate.StatusCode.Should().Be(HttpStatusCode.NotFound);
         theirAccept.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task PrimarySource_OwnerCanToggleAndItShowsInGetAndList()
+    {
+        StudyGuideDocumentContracts.Document document = await UploadTextAsync("primary-owner", "The mitochondria is the powerhouse of the cell and makes ATP.");
+        document.IsPrimarySource.Should().BeFalse();
+        string path = $"/study-guides/documents/{document.Id}/primary-source";
+
+        using HttpResponseMessage on = await SendAsync(HttpMethod.Put, path, Token("primary-owner"), JsonContent.Create(new { isPrimarySource = true }));
+        on.StatusCode.Should().Be(HttpStatusCode.OK);
+        (await on.Content.ReadFromJsonAsync<SetStudyGuideDocumentPrimarySource.Response>())!.IsPrimarySource.Should().BeTrue();
+
+        using HttpResponseMessage get = await SendAsync(HttpMethod.Get, $"/study-guides/documents/{document.Id}", Token("primary-owner"));
+        (await get.Content.ReadFromJsonAsync<StudyGuideDocumentContracts.Document>())!.IsPrimarySource.Should().BeTrue();
+        using HttpResponseMessage list = await SendAsync(HttpMethod.Get, "/study-guides/documents", Token("primary-owner"));
+        (await list.Content.ReadFromJsonAsync<ListStudyGuideDocuments.Response>())!.Documents.Single().IsPrimarySource.Should().BeTrue();
+
+        using HttpResponseMessage off = await SendAsync(HttpMethod.Put, path, Token("primary-owner"), JsonContent.Create(new { isPrimarySource = false }));
+        off.StatusCode.Should().Be(HttpStatusCode.OK);
+        using HttpResponseMessage getAgain = await SendAsync(HttpMethod.Get, $"/study-guides/documents/{document.Id}", Token("primary-owner"));
+        (await getAgain.Content.ReadFromJsonAsync<StudyGuideDocumentContracts.Document>())!.IsPrimarySource.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task PrimarySource_RejectsAnonymousStrangersAndMissingValue()
+    {
+        StudyGuideDocumentContracts.Document document = await UploadTextAsync("primary-owner2", "Photosynthesis converts light energy into chemical energy in plants.");
+        string path = $"/study-guides/documents/{document.Id}/primary-source";
+
+        using HttpResponseMessage anonymous = await SendAsync(HttpMethod.Put, path, null, JsonContent.Create(new { isPrimarySource = true }));
+        using HttpResponseMessage stranger = await SendAsync(HttpMethod.Put, path, Token("stranger"), JsonContent.Create(new { isPrimarySource = true }));
+        using HttpResponseMessage missing = await SendAsync(HttpMethod.Put, path, Token("primary-owner2"), JsonContent.Create(new { }));
+
+        anonymous.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        stranger.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        missing.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        using HttpResponseMessage get = await SendAsync(HttpMethod.Get, $"/study-guides/documents/{document.Id}", Token("primary-owner2"));
+        (await get.Content.ReadFromJsonAsync<StudyGuideDocumentContracts.Document>())!.IsPrimarySource.Should().BeFalse();
     }
 
     [Fact]

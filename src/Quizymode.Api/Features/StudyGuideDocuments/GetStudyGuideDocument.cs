@@ -155,7 +155,8 @@ public static class GetStudyGuideDocument
             document.ExpiresUtc,
             isDuplicate,
             quota.ToResponse(),
-            sectionResponses);
+            sectionResponses,
+            document.IsPrimarySource);
     }
 
     private static StudyGuideDocumentContracts.Section ToSection(

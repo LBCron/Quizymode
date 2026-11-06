@@ -5958,6 +5958,56 @@
         }
       }
     },
+    "/study-guides/documents/{id}/primary-source": {
+      "put": {
+        "tags": [
+          "StudyGuideDocuments"
+        ],
+        "summary": "Mark or unmark a study guide document as my primary source",
+        "description": "Owner only; other users get 404. Does not extend the document's retention.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/System.Guid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Quizymode.Api.Features.StudyGuideDocuments.SetStudyGuideDocumentPrimarySource.Request"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Quizymode.Api.Features.StudyGuideDocuments.SetStudyGuideDocumentPrimarySource.Response"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/study-plans": {
       "get": {
         "tags": [
@@ -16663,6 +16713,39 @@
           }
         }
       },
+      "Quizymode.Api.Features.StudyGuideDocuments.SetStudyGuideDocumentPrimarySource.Request": {
+        "required": [
+          "isPrimarySource"
+        ],
+        "type": "object",
+        "properties": {
+          "isPrimarySource": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.NullableOfSystem.Boolean"
+              }
+            ]
+          }
+        }
+      },
+      "Quizymode.Api.Features.StudyGuideDocuments.SetStudyGuideDocumentPrimarySource.Response": {
+        "required": [
+          "id",
+          "isPrimarySource"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/System.String"
+          },
+          "isPrimarySource": {
+            "$ref": "#/components/schemas/System.Boolean"
+          }
+        }
+      },
       "Quizymode.Api.Features.StudyGuideDocuments.StudyGuideDocumentContracts.Candidate": {
         "required": [
           "id",
@@ -16740,7 +16823,8 @@
           "expiresUtc",
           "isDuplicate",
           "quota",
-          "sections"
+          "sections",
+          "isPrimarySource"
         ],
         "type": "object",
         "properties": {
@@ -16799,6 +16883,9 @@
           },
           "sections": {
             "$ref": "#/components/schemas/System.Collections.Generic.ListOfQuizymode.Api.Features.StudyGuideDocuments.StudyGuideDocumentContracts.Section"
+          },
+          "isPrimarySource": {
+            "$ref": "#/components/schemas/System.Boolean"
           }
         }
       },
@@ -16813,7 +16900,8 @@
           "collectionId",
           "createdUtc",
           "lastActivityUtc",
-          "expiresUtc"
+          "expiresUtc",
+          "isPrimarySource"
         ],
         "type": "object",
         "properties": {
@@ -16853,6 +16941,9 @@
           },
           "expiresUtc": {
             "$ref": "#/components/schemas/System.DateTime"
+          },
+          "isPrimarySource": {
+            "$ref": "#/components/schemas/System.Boolean"
           }
         }
       },

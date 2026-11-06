@@ -46,6 +46,8 @@ export interface StudyGuideDocumentSummary {
   createdUtc: string;
   lastActivityUtc: string;
   expiresUtc: string;
+  /** The owner marked this guide as their primary source (#372). */
+  isPrimarySource?: boolean;
 }
 
 export interface StudyGuideCandidate {
@@ -99,6 +101,8 @@ export interface StudyGuideDocument {
   isDuplicate: boolean;
   quota: StudyGuideQuota;
   sections: StudyGuideSection[];
+  /** The owner marked this guide as their primary source (#372). */
+  isPrimarySource?: boolean;
 }
 
 export interface CreateStudyGuideDocumentRequest {
@@ -217,6 +221,15 @@ export const studyGuideDocumentsApi = {
     const response = await apiClient.post<GenerateStudyGuideSectionsResponse>(
       `${documentPath(id)}/generate`,
       body
+    );
+    return response.data;
+  },
+
+  /** Mark or unmark a guide as my primary source (PUT /study-guides/documents/{id}/primary-source). */
+  setPrimarySource: async (id: string, isPrimarySource: boolean): Promise<{ id: string; isPrimarySource: boolean }> => {
+    const response = await apiClient.put<{ id: string; isPrimarySource: boolean }>(
+      `${documentPath(id)}/primary-source`,
+      { isPrimarySource }
     );
     return response.data;
   },

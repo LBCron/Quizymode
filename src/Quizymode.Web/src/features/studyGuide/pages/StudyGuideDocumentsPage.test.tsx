@@ -66,6 +66,17 @@ describe("StudyGuideDocumentsPage", () => {
     expect(summary).toHaveTextContent("Across all your guides: 19 questions saved in 2 study guides.");
   });
 
+  it("badges a primary source guide in the list (AC 6.6.35)", async () => {
+    vi.mocked(studyGuideDocumentsApi.getConfig).mockResolvedValue(config("Free", 1, 60));
+    vi.mocked(studyGuideDocumentsApi.list).mockResolvedValue({
+      documents: [{ ...summaryDocument("a", 1), isPrimarySource: true }, summaryDocument("b", 1)],
+    });
+
+    renderPage();
+
+    expect(await screen.findAllByText("Primary source")).toHaveLength(1);
+  });
+
   it("uses singular forms and the premium plan name", async () => {
     vi.mocked(studyGuideDocumentsApi.getConfig).mockResolvedValue(config("Premium", 1, 1000));
     vi.mocked(studyGuideDocumentsApi.list).mockResolvedValue({ documents: [summaryDocument("a", 1)] });

@@ -86,7 +86,8 @@ public static class ListStudyGuideDocuments
                     document.CollectionId?.ToString(),
                     document.CreatedUtc,
                     document.LastActivityUtc,
-                    document.ExpiresUtc);
+                    document.ExpiresUtc,
+                    document.IsPrimarySource);
             })
             .ToList();
 

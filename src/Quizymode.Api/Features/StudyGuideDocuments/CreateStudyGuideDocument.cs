@@ -202,6 +202,7 @@ public static class CreateStudyGuideDocument
             services.AddScoped<IValidator<Request>, Validator>();
             services.AddScoped<IValidator<GenerateStudyGuideSections.Request>, GenerateStudyGuideSections.Validator>();
             services.AddScoped<IValidator<AcceptStudyGuideCandidates.Request>, AcceptStudyGuideCandidates.Validator>();
+            services.AddScoped<IValidator<SetStudyGuideDocumentPrimarySource.Request>, SetStudyGuideDocumentPrimarySource.Validator>();
         }
     }
 

@@ -36,6 +36,9 @@ public sealed class StudyGuideDocument
     /// <summary>The collection that accepted questions are added to (created on first accept).</summary>
     public Guid? CollectionId { get; set; }
 
+    /// <summary>The owner marked this document as their primary source (e.g. the textbook); guide books defer to it (#372).</summary>
+    public bool IsPrimarySource { get; set; }
+
     public DateTime CreatedUtc { get; set; }
 
     public DateTime LastActivityUtc { get; set; }

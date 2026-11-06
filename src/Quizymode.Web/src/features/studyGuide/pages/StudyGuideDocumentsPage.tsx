@@ -73,7 +73,14 @@ const StudyGuideDocumentsPage = () => {
               className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
             >
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-gray-900">{document.title}</p>
+                <p className="truncate text-sm font-semibold text-gray-900">
+                  {document.title}
+                  {document.isPrimarySource && (
+                    <span className="ml-2 rounded bg-indigo-50 px-1.5 py-0.5 text-xs font-medium text-indigo-700">
+                      Primary source
+                    </span>
+                  )}
+                </p>
                 <p className="text-xs text-gray-600">
                   {document.generatedSectionCount} of {document.sectionCount} section
                   {document.sectionCount === 1 ? "" : "s"} generated · {document.acceptedCount} question

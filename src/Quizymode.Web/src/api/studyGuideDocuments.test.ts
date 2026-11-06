@@ -1,20 +1,29 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { buildCreateDocumentFormData, studyGuideDocumentsApi } from "./studyGuideDocuments";
 
-const { mockGet, mockPost } = vi.hoisted(() => ({
+const { mockGet, mockPost, mockPut } = vi.hoisted(() => ({
   mockGet: vi.fn(),
   mockPost: vi.fn(),
+  mockPut: vi.fn(),
 }));
 
 vi.mock("./client", () => ({
   apiClient: {
     get: mockGet,
     post: mockPost,
+    put: mockPut,
   },
 }));
 
 describe("studyGuideDocumentsApi", () => {
   beforeEach(() => vi.clearAllMocks());
+
+  it("setPrimarySource calls PUT /study-guides/documents/{id}/primary-source", async () => {
+    mockPut.mockResolvedValueOnce({ data: { id: "d1", isPrimarySource: true } });
+    const result = await studyGuideDocumentsApi.setPrimarySource("d1", true);
+    expect(mockPut).toHaveBeenCalledWith("/study-guides/documents/d1/primary-source", { isPrimarySource: true });
+    expect(result.isPrimarySource).toBe(true);
+  });
 
   it("getConfig calls GET /study-guides/documents/config", async () => {
     mockGet.mockResolvedValueOnce({ data: { enabled: true } });

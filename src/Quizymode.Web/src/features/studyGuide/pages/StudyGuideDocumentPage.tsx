@@ -208,6 +208,14 @@ const StudyGuideDocumentPage = () => {
     },
   });
 
+  const primarySourceMutation = useMutation({
+    mutationFn: (isPrimarySource: boolean) => studyGuideDocumentsApi.setPrimarySource(id, isPrimarySource),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey });
+      void queryClient.invalidateQueries({ queryKey: ["studyGuideDocuments", "list"] });
+    },
+  });
+
   const acceptMutation = useMutation({
     mutationFn: async ({
       candidates,
@@ -375,6 +383,26 @@ const StudyGuideDocumentPage = () => {
           {" · "}
           {document.category} / {document.navigationKeyword1} / {document.navigationKeyword2}
         </p>
+        <div>
+          <label className="inline-flex min-h-11 items-center gap-2 text-sm text-gray-800">
+            <input
+              type="checkbox"
+              checked={!!document.isPrimarySource}
+              disabled={primarySourceMutation.isPending}
+              onChange={(event) => primarySourceMutation.mutate(event.target.checked)}
+              className="h-4 w-4 rounded border-gray-300 text-indigo-600"
+            />
+            Primary source
+          </label>
+          <p className="text-xs text-gray-500">
+            Mark your textbook or main reference. Other guides defer to it when answers conflict.
+          </p>
+          {primarySourceMutation.isError && (
+            <p role="alert" className="text-xs text-red-700">
+              Couldn't update the primary source setting. Please try again.
+            </p>
+          )}
+        </div>
         <p className="text-xs text-gray-500">
           Text kept until {formatDate(document.expiresUtc)}. Saved questions stay in your collection after that.
         </p>

@@ -22,6 +22,7 @@ vi.mock("@/api/studyGuideDocuments", () => ({
     get: vi.fn(),
     generate: vi.fn(),
     accept: vi.fn(),
+    setPrimarySource: vi.fn(),
   },
 }));
 
@@ -118,6 +119,27 @@ describe("StudyGuideDocumentPage", () => {
       "href",
       "/explore/collections/col-1"
     );
+  });
+
+  it("toggles the primary source flag for the document (AC 6.6.35)", async () => {
+    vi.mocked(studyGuideDocumentsApi.get).mockResolvedValue(makeDocument({ isPrimarySource: false }));
+    vi.mocked(studyGuideDocumentsApi.setPrimarySource).mockResolvedValue({ id: "doc-1", isPrimarySource: true });
+
+    renderPage();
+
+    const toggle = await screen.findByRole("checkbox", { name: /primary source/i });
+    expect(toggle).not.toBeChecked();
+    fireEvent.click(toggle);
+
+    await waitFor(() => expect(studyGuideDocumentsApi.setPrimarySource).toHaveBeenCalledWith("doc-1", true));
+  });
+
+  it("shows the primary source checkbox checked when the document is the primary source", async () => {
+    vi.mocked(studyGuideDocumentsApi.get).mockResolvedValue(makeDocument({ isPrimarySource: true }));
+
+    renderPage();
+
+    expect(await screen.findByRole("checkbox", { name: /primary source/i })).toBeChecked();
   });
 
   it("preselects the first unprocessed sections up to the quota left today and never counts cached ones", async () => {
