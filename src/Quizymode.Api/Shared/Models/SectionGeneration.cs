@@ -32,7 +32,7 @@ public sealed class SectionGeneration
         string.Equals(questionStyle, "ClinicalScenario", StringComparison.Ordinal) ? ClinicalScenarioMode : GuideOnlyMode;
 
     /// <summary>Current prompt version for <see cref="GuideOnlyMode"/>.</summary>
-    public const int CurrentPromptVersion = 1;
+    public const int CurrentPromptVersion = 2;
 
     public Guid Id { get; set; }
 
@@ -92,6 +92,9 @@ public sealed class GenerationCandidate
     public string CorrectAnswer { get; set; } = string.Empty;
 
     public string IncorrectAnswersJson { get; set; } = "[]";
+
+    /// <summary>JSON object keyed by incorrect answer index (string keys): "why this option is wrong" text (#485).</summary>
+    public string IncorrectAnswerRationaleJson { get; set; } = "{}";
 
     public string Explanation { get; set; } = string.Empty;
 

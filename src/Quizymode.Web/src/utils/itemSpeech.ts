@@ -95,6 +95,27 @@ export const INCORRECT_ANSWER_RATIONALE_MAX = 200;
  * Drops blank answers and keeps each rationale attached to its answer, re-indexed the same way as
  * {@link compactIncorrectAnswersWithSpeech}. Blank rationales are dropped.
  */
+/**
+ * Upload JSON may key "incorrectAnswerRationale" by answer text (the shape the study-guide generator returns, #485).
+ * Returns the index-keyed map for the final answer list; unmatched keys and non-string values are ignored.
+ */
+export function rationaleByAnswerText(raw: unknown, answers: string[]): Record<number, string> | null {
+  if (raw === null || typeof raw !== "object" || Array.isArray(raw)) {
+    return null;
+  }
+  const result: Record<number, string> = {};
+  for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+    if (typeof value !== "string") {
+      continue;
+    }
+    const index = answers.findIndex((answer) => answer.trim().toLowerCase() === key.trim().toLowerCase());
+    if (index >= 0) {
+      result[index] = value;
+    }
+  }
+  return result;
+}
+
 export function compactIncorrectAnswerRationale(
   answers: string[],
   rationaleByIndex?: Record<number, string> | null

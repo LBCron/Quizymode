@@ -186,7 +186,7 @@ public sealed class StudyGuideDocumentTests : StudyGuideDocumentFixture
             g.NotBeforeUtc == Clock.UtcNow.AddMinutes(10) &&
             g.SourceText != null &&
             g.Mode == SectionGeneration.GuideOnlyMode &&
-            g.PromptVersion == 1);
+            g.PromptVersion == SectionGeneration.CurrentPromptVersion);
         (await DbContext.StudyGuideQuotaCharges.SumAsync(c => c.Cost)).Should().Be(2);
 
         StudyGuideDocumentContracts.Document? reloaded = await GetAsync(document.Id);

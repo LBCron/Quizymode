@@ -41,6 +41,7 @@ internal sealed class GenerationCandidateConfiguration : IEntityTypeConfiguratio
         builder.Property(x => x.Question).IsRequired().HasMaxLength(1000);
         builder.Property(x => x.CorrectAnswer).IsRequired().HasMaxLength(500);
         builder.Property(x => x.IncorrectAnswersJson).IsRequired().HasMaxLength(4000);
+        builder.Property(x => x.IncorrectAnswerRationaleJson).IsRequired().HasMaxLength(2000);
         builder.Property(x => x.Explanation).IsRequired().HasMaxLength(4000);
         builder.Property(x => x.SourceQuote).IsRequired().HasMaxLength(1000);
         builder.HasIndex(x => new { x.GenerationId, x.Index }).IsUnique();

@@ -18,6 +18,7 @@ import ContentComplianceNotice from "@/features/legal/components/ContentComplian
 import PasteTextImport from "@/features/collections/components/PasteTextImport";
 import { findPictureImportError } from "@/features/items/utils/pictureImport";
 import { ADMIN_ITEM_LIMIT, NON_ADMIN_ITEM_LIMIT, type ImportItem } from "@/features/collections/utils/importParser";
+import { compactIncorrectAnswerRationale, rationaleByAnswerText } from "@/utils/itemSpeech";
 
 type UploadTab = "json" | "paste";
 
@@ -33,6 +34,7 @@ Each item must be a JSON object with this exact shape:
   "correctAnswer": "Correct answer",
   "incorrectAnswers": ["Wrong answer 1", "Wrong answer 2", "Wrong answer 3"],
   "explanation": "Short explanation of why the correct answer is right (optional but recommended)",
+  "incorrectAnswerRationale": { "Wrong answer 1": "Why wrong answer 1 is wrong (optional, max 200 characters)" },
   "source": "ChatGPT",
   "groupLabel": "Short group name (optional, max 30 characters, no line breaks)",
   "uploadId" : "${uploadId}"
@@ -46,6 +48,7 @@ Requirements:
   - a non-empty "question" (max 1,000 characters)
   - a non-empty "correctAnswer" (max 200 characters)
   - 1–4 "incorrectAnswers" (each max 200 characters)
+  - "incorrectAnswerRationale" (optional object): keys are incorrect answer texts copied exactly; values are max 200 characters on why that option is wrong
   - "source" (optional, max 1000 characters - e.g., a direct reference URL)
   - "groupLabel" (optional, max 30 characters, no line breaks - used by the Sort It game, e.g., "Mammals")
 - All strings must be plain text (no HTML, no LaTeX).
@@ -226,6 +229,16 @@ const UploadToCollectionPage = ({
         : undefined,
       source: row.source != null ? String(row.source) : undefined,
       groupLabel: row.groupLabel != null ? String(row.groupLabel).trim() || undefined : undefined,
+    })).map((item, index) => ({
+      ...item,
+      // "Why this is wrong" (#485): keys may be the answer texts the study-guide generator returns.
+      incorrectAnswerRationale: compactIncorrectAnswerRationale(
+        item.incorrectAnswers,
+        rationaleByAnswerText(
+          (items[index] as Record<string, unknown>).incorrectAnswerRationale,
+          item.incorrectAnswers
+        )
+      ),
     }));
     const groupLabelRows = mapped
       .map((row, index) =>

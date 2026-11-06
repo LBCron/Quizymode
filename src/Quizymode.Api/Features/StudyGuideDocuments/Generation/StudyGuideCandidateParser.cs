@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using Quizymode.Api.Features.StudyGuideDocuments.Extraction;
 using Quizymode.Api.Services;
+using Quizymode.Api.Shared.Helpers;
 
 namespace Quizymode.Api.Features.StudyGuideDocuments.Generation;
 
@@ -11,7 +12,8 @@ internal sealed record ParsedCandidate(
     List<string> IncorrectAnswers,
     string Explanation,
     string SourceQuote,
-    int? Page);
+    int? Page,
+    Dictionary<int, string>? IncorrectAnswerRationale = null);
 
 /// <summary><see cref="ReturnedCount"/> questions came back; <see cref="Kept"/> passed every check.</summary>
 internal sealed record CandidateParseResult(bool IsValidJson, int ReturnedCount, List<ParsedCandidate> Kept)
@@ -113,6 +115,10 @@ internal static class StudyGuideCandidateParser
             }
 
             List<string?> values = [candidate.Question, candidate.CorrectAnswer, candidate.Explanation, candidate.SourceQuote];
+            if (candidate.IncorrectAnswerRationale is not null)
+            {
+                values.AddRange(candidate.IncorrectAnswerRationale.Values);
+            }
             values.AddRange(candidate.IncorrectAnswers);
             if (moderation.Evaluate(values.ToArray()).Outcome == TextModerationOutcome.Blocked)
             {
@@ -186,7 +192,44 @@ internal static class StudyGuideCandidateParser
             ? pageNumber
             : null;
 
-        return new ParsedCandidate(question, correctAnswer, incorrect, explanation, sourceQuote, page);
+        return new ParsedCandidate(
+            question,
+            correctAnswer,
+            incorrect,
+            explanation,
+            sourceQuote,
+            page,
+            ReadRationale(element, incorrect));
+    }
+
+    /// <summary>
+    /// Optional "why this option is wrong" text (#485). Keys are incorrect answer texts (matched case-insensitively); an
+    /// unmatched key or a non-string value is ignored, and the rest of the question is kept.
+    /// </summary>
+    private static Dictionary<int, string> ReadRationale(JsonElement element, List<string> incorrect)
+    {
+        Dictionary<int, string> rationale = [];
+        if (!element.TryGetProperty("incorrectAnswerRationale", out JsonElement rationaleElement) ||
+            rationaleElement.ValueKind != JsonValueKind.Object)
+        {
+            return rationale;
+        }
+
+        foreach (JsonProperty property in rationaleElement.EnumerateObject())
+        {
+            if (property.Value.ValueKind != JsonValueKind.String)
+            {
+                continue;
+            }
+
+            int index = incorrect.FindIndex(answer => string.Equals(answer, property.Name.Trim(), StringComparison.OrdinalIgnoreCase));
+            if (index >= 0)
+            {
+                rationale[index] = (property.Value.GetString() ?? string.Empty).Trim();
+            }
+        }
+
+        return IncorrectAnswerRationaleHelper.Normalize(rationale, incorrect.Count);
     }
 
     private static string GetString(JsonElement element, string property) =>

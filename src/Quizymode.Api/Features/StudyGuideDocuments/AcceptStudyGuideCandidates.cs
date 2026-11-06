@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Quizymode.Api.Shared.Http;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
@@ -347,7 +348,12 @@ public static class AcceptStudyGuideCandidates
             string explanation = publish
                 ? baseExplanation
                 : BuildExplanation(baseExplanation, document.Title, sectionsByGeneration[candidate.GenerationId].Label);
-            AddItemsBulk.ItemRequest item = new(question, correctAnswer, incorrectAnswers, explanation);
+            AddItemsBulk.ItemRequest item = new(
+                question,
+                correctAnswer,
+                incorrectAnswers,
+                explanation,
+                IncorrectAnswerRationale: MapRationale(candidate, incorrectAnswers));
             FluentValidation.Results.ValidationResult itemValidation = itemValidator.Validate(item);
             if (!itemValidation.IsValid)
             {
@@ -525,6 +531,39 @@ public static class AcceptStudyGuideCandidates
         };
         db.Collections.Add(collection);
         return collection;
+    }
+
+    /// <summary>
+    /// Carries generated "why wrong" text (#485) into the item by answer text, so an edited incorrect answer that no longer
+    /// matches the generated text loses its rationale instead of attaching it to the wrong option.
+    /// </summary>
+    internal static Dictionary<int, string>? MapRationale(GenerationCandidate candidate, List<string> finalAnswers)
+    {
+        Dictionary<int, string> generated = string.IsNullOrEmpty(candidate.IncorrectAnswerRationaleJson)
+            ? []
+            : JsonSerializer.Deserialize<Dictionary<int, string>>(candidate.IncorrectAnswerRationaleJson) ?? [];
+        if (generated.Count == 0)
+        {
+            return null;
+        }
+
+        List<string> generatedAnswers = GetStudyGuideDocument.ReadAnswers(candidate.IncorrectAnswersJson);
+        Dictionary<int, string> mapped = [];
+        foreach ((int generatedIndex, string text) in generated)
+        {
+            if (generatedIndex < 0 || generatedIndex >= generatedAnswers.Count)
+            {
+                continue;
+            }
+
+            int finalIndex = finalAnswers.FindIndex(answer => string.Equals(answer, generatedAnswers[generatedIndex], StringComparison.OrdinalIgnoreCase));
+            if (finalIndex >= 0 && !string.IsNullOrWhiteSpace(text))
+            {
+                mapped[finalIndex] = text;
+            }
+        }
+
+        return mapped.Count == 0 ? null : mapped;
     }
 
     internal static string BuildExplanation(string explanation, string title, string label)

@@ -13,6 +13,7 @@ internal static class StudyGuidePromptV2
         "Respond with a single valid json object only, with no preamble, no markdown and no code fences, in exactly this shape:\n" +
         "{\"questions\":[{\"question\":\"What do plants convert light energy into?\",\"correctAnswer\":\"Chemical energy\"," +
         "\"incorrectAnswers\":[\"Sound energy\",\"Magnetic energy\",\"Nuclear energy\"]," +
+        "\"incorrectAnswerRationale\":{\"Sound energy\":\"The guide says light energy becomes chemical energy, not sound.\"}," +
         "\"explanation\":\"The guide says photosynthesis turns light energy into chemical energy stored in glucose.\"," +
         "\"sourceQuote\":\"photosynthesis converts light energy into chemical energy\",\"page\":12}]}";
 
@@ -25,6 +26,7 @@ internal static class StudyGuidePromptV2
         "{\"questions\":[{\"question\":\"A client with a new fever and stiff neck is admitted. Which action should the nurse take first?\"," +
         "\"correctAnswer\":\"Place the client on droplet and contact precautions\"," +
         "\"incorrectAnswers\":[\"Give oral fluids\",\"Schedule a routine follow-up\",\"Document the vital signs at discharge\"]," +
+        "\"incorrectAnswerRationale\":{\"Give oral fluids\":\"The guide says the client needs isolation before routine care.\"}," +
         "\"explanation\":\"The guide says suspected meningitis requires isolation until the cause is known.\"," +
         "\"sourceQuote\":\"suspected meningitis requires isolation until the cause is known\",\"page\":12}]}";
 
@@ -44,6 +46,7 @@ internal static class StudyGuidePromptV2
             "- Exactly one correct answer and 1 to 4 plausible but clearly wrong incorrect answers (3 is best).\n" +
             "- sourceQuote: copy 20 to 300 characters VERBATIM from the section text that proves the correct answer. Do not paraphrase.\n" +
             "- explanation: at most 500 characters, based on the sourceQuote.\n" +
+            "- incorrectAnswerRationale (optional): an object whose keys are incorrect answer texts copied exactly from incorrectAnswers and whose values are at most 200 characters saying why that option is wrong, based only on the section text. Omit a key when the text does not say why it is wrong.\n" +
             "- page: the number from the nearest [p. N] or [slide N] marker line before the quote, or null when there are no markers.\n" +
             "- question at most 300 characters, each answer at most 200 characters.\n" +
             "- Use the same language as the section text.\n" +

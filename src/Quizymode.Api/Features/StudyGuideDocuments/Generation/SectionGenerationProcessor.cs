@@ -213,6 +213,7 @@ internal sealed class SectionGenerationProcessor(
             Question = candidate.Question,
             CorrectAnswer = candidate.CorrectAnswer,
             IncorrectAnswersJson = JsonSerializer.Serialize(candidate.IncorrectAnswers, AnswerJsonOptions),
+            IncorrectAnswerRationaleJson = JsonSerializer.Serialize(candidate.IncorrectAnswerRationale ?? [], AnswerJsonOptions),
             Explanation = candidate.Explanation,
             SourceQuote = candidate.SourceQuote,
             Page = candidate.Page

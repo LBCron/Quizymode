@@ -821,6 +821,11 @@ namespace Quizymode.Api.Migrations
                     b.Property<Guid>("GenerationId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("IncorrectAnswerRationaleJson")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
                     b.Property<string>("IncorrectAnswersJson")
                         .IsRequired()
                         .HasMaxLength(4000)
