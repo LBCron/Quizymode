@@ -231,7 +231,8 @@ public sealed class StudyGuideGenerationTests : DatabaseTestFixture
         SectionGeneration generation = await QueueAsync();
         FakeVendorHandler handler = new((_, _) => FakeVendorHandler.Completion(StudyGuideTestData.QuestionsJson()));
         CapturingLoggerProvider logs = new();
-        using ILoggerFactory loggerFactory = LoggerFactory.Create(builder => builder.AddProvider(logs));
+        // Debug is captured here: the skipped-vendor line is Debug in production (#490).
+        using ILoggerFactory loggerFactory = LoggerFactory.Create(builder => builder.SetMinimumLevel(LogLevel.Debug).AddProvider(logs));
         await Queue().ClaimDueAsync(2, CancellationToken.None);
         DbContext.ChangeTracker.Clear();
 
@@ -244,7 +245,7 @@ public sealed class StudyGuideGenerationTests : DatabaseTestFixture
             .ProcessAsync(generation.Id, CancellationToken.None);
 
         CapturingLoggerProvider.CapturedLog skipped = logs.Entries.Should().ContainSingle(e => e.Message.Contains("skipped vendor(s) without a key")).Subject;
-        skipped.Level.Should().Be(LogLevel.Warning);
+        skipped.Level.Should().Be(LogLevel.Debug);
         skipped.Message.Should().Contain($"{LlmVendors.Gemini}, {LlmVendors.Groq}, {LlmVendors.Cerebras}, {LlmVendors.OpenAI}");
     }
 

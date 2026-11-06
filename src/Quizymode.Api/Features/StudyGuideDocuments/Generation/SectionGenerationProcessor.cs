@@ -64,8 +64,9 @@ internal sealed class SectionGenerationProcessor(
         List<string> skipped = configuredRoute.Except(route).ToList();
         if (skipped.Count > 0)
         {
-            // A missing key is not a vendor outage, so it gets its own line for every generation it affects.
-            _logger.LogWarning(
+            // A missing optional key is a configuration state, not an outage, and repeats on every generation,
+            // so it is Debug (#490). The Warning for a route with no keyed vendor at all stays below.
+            _logger.LogDebug(
                 "StudyGuideGeneration: {GenerationId} skipped vendor(s) without a key in the {Tier} route: {Vendors}.",
                 generation.Id,
                 generation.Tier,

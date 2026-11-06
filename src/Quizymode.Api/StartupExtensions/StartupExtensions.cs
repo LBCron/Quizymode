@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.OpenApi;
+using Serilog;
+using Serilog.Events;
 
 namespace Quizymode.Api.StartupExtensions;
 
@@ -69,6 +71,29 @@ internal static partial class StartupExtensions
         // headers (X-Forwarded-Proto, X-Forwarded-For) are processed and the request
         // scheme is correctly identified as HTTPS even though Cloudflare forwards it as HTTP.
         app.UseForwardedHeaders();
+
+        // #490: one access line per request (replaces the Hosting.Diagnostics start/finish pair).
+        // Health probes are Verbose so the minimum level drops them. Query strings are never logged.
+        app.UseSerilogRequestLogging(options =>
+        {
+            options.GetLevel = static (httpContext, _, exception) =>
+            {
+                string path = httpContext.Request.Path.Value ?? string.Empty;
+                if (path is "/health" or "/alive")
+                {
+                    return LogEventLevel.Verbose;
+                }
+
+                if (exception is not null || httpContext.Response.StatusCode >= StatusCodes.Status500InternalServerError)
+                {
+                    return LogEventLevel.Error;
+                }
+
+                return httpContext.Response.StatusCode >= StatusCodes.Status400BadRequest
+                    ? LogEventLevel.Warning
+                    : LogEventLevel.Information;
+            };
+        });
 
         if (app.Environment.IsDevelopment())
         {
