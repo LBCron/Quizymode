@@ -130,7 +130,7 @@ jobs:
             --delete --exact-timestamps \
             --cache-control "public, max-age=31536000, immutable" \
             --exclude "*.html" --exclude "*.json" --exclude "*.css" --exclude "*.js" \
-            --exclude "*.map" --exclude "*.webp" --exclude "og-image.png"
+            --exclude "*.map" --exclude "*.webp" --exclude "og-image.png" --exclude "og-card.png"
 
           # Curated question pictures (#407) — content-addressed (assets/m/<hash>.webp), so immutable; explicit content-type
           aws s3 sync . s3://quizymode-web/ \
@@ -164,6 +164,12 @@ jobs:
 
           # Social preview image — stable URL, so short cache; crawlers need an explicit image/png type
           aws s3 cp og-image.png s3://quizymode-web/og-image.png \
+            --cache-control "public, max-age=86400" \
+            --content-type "image/png"
+
+          # Byte-identical copy at a second stable URL (#153): the tags point here so link-preview caches that stored
+          # "no image" for the original path can refetch. Same short cache and explicit content type.
+          aws s3 cp og-card.png s3://quizymode-web/og-card.png \
             --cache-control "public, max-age=86400" \
             --content-type "image/png"
 

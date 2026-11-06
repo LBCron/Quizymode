@@ -16,7 +16,7 @@ const DEFAULT_DESCRIPTION =
   "Quizymode is a smart learning platform with flashcards and quizzes for exams, AWS, Spanish, and more.";
 const DEFAULT_URL = "https://www.quizymode.com";
 // Link-preview crawlers do not render SVG, so the shared default must be a raster image.
-export const DEFAULT_OG_IMAGE = "https://www.quizymode.com/og-image.png";
+export const DEFAULT_OG_IMAGE = "https://www.quizymode.com/og-card.png";
 const DEFAULT_OG_IMAGE_WIDTH = 1200;
 const DEFAULT_OG_IMAGE_HEIGHT = 630;
 const DEFAULT_OG_IMAGE_ALT = "Quizymode – Smart Flashcards & Learning Quizzes";
