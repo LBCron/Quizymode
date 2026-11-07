@@ -41,14 +41,15 @@ async function ensureSignedIn(page: Page) {
   await signInWithEnvCredentials(page);
 }
 
+// The app's loading indicators all render an `.animate-spin` element (LoadingSpinner,
+// route fallbacks, comboboxes). A visible role="status" alone is not a spinner: pages
+// show permanent status messages (e.g. flashcard or search feedback) that must not block capture.
 async function hasVisibleSpinner(page: Page) {
   return page
-    .locator("[role='status']")
+    .locator(".animate-spin")
     .evaluateAll((elements) =>
       elements.some((element) => {
         const htmlElement = element as HTMLElement;
-        // Ignore screen-reader-only live regions (e.g. the header search's
-        // sr-only role="status"), which are always mounted and 1x1px.
         return (
           htmlElement.offsetParent !== null &&
           htmlElement.offsetWidth > 1 &&
