@@ -132,6 +132,8 @@ public static class SetItemImageReview
             ItemImageReviewState target = approve ? ItemImageReviewState.Approved : ItemImageReviewState.Rejected;
             string decision = approve ? ItemImageReviewDecisions.Approved : ItemImageReviewDecisions.Rejected;
 
+            transaction = await ItemImageSubmission.BeginAsync(db, cancellationToken);
+
             Item? item = await db.Items.AsNoTracking().FirstOrDefaultAsync(i => i.Id == id, cancellationToken);
             if (item?.ImageReviewState is null)
             {
@@ -157,7 +159,6 @@ public static class SetItemImageReview
                     "A picture is no longer available or changed since it was submitted. It can't be approved."));
             }
 
-            transaction = await ItemImageSubmission.BeginAsync(db, cancellationToken);
 
             // The conditional UPDATE is the decision: it only matches while this exact revision is still pending.
             int decided = await db.Items

@@ -55,7 +55,7 @@ export function LearnQuestion({
         <PronunciationHint text={item.question} speech={item.questionSpeech} />
         <QuestionImage
           key={item.id}
-          image={item.questionImage}
+          itemId={item.id} image={item.questionImage}
           className="mt-3"
           onStatusChange={questionPicture?.onStatusChange}
           onSkip={questionPicture?.onSkip}

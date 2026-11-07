@@ -144,6 +144,9 @@ internal static partial class StartupExtensions
                     });
             });
 
+            options.AddPolicy("media-reads", httpContext => RateLimitPartition.GetFixedWindowLimiter(
+                GetAuthenticatedOrTrustedIpPartitionKey(httpContext), static _ => new FixedWindowRateLimiterOptions { PermitLimit = 120, Window = TimeSpan.FromMinutes(1), QueueLimit = 0, AutoReplenishment = true }));
+
             // Flashcard "Still learning" grades queue one item per call (#251); generous for a long deck, strict for floods.
             options.AddPolicy("review-queue-enqueue", httpContext =>
             {

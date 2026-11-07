@@ -1,5 +1,9 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { MediaIdentityContext } from "@/contexts/MediaIdentityContext";
+import { useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ExclamationTriangleIcon, MagnifyingGlassPlusIcon } from "@heroicons/react/24/outline";
+import { useParams } from "react-router-dom";
+import { PictureReportButton } from "./PictureReportButton";
+import { mediaApi } from "@/api/media";
 import { resolveCuratedImage } from "@/media/curatedImages";
 import type { ItemImageReference } from "@/types/api";
 import { ImageZoomDialog } from "@/components/study/ImageZoomDialog";
@@ -14,6 +18,8 @@ export const STUCK_AFTER_MS = 10_000;
 
 interface QuestionImageProps {
   image?: ItemImageReference | null;
+  itemId?: string;
+  collectionId?: string;
   /** lg: study surfaces; sm: list/review thumbnail; xs: recap thumbnail. */
   size?: QuestionImageSize;
   /** question: blocks answering until loaded (the parent decides); explanation: shown after reveal, never blocks. */
@@ -53,12 +59,19 @@ export function QuestionImage({
   onStatusChange,
   onSkip,
   showEnlarge,
+  itemId,
+  collectionId,
 }: QuestionImageProps) {
+  const identity = useContext(MediaIdentityContext);
+  const route = useParams<{ collectionId?: string }>();
+  const effectiveCollectionId = collectionId ?? route.collectionId;
   if (!image) return null;
   return (
     <QuestionImageBox
-      key={image.key}
+      key={`${identity}:${itemId ?? ""}:${effectiveCollectionId ?? ""}:${slot}:${image.key}:${image.revision ?? 0}`}
       image={image}
+      itemId={itemId}
+      collectionId={effectiveCollectionId}
       size={size}
       slot={slot}
       className={className}
@@ -77,8 +90,12 @@ function QuestionImageBox({
   onStatusChange,
   onSkip,
   showEnlarge,
+  itemId,
+  collectionId,
 }: {
   image: ItemImageReference;
+  itemId?: string;
+  collectionId?: string;
   size: QuestionImageSize;
   slot: QuestionImageSlot;
   className: string;
@@ -86,11 +103,22 @@ function QuestionImageBox({
   onSkip?: () => void;
   showEnlarge: boolean;
 }) {
-  const url = resolveCuratedImage(image.key);
-  const isUnknown = url === null;
+  const uploaded = image.key.startsWith("media:");
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
+  const url = uploaded ? blobUrl : resolveCuratedImage(image.key);
+  const isUnknown = (uploaded && (!itemId || !Number.isSafeInteger(image.revision) || (image.revision ?? 0) <= 0)) || (!uploaded && url === null);
   const [status, setStatus] = useState<PictureStatus>(isUnknown ? "unknown" : "loading");
   const [attempt, setAttempt] = useState(0);
   const [zoomOpen, setZoomOpen] = useState(false);
+  useEffect(() => {
+    if (!uploaded || !itemId || isUnknown) return;
+    const abort = new AbortController(); let created: string | null = null;
+    mediaApi.content(itemId, slot, collectionId, abort.signal, image.revision!).then(blob => {
+      if (!abort.signal.aborted) { created = URL.createObjectURL(blob); setBlobUrl(created); }
+    }).catch(() => { if (!abort.signal.aborted) setStatus("error"); });
+    return () => { abort.abort(); if (created) URL.revokeObjectURL(created); };
+  }, [uploaded, itemId, collectionId, slot, image.revision, isUnknown, attempt]);
+
   const boxRef = useRef<HTMLDivElement>(null);
   const enlargeRef = useRef<HTMLButtonElement>(null);
   const focusAfterRetry = useRef(false);
@@ -124,6 +152,7 @@ function QuestionImageBox({
   const retry = () => {
     focusAfterRetry.current = true;
     setStatus("loading");
+    setBlobUrl(null);
     setAttempt((current) => current + 1);
   };
 
@@ -134,13 +163,14 @@ function QuestionImageBox({
       : status === "stuck"
         ? "Picture is taking too long to load"
         : "Picture couldn't load";
-  const src = url === null ? undefined : attempt > 0 ? `${url}?r=${attempt}` : url;
+  const src = url === null ? undefined : !uploaded && attempt > 0 ? `${url}?r=${attempt}` : url;
   const canZoom = isLarge && showEnlarge && status === "loaded" && url !== null;
   const showSkip = isQuestion && onSkip !== undefined;
 
   const box = (
     <div
       ref={boxRef}
+      data-picture-status={status}
       data-testid={isQuestion ? "question-image" : "explanation-image"}
       aria-busy={status === "loading" || status === "stuck"}
       tabIndex={isLarge ? -1 : undefined}
@@ -161,7 +191,7 @@ function QuestionImageBox({
           )}
         </>
       )}
-      {!isUnknown && status !== "error" && (
+      {url !== null && !isUnknown && status !== "error" && (
         <img
           key={attempt}
           src={src}
@@ -219,6 +249,9 @@ function QuestionImageBox({
   return (
     <div className={`relative mx-auto w-full max-w-md ${className}`.trim()}>
       {box}
+      {status === "loaded" && isQuestion && onSkip && <button type="button" onClick={onSkip} data-testid="question-image-skip" className={`${buttonClass} mt-2`}>Skip question (not scored)</button>}
+      {uploaded && itemId && (image.revision ?? 0) > 0 && <PictureReportButton itemId={itemId} slot={slot} revision={image.revision!} collectionId={collectionId} />}
+      {image.longDescription && <details className="mt-2 text-sm"><summary>Picture description</summary><p className="whitespace-pre-wrap">{image.longDescription}</p></details>}
       {canZoom && (
         <button
           ref={enlargeRef}

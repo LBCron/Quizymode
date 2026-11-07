@@ -136,6 +136,8 @@ public static class UploadImage
                 provider.GetRequiredService<IHostEnvironment>(),
                 provider.GetRequiredService<ILoggerFactory>().CreateLogger("Quizymode.Api.Features.Media.Storage")));
             services.AddSingleton<ImageNormalizer>();
+            services.AddHostedService<MediaCleanupWorker>();
+            services.AddHostedService<MediaMetricsWorker>();
         }
     }
 
@@ -160,21 +162,42 @@ public static class UploadImage
             return MediaErrors.Disabled.ToResult();
         }
 
-        MediaProblem? quotaProblem = await MediaQuota.CheckBeforeUploadAsync(
-            db, userId, options, timeProvider.GetUtcNow().UtcDateTime, cancellationToken);
-        if (quotaProblem is not null)
-        {
-            logger.LogInformation("Media upload refused: Code={Code}", quotaProblem.Code);
-            return quotaProblem.ToResult();
-        }
-
         Stopwatch clock = Stopwatch.StartNew();
-        (byte[]? source, MediaProblem? readProblem) = await ReadSourceAsync(httpRequest, options.MaxSourceBytes, cancellationToken);
+        (MediaIngressAttempt? ingress, IResult? ingressError) = await MediaIngress.ReserveAsync(db, userId, options, timeProvider.GetUtcNow().UtcDateTime, cancellationToken);
+        if (ingressError is not null) return ingressError;
+        Stream originalBody = httpRequest.Body;
+        using BoundedIngressStream countedBody = new(originalBody, (long)options.MaxSourceBytes + EnvelopeAllowanceBytes);
+        using CancellationTokenSource readTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        readTimeout.CancelAfter(options.IngressReadTimeout);
+        byte[]? source; MediaProblem? readProblem;
+        try
+        {
+            httpRequest.Body = countedBody;
+            (source, readProblem) = await ReadSourceAsync(httpRequest, options.MaxSourceBytes, readTimeout.Token);
+        }
+        catch (MediaIngressLimitException)
+        {
+            source = null; readProblem = MediaErrors.TooLarge(options.MaxSourceBytes);
+        }
+        catch (Exception ex) when (ex is OperationCanceledException or IOException)
+        {
+            if (ex is OperationCanceledException) httpRequest.HttpContext.Abort();
+            source = null; readProblem = MediaErrors.InvalidRequest;
+        }
+        finally
+        {
+            httpRequest.Body = originalBody;
+            await MediaIngress.FinishAsync(db, ingress!.Id, countedBody.ReceivedBytes, timeProvider.GetUtcNow().UtcDateTime);
+        }
         if (readProblem is not null)
         {
             logger.LogInformation("Media upload refused: Code={Code}", readProblem.Code);
             return readProblem.ToResult();
         }
+
+        string requestKey = httpRequest.Headers["Idempotency-Key"].FirstOrDefault() ?? Guid.NewGuid().ToString("N");
+        (MediaUploadClaim? claim, IResult? admissionError) = await MediaAdmission.ReserveAsync(db, userId, requestKey, source!, options, timeProvider.GetUtcNow().UtcDateTime, cancellationToken);
+        if (admissionError is not null) return admissionError;
 
         NormalizeResult normalized = await normalizer.NormalizeAsync(source!, cancellationToken);
         if (normalized.Problem is not null)
@@ -184,6 +207,7 @@ public static class UploadImage
                 normalized.Problem.Code,
                 source!.Length,
                 clock.ElapsedMilliseconds);
+            await MediaAdmission.FinishAsync(db, claim!.Id, "Failed");
             return normalized.Problem.ToResult();
         }
 
@@ -191,7 +215,7 @@ public static class UploadImage
         DateTime createdAt = timeProvider.GetUtcNow().UtcDateTime;
         MediaAsset asset = new()
         {
-            Id = Guid.NewGuid(),
+            Id = claim!.AssetId,
             OwnerUserId = userId,
             State = MediaAssetState.Processing,
             Sha256 = image.Sha256,
@@ -205,16 +229,11 @@ public static class UploadImage
             CreatedAt = createdAt,
             UpdatedAt = createdAt
         };
+        MediaAsset? previousAttempt = await db.MediaAssets.SingleOrDefaultAsync(x => x.Id == asset.Id, cancellationToken);
+        if (previousAttempt?.DeletedAt is not null || previousAttempt?.PurgedAt is not null) return MediaErrors.Withdrawn.ToResult();
+        if (previousAttempt is not null) { db.MediaAssets.Remove(previousAttempt); await db.SaveChangesAsync(cancellationToken); }
         db.MediaAssets.Add(asset);
         await db.SaveChangesAsync(cancellationToken);
-
-        MediaProblem? raceProblem = await MediaQuota.CheckAfterInsertAsync(db, asset, options, CancellationToken.None);
-        if (raceProblem is not null)
-        {
-            await db.MediaAssets.Where(x => x.Id == asset.Id).ExecuteDeleteAsync(CancellationToken.None);
-            logger.LogInformation("Media upload refused after insert: Code={Code}", raceProblem.Code);
-            return raceProblem.ToResult();
-        }
 
         // From here the row exists, so the outcome (Ready or Failed) is always recorded, even if the client disconnects.
         string key = MediaObjectKey.Build(asset.Id, image.Sha256);
@@ -235,6 +254,7 @@ public static class UploadImage
                         .SetProperty(x => x.FailureCode, MediaErrors.StorageFailed.Code)
                         .SetProperty(x => x.UpdatedAt, failedAt),
                     CancellationToken.None);
+            await MediaAdmission.FinishAsync(db, claim!.Id, "Failed");
             return MediaErrors.StorageFailed.ToResult();
         }
 
@@ -262,6 +282,8 @@ public static class UploadImage
             image.Height,
             clock.ElapsedMilliseconds);
 
+        await MediaAdmission.FinishAsync(db, claim!.Id, "Ready");
+        MediaMetrics.Uploads.Add(1, new KeyValuePair<string, object?>("outcome", "ready"));
         Response response = new(
             asset.Id,
             MediaAssetState.Ready.ToString(),
@@ -297,6 +319,7 @@ public static class UploadImage
         }
 
         string boundary = HeaderUtilities.RemoveQuotes(contentType.Boundary).Value!;
+        if (boundary.Length > 128) return (null, MediaErrors.InvalidRequest);
         MultipartReader reader = new(boundary, request.Body);
         byte[]? file = null;
         try

@@ -214,7 +214,7 @@ const ItemDetailPage = () => {
               <h2 className="text-sm font-medium text-gray-500 mb-1">Question</h2>
               <p className="text-gray-900"><ForeignPhraseText text={item.question} /></p>
               <PronunciationHint text={item.question} speech={item.questionSpeech} />
-              <QuestionImage key={item.id} image={item.questionImage} className="mt-3 sm:mx-0" />
+              <QuestionImage key={item.id} itemId={item.id} image={item.questionImage} className="mt-3 sm:mx-0" />
             </div>
 
             <div>
@@ -245,7 +245,7 @@ const ItemDetailPage = () => {
               <div>
                 <h2 className="text-sm font-medium text-gray-500 mb-1">Explanation</h2>
                 {item.explanation && <p className="text-gray-700"><ForeignPhraseText text={item.explanation} linkify /></p>}
-                <QuestionImage key={`${item.id}-explanation`} image={item.explanationImage} slot="explanation" className="mt-3 sm:mx-0" />
+                <QuestionImage key={`${item.id}-explanation`} itemId={item.id} image={item.explanationImage} slot="explanation" className="mt-3 sm:mx-0" />
               </div>
             )}
 

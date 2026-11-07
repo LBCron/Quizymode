@@ -107,6 +107,7 @@ internal sealed class ItemQueryBuilder
         }
         query = collectionResult.Value;
 
+        if (request.ExcludeQuestionPictures) query = query.Where(item => item.QuestionImageKey == null);
         return Result.Success(query);
     }
 

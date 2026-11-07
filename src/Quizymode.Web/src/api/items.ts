@@ -37,6 +37,7 @@ export const itemsApi = {
     pageSize: number = 10,
     options?: {
       navigationKeywords?: string[];
+      excludeQuestionPictures?: boolean;
     }
   ): Promise<ItemsResponse> => {
     const params: Record<string, string | number | boolean> = {
@@ -44,6 +45,7 @@ export const itemsApi = {
       pageSize,
     };
     if (category) params.category = category;
+    if (options?.excludeQuestionPictures) params.excludeQuestionPictures = true;
     if (isPrivate !== undefined) params.isPrivate = isPrivate;
     if (keywords && keywords.length > 0) params.keywords = keywords.join(",");
     if (options?.navigationKeywords && options.navigationKeywords.length > 0) {
@@ -66,6 +68,7 @@ export const itemsApi = {
     keywords?: string[],
     options?: {
       navigationKeywords?: string[];
+      excludeQuestionPictures?: boolean;
     }
   ): Promise<RandomItemsResponse> => {
     const params: Record<string, string | number | boolean> = {
@@ -73,6 +76,7 @@ export const itemsApi = {
       pageSize: count,
     };
     if (category) params.category = category;
+    if (options?.excludeQuestionPictures) params.excludeQuestionPictures = true;
     if (keywords && keywords.length > 0) params.keywords = keywords.join(",");
     if (options?.navigationKeywords && options.navigationKeywords.length > 0) {
       params.nav = options.navigationKeywords.join(",");

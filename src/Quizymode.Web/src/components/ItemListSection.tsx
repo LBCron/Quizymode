@@ -15,6 +15,7 @@ interface ItemListSectionProps {
   selectedKeywords?: string[];
   showRatingsAndComments?: boolean;
   returnUrl?: string;
+  collectionId?: string;
   /** See ItemListCard.showAnswer. When false all answers are hidden; when true shown with green highlight. */
   showAnswers?: boolean;
 }
@@ -31,6 +32,7 @@ const ItemListSection = ({
   selectedKeywords,
   showRatingsAndComments,
   returnUrl,
+  collectionId,
   showAnswers,
 }: ItemListSectionProps) => {
   if (items.length === 0) {
@@ -58,6 +60,7 @@ const ItemListSection = ({
             actions={renderActions ? renderActions(item) : undefined}
             showRatingsAndComments={showRatingsAndComments}
             returnUrl={returnUrl}
+            collectionId={collectionId}
             showAnswer={showAnswers}
           />
         ))}

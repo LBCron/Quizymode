@@ -121,7 +121,7 @@ describe("DailyQuizPage", () => {
       );
     });
 
-    it("signed in: skipping every question still posts the completion but saves no study session", async () => {
+    it("signed in: skipping every question posts no completion or study session and awards no mastery", async () => {
       auth.value = { isAuthenticated: true, isLoading: false, userId: "user-1" };
       const allBroken = [
         { ...testItem("a"), questionImage: brokenPicture },
@@ -140,7 +140,8 @@ describe("DailyQuizPage", () => {
       fireEvent.click(await screen.findByRole("button", { name: "View results" }));
 
       expect(await screen.findByText("No questions were scored")).toBeInTheDocument();
-      await waitFor(() => expect(dailyQuizApi.complete).toHaveBeenCalledWith("2026-10-18", 0, 2, 2));
+      expect(dailyQuizApi.complete).not.toHaveBeenCalled();
+      expect(screen.queryByText(/Counted for today/)).not.toBeInTheDocument();
       expect(saveStudySession).not.toHaveBeenCalled();
     });
 

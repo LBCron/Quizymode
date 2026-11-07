@@ -15,6 +15,17 @@ export function ImageReviewStatus({ itemId, imageReview }: ImageReviewStatusProp
       return <p className="mt-1 text-xs text-amber-700">Pictures: Pending review</p>;
     case "Approved":
       return <p className="mt-1 text-xs text-green-700">Pictures: Approved</p>;
+    case "Processing":
+      return <p className="mt-1 text-xs text-amber-700">Pictures: Processing</p>;
+    case "Failed":
+      return (
+        <div className="mt-1 text-xs">
+          <p className="text-red-700">Pictures: Failed</p>
+          <Link to={`/items/${itemId}/edit`} className="mt-1 block text-indigo-700 underline">
+            Edit to resubmit
+          </Link>
+        </div>
+      );
     case "Withdrawn":
       return <p className="mt-1 text-xs text-gray-600">Pictures: Withdrawn</p>;
     case "Rejected": {

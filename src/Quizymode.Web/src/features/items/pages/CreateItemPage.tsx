@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, Navigate, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -87,7 +87,7 @@ function getSubmitErrorMessage(error: unknown): string {
       .join(", ");
   }
   if (typeof data === "string") return data;
-  return data.title ?? data.detail ?? error.message ?? "Failed to create item.";
+  return data.detail ?? data.title ?? error.message ?? "Failed to create item.";
 }
 
 function CreateItemEditor({
@@ -101,12 +101,15 @@ function CreateItemEditor({
 }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [formSession, setFormSession] = useState(0);
+  const saveIdentity = useRef({ signature: "", id: crypto.randomUUID() });
   const [formData, setFormData] = useState(initialValues);
   const [validationError, setValidationError] = useState("");
   const [topicBlocked, setTopicBlocked] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
   const topicScopeRef = useRef<TopicScopeFieldsHandle>(null);
   const questionRef = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => { if (formSession > 0) questionRef.current?.focus(); }, [formSession]);
   const topicAnalytics = useTopicSuggestionAnalytics();
   const { activeCollectionId } = useActiveCollection();
 
@@ -152,6 +155,8 @@ function CreateItemEditor({
           : Promise.resolve();
 
       if (action === "another") {
+        saveIdentity.current = { signature: "", id: crypto.randomUUID() };
+        setFormSession(value => value + 1);
         setStatusMessage(SAVED_ADD_NEXT_MESSAGE);
         setFormData((current) => ({
           ...current,
@@ -162,6 +167,8 @@ function CreateItemEditor({
           incorrectAnswers: ["", "", ""],
           incorrectAnswerSpeech: {},
           explanation: "",
+          questionImage: undefined,
+          explanationImage: undefined,
         }));
         questionRef.current?.focus();
         return;
@@ -244,12 +251,17 @@ function CreateItemEditor({
       incorrectAnswerSpeech: compacted.incorrectAnswerSpeech,
       incorrectAnswerRationale: compactIncorrectAnswerRationale(formData.incorrectAnswers, formData.incorrectAnswerRationale),
       explanation: formData.explanation.trim(),
+      questionImage: formData.questionImage?.remove ? undefined : formData.questionImage,
+      explanationImage: formData.explanationImage?.remove ? undefined : formData.explanationImage,
       keywords: otherKeywords.length > 0 ? otherKeywords : undefined,
       source: formData.source.trim() || undefined,
       groupLabel: formData.groupLabel.trim() || undefined,
       readyForReview: formData.readyForReview,
     };
 
+    const signature = JSON.stringify(data);
+    if (saveIdentity.current.signature !== signature) saveIdentity.current = { signature, id: crypto.randomUUID() };
+    data.createRequestId = saveIdentity.current.id;
     createMutation.mutate({ data, action });
   };
 
@@ -262,6 +274,7 @@ function CreateItemEditor({
 
   return (
     <ItemForm
+      key={formSession}
       mode="create"
       values={formData}
       onChange={setFormData}

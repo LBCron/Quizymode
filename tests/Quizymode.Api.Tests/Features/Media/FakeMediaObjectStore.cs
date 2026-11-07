@@ -20,6 +20,9 @@ internal sealed class FakeMediaObjectStore : IMediaObjectStore
     public bool ReadReturnsNull { get; set; }
 
     public bool IsAvailable => Available;
+    public Func<string, Task>? OnDelete { get; set; }
+    public async Task DeleteAsync(string key, CancellationToken ct) { MediaObjectKey.EnsureValid(key); if (OnDelete is not null) await OnDelete(key); Objects.TryRemove(key, out _); }
+    public Task<MediaObjectPage> ListAsync(string? continuationToken, CancellationToken ct) => Task.FromResult(new MediaObjectPage(Objects.Keys.Select(key => new MediaObjectEntry(key, DateTime.UtcNow)).ToList(), null));
 
     public async Task<PutOutcome> PutIfAbsentAsync(string key, byte[] content, string contentType, CancellationToken cancellationToken)
     {

@@ -210,6 +210,11 @@ internal sealed class ItemConfiguration : IEntityTypeConfiguration<Item>
             "CK_Items_IncorrectAnswers_Length",
             "jsonb_array_length(\"IncorrectAnswers\"::jsonb) >= 0 AND jsonb_array_length(\"IncorrectAnswers\"::jsonb) <= 4"));
 
+        builder.Property(x => x.CreateRequestHash).HasMaxLength(64);
+        builder.HasIndex(x => new { x.CreatedBy, x.CreateRequestId }).IsUnique();
+        builder.Property(x => x.QuestionImageLongDescription).HasMaxLength(2000);
+        builder.Property(x => x.ExplanationImageLongDescription).HasMaxLength(2000);
+
         // A question picture key and its alt text are stored together or not at all (#407)
         builder.ToTable(t => t.HasCheckConstraint(
             "CK_Items_QuestionImage_Alt",
@@ -233,7 +238,7 @@ internal sealed class ItemConfiguration : IEntityTypeConfiguration<Item>
 
         builder.ToTable(t => t.HasCheckConstraint(
             "CK_Items_ImageReviewState",
-            "\"ImageReviewState\" IS NULL OR \"ImageReviewState\" IN ('PendingReview', 'Approved', 'Rejected', 'Withdrawn')"));
+            "\"ImageReviewState\" IS NULL OR \"ImageReviewState\" IN ('PendingReview', 'Approved', 'Rejected', 'Withdrawn', 'Processing', 'Failed')"));
 
         // A review state exists exactly when at least one picture slot holds an upload (#400)
         builder.ToTable(t => t.HasCheckConstraint(

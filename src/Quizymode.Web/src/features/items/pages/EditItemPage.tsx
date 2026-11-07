@@ -9,6 +9,7 @@ import { Navigate } from "react-router-dom";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import ErrorMessage from "@/components/ErrorMessage";
 import { ItemForm, type ItemFormValues } from "@/components/items/ItemForm";
+import { ConfirmDialog } from "@/components/items/ConfirmDialog";
 import { type TopicScopeFieldsHandle } from "@/components/items/ItemTopicScopeFields";
 import { isTopicComplete, TOPIC_REQUIRED_MESSAGE } from "@/features/topics/topicScope";
 import { useTaxonomy } from "@/features/topics/useTaxonomy";
@@ -87,6 +88,7 @@ const EditItemPage = () => {
   const [topicBlocked, setTopicBlocked] = useState(false);
   const topicScopeRef = useRef<TopicScopeFieldsHandle>(null);
   const [savedAsPrivate, setSavedAsPrivate] = useState(false);
+  const [pendingReviewSave, setPendingReviewSave] = useState<Record<string, unknown> | null>(null);
   // #290: the server sends a non-admin owner's edit of a public item back to private (re-review).
   const willBecomePrivate = !isAdmin && itemData?.isPrivate === false;
 
@@ -107,6 +109,8 @@ const EditItemPage = () => {
         incorrectAnswerSpeech: itemData.incorrectAnswerSpeech ?? {},
         incorrectAnswerRationale: itemData.incorrectAnswerRationale ?? {},
         explanation: itemData.explanation || "",
+        questionImage: itemData.questionImage?.key.startsWith("media:") ? { assetId: itemData.questionImage.key.slice(6), altText: itemData.questionImage.altText, attribution: itemData.questionImage.attribution, longDescription: itemData.questionImage.longDescription } : undefined,
+        explanationImage: itemData.explanationImage?.key.startsWith("media:") ? { assetId: itemData.explanationImage.key.slice(6), altText: itemData.explanationImage.altText, attribution: itemData.explanationImage.attribution, longDescription: itemData.explanationImage.longDescription } : undefined,
         keywords: itemData.keywords
           ? itemData.keywords
               .filter(
@@ -207,6 +211,9 @@ const EditItemPage = () => {
       incorrectAnswerSpeech: compacted.incorrectAnswerSpeech,
       incorrectAnswerRationale: compactIncorrectAnswerRationale(formData.incorrectAnswers, formData.incorrectAnswerRationale),
       explanation: formData.explanation.trim(),
+      expectedImageRevision: itemData?.imageReview?.revision,
+      questionImage: formData.questionImage,
+      explanationImage: formData.explanationImage,
       keywords: otherKeywords,
       source: formData.source.trim() || undefined,
       // A blank value clears the stored label; an omitted one would keep it.
@@ -214,6 +221,12 @@ const EditItemPage = () => {
       readyForReview: formData.readyForReview,
     };
 
+    const uploaded = itemData?.questionImage?.key.startsWith("media:") || itemData?.explanationImage?.key.startsWith("media:");
+    const relevantChange = itemData && (JSON.stringify(data.incorrectAnswerRationale ?? {}) !== JSON.stringify(itemData.incorrectAnswerRationale ?? {}) || data.question !== itemData.question || data.correctAnswer !== itemData.correctAnswer || JSON.stringify(data.incorrectAnswers) !== JSON.stringify(itemData.incorrectAnswers) || data.explanation !== (itemData.explanation ?? "") || JSON.stringify(data.questionSpeech ?? null) !== JSON.stringify(itemData.questionSpeech ?? null) || JSON.stringify(data.questionImage ?? null) !== JSON.stringify(itemData.questionImage?.key.startsWith("media:") ? { assetId: itemData.questionImage.key.slice(6), altText: itemData.questionImage.altText, attribution: itemData.questionImage.attribution, longDescription: itemData.questionImage.longDescription } : null) || JSON.stringify(data.explanationImage ?? null) !== JSON.stringify(itemData.explanationImage?.key.startsWith("media:") ? { assetId: itemData.explanationImage.key.slice(6), altText: itemData.explanationImage.altText, attribution: itemData.explanationImage.attribution, longDescription: itemData.explanationImage.longDescription } : null));
+    if (uploaded && relevantChange) {
+      setPendingReviewSave(data);
+      return;
+    }
     updateMutation.mutate(data);
   };
 
@@ -233,7 +246,7 @@ const EditItemPage = () => {
     if (data.title === "Item.Duplicate") {
       return data.detail ?? "An item with the same question already exists in this category.";
     }
-    return data.title ?? data.detail ?? "Failed to update item.";
+    return data.detail ?? data.title ?? "Failed to update item.";
   };
 
   if (!isAuthenticated) {
@@ -306,18 +319,18 @@ const EditItemPage = () => {
           </div>
         )}
 
-        {itemData.questionImage && (
+        {itemData.questionImage && !itemData.questionImage.key.startsWith("media:") && (
           <div className="mb-6" data-testid="edit-item-picture">
             <p className="mb-2 text-sm font-medium text-gray-700">Picture</p>
-            <QuestionImage image={itemData.questionImage} />
+            <QuestionImage itemId={itemData.id} image={itemData.questionImage} />
             <p className="mt-2 text-center text-xs text-gray-500">Picture comes from seed data; saving keeps it.</p>
           </div>
         )}
 
-        {itemData.explanationImage && (
+        {itemData.explanationImage && !itemData.explanationImage.key.startsWith("media:") && (
           <div className="mb-6" data-testid="edit-item-explanation-picture">
             <p className="mb-2 text-sm font-medium text-gray-700">Explanation picture (read-only)</p>
-            <QuestionImage image={itemData.explanationImage} slot="explanation" />
+            <QuestionImage itemId={itemData.id} image={itemData.explanationImage} slot="explanation" />
             <p className="mt-2 text-center text-xs text-gray-500">
               Picture comes from seed data; saving keeps it. The explanation can&apos;t be emptied while it is set.
             </p>
@@ -325,6 +338,8 @@ const EditItemPage = () => {
         )}
 
         <ItemForm
+          questionPictureReadOnly={Boolean(itemData.questionImage && !itemData.questionImage.key.startsWith("media:"))}
+          explanationPictureReadOnly={Boolean(itemData.explanationImage && !itemData.explanationImage.key.startsWith("media:"))}
           mode="edit"
           values={formData}
           onChange={setFormData}
@@ -350,6 +365,19 @@ const EditItemPage = () => {
           }
           topicScopeRef={topicScopeRef}
         />
+        {pendingReviewSave && (
+          <ConfirmDialog
+            title="Save changes for fresh picture review?"
+            message="These changes require fresh picture review. The item will be unavailable to other people, including through existing shares, until approved. Save changes?"
+            confirmLabel="Save changes"
+            onCancel={() => setPendingReviewSave(null)}
+            onConfirm={() => {
+              const data = pendingReviewSave;
+              setPendingReviewSave(null);
+              updateMutation.mutate(data);
+            }}
+          />
+        )}
       </div>
     </div>
   );

@@ -6,7 +6,7 @@ const PICTURE_FIELDS = ["questionImage", "explanationImage"] as const;
 type PictureField = (typeof PICTURE_FIELDS)[number];
 
 const FIX_HINT =
-  "Pictures can't be imported. Remove questionImage and explanationImage from your JSON. Curated pictures are added through seed data.";
+  "Only your own uploaded asset references can be imported. Curated keys, URLs, bytes and other authors' pictures cannot be imported.";
 
 function quoted(field: PictureField): string {
   return `"${field}"`;
@@ -27,7 +27,7 @@ export function findPictureImportError(rows: readonly unknown[]): string | null 
   rows.forEach((row, index) => {
     if (typeof row !== "object" || row === null) return;
     const record = row as Record<string, unknown>;
-    const fields = PICTURE_FIELDS.filter((field) => record[field] !== undefined && record[field] !== null);
+    const fields = PICTURE_FIELDS.filter((field) => record[field] !== undefined && record[field] !== null && !isUploadedReference(record[field]));
     if (fields.length > 0) offenders.push({ itemNumber: index + 1, fields });
   });
   if (offenders.length === 0) return null;
@@ -40,4 +40,10 @@ export function findPictureImportError(rows: readonly unknown[]): string | null 
   const found = new Set(offenders.flatMap((offender) => offender.fields));
   const fieldText = PICTURE_FIELDS.filter((field) => found.has(field)).map(quoted).join(" or ");
   return `Items ${formatItemNumbers(offenders.map((offender) => offender.itemNumber))} have ${fieldText}. ${FIX_HINT}`;
+}
+
+function isUploadedReference(value: unknown): boolean {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const slot = value as Record<string, unknown>;
+  return Object.keys(slot).every(key => ["assetId", "altText", "attribution", "longDescription", "remove"].includes(key)) && typeof slot.assetId === "string" && /^[0-9a-f-]{32,36}$/i.test(slot.assetId) && typeof slot.altText === "string" && slot.altText.trim().length > 0 && slot.altText.length <= 300 && !slot.remove;
 }

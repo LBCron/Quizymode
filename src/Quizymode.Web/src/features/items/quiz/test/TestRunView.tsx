@@ -35,6 +35,7 @@ interface TestRunViewProps {
   pictures: QuestionPictureStatuses;
   onPrev: () => void;
   onNext: () => void;
+  onSkip?: () => void;
   onJump: (index: number) => void;
   onAnswer: (answer: string) => void;
   onToggleFlag: () => void;
@@ -55,6 +56,7 @@ export function TestRunView({
   pictures,
   onPrev,
   onNext,
+  onSkip,
   onJump,
   onAnswer,
   onToggleFlag,
@@ -101,6 +103,7 @@ export function TestRunView({
               </button>
             </div>
 
+            {currentItem.questionImage && pictures.isBlocked(currentItem) && <p role="status" className="text-sm text-amber-800">Timer paused while this required picture is unavailable. Retry or skip; unresolved pictures are not scored.</p>}
             <TestPalettePanel palette={palette} currentIndex={currentIndex} onSelect={onJump} />
 
             <QuizRenderer
@@ -111,7 +114,7 @@ export function TestRunView({
               revealFeedback={false}
               onAnswerSelect={onAnswer}
               stats={{ total: palette.answered, correct: 0 }}
-              questionPicture={pictures.controlsFor(currentItem, currentIndex < items.length - 1 ? onNext : undefined)}
+              questionPicture={{ ...pictures.controlsFor(currentItem, run.skipped.includes(currentItem.id) ? undefined : onSkip), blocked: run.skipped.includes(currentItem.id) || pictures.isBlocked(currentItem) }}
             />
 
             <button

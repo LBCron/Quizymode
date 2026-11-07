@@ -1,3 +1,4 @@
+import { MediaIdentityContext } from "./MediaIdentityContext";
 import {
   createContext,
   useContext,
@@ -512,7 +513,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         refreshAuth,
       }}
     >
-      {children}
+      <MediaIdentityContext.Provider value={isLoading ? "loading" : isAuthenticated ? `user:${userId ?? "unknown"}:${isAdmin ? "admin" : "member"}` : "guest"}>{children}</MediaIdentityContext.Provider>
     </AuthContext.Provider>
   );
 };

@@ -266,3 +266,7 @@ dotnet user-secrets set "GrafanaCloud:ApiKey" "YOUR_API_KEY"
 - [Grafana Cloud Documentation](https://grafana.com/docs/grafana-cloud/)
 - [OpenTelemetry .NET Documentation](https://opentelemetry.io/docs/instrumentation/net/)
 - [Serilog Loki Sink Documentation](https://github.com/serilog/serilog-sinks-grafana-loki)
+
+## Picture operations
+
+The `Quizymode.Media` meter, concrete alert thresholds, privacy-safe labels and release verification are specified in [MEDIA_OPERATIONS.md](MEDIA_OPERATIONS.md). Provisioning candidate rules does not demonstrate deployment; verify exporter names, data-source readback and notification delivery against the reviewed release.

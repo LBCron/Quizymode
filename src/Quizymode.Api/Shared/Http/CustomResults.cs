@@ -16,7 +16,7 @@ public static class CustomResults
             throw new InvalidOperationException();
         }
 
-        int statusCode = GetStatusCode(result.Error.Type);
+        int statusCode = result.Error.Code == "Media.PendingReviewQuota" ? StatusCodes.Status429TooManyRequests : GetStatusCode(result.Error.Type);
         Exception? exception = result.Error.Exception;
         if (logger is not null && exception is not null)
         {
@@ -36,7 +36,7 @@ public static class CustomResults
         IResult problem = Results.Problem(
             title: GetTitle(result.Error),
             detail: GetDetail(result.Error),
-            type: GetType(result.Error.Type),
+            type: statusCode == 429 ? "https://tools.ietf.org/html/rfc6585#section-4" : GetType(result.Error.Type),
             statusCode: statusCode);
 
         if (exception is not null && logger is null)

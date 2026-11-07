@@ -124,8 +124,10 @@ describe("CollectionDetailPage export and print (#258)", () => {
     const user = userEvent.setup({ delay: null });
     renderPage();
 
-    await user.click(await screen.findByRole("button", { name: "Print" }));
-    expect(print).toHaveBeenCalledTimes(1);
+    await screen.findByRole("button", { name: "Print" });
+    expect(screen.queryByTestId("collection-print-view")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Print" }));
+    await waitFor(() => expect(print).toHaveBeenCalledTimes(1));
 
     const view = await screen.findByTestId("collection-print-view");
     expect(within(view).getByText("Q1")).toBeInTheDocument();

@@ -116,7 +116,7 @@ public sealed class QuestionImageHttpTests : ItemTestFixture, IAsyncLifetime
 
         status.Should().Be(HttpStatusCode.BadRequest, body);
         // POST /items takes uploaded asset ids only (AC 3.25.2); the import paths take no pictures at all (AC 2.1.20).
-        body.Should().Contain(field).And.Contain(path == "add" ? "assetId is required" : "Pictures can't be imported");
+        body.Should().Contain(field).And.Contain(path == "add" ? "assetId is required" : "Only owned uploaded asset references");
         using ApplicationDbContext db = CreateDbContext();
         (await db.Items.CountAsync()).Should().Be(0);
     }
@@ -137,7 +137,7 @@ public sealed class QuestionImageHttpTests : ItemTestFixture, IAsyncLifetime
     }
 
     [Fact]
-    public async Task Update_PreservesBothPictures_AndRejectsClearingExplanation()
+    public async Task Update_PreservesBothPictures_AndAllowsClearingExplanation()
     {
         Item picture = await CreateItemWithCategoryAsync(
             Guid.NewGuid(), "geography", "Which flag?", "France", ["Italy"], "Because", false, _ownerId.ToString());
@@ -161,13 +161,12 @@ public sealed class QuestionImageHttpTests : ItemTestFixture, IAsyncLifetime
         keyedBody.Should().Contain("QuestionImage").And.Contain("assetId is required");
 
         (HttpStatusCode cleared, string clearedBody) = await SendAsync(HttpMethod.Put, $"/items/{picture.Id}", Put("   "), UserToken);
-        cleared.Should().Be(HttpStatusCode.BadRequest, clearedBody);
-        clearedBody.Should().Contain("Explanation can't be empty while the item has an explanation picture.");
+        cleared.Should().Be(HttpStatusCode.OK, clearedBody);
 
         (HttpStatusCode fetched, string fetchedBody) = await SendAsync(HttpMethod.Get, $"/items/{picture.Id}", null, UserToken);
         fetched.Should().Be(HttpStatusCode.OK, fetchedBody);
         using JsonDocument doc = JsonDocument.Parse(fetchedBody);
-        doc.RootElement.GetProperty("explanation").GetString().Should().Be("Edited");
+        doc.RootElement.GetProperty("explanation").GetString().Should().Be("   ");
         doc.RootElement.GetProperty("questionImage").GetProperty("key").GetString().Should().Be("curated:flags/fr");
         doc.RootElement.GetProperty("explanationImage").GetProperty("key").GetString().Should().Be("curated:diagrams/x");
     }
@@ -248,4 +247,28 @@ public sealed class QuestionImageHttpTests : ItemTestFixture, IAsyncLifetime
         without.GetProperty("explanationImage").ValueKind.Should().Be(JsonValueKind.Null);
         body.Should().NotContain("http:").And.NotContain("data:").And.NotContain("storage");
     }
+    [Fact]
+    public async Task OwnedUploadedJsonFileRoundTripCreatesPrivatePendingRevisionWithoutCopyingApproval()
+    {
+        MediaAsset asset = PictureSeed.AddAsset(DbContext, _ownerId.ToString());
+        Category category = await DbContext.Categories.FirstAsync(c => c.Name == "geography");
+        Item original = PictureSeed.AddPictureItem(DbContext, category, _ownerId.ToString(), false, ItemImageReviewState.Approved, asset);
+        original.QuestionImageLongDescription = "Original long description";
+        await DbContext.SaveChangesAsync();
+        var exported = await SendAsync(HttpMethod.Get, "/items/export?category=geography", null, UserToken);
+        exported.Status.Should().Be(HttpStatusCode.OK, exported.Body);
+        using JsonDocument file = JsonDocument.Parse(exported.Body);
+        JsonElement row = file.RootElement.EnumerateArray().Single(x => x.GetProperty("itemId").GetString() == original.Id.ToString());
+        string picture = row.GetProperty("questionImage").GetRawText();
+        picture.Should().Contain("assetId").And.Contain("Original long description").And.NotContain("media:").And.NotContain("Approved");
+        DbContext.Items.Remove(original); await DbContext.SaveChangesAsync();
+        string inputItem = "{\"question\":\"Round trip\",\"correctAnswer\":\"A\",\"incorrectAnswers\":[\"B\"],\"explanation\":\"\",\"questionImage\":" + picture + "}";
+        string payload = "{\"category\":\"geography\",\"keyword1\":\"capitals\",\"keyword2\":\"europe\",\"keywords\":[],\"inputText\":\"owned-picture-file\",\"items\":[" + inputItem + "]}";
+        var imported = await SendAsync(HttpMethod.Post, "/items/upload-to-collection", payload, UserToken);
+        imported.Status.Should().Be(HttpStatusCode.Created, imported.Body);
+        await using ApplicationDbContext verify = CreateDbContext();
+        Item restored = await verify.Items.AsNoTracking().SingleAsync(x => x.Question == "Round trip");
+        restored.Id.Should().NotBe(original.Id); restored.IsPrivate.Should().BeTrue(); restored.ImageReviewState.Should().Be(ItemImageReviewState.PendingReview); restored.QuestionImageAssetId.Should().Be(asset.Id); restored.QuestionImageLongDescription.Should().Be("Original long description");
+    }
+
 }

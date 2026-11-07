@@ -30,7 +30,7 @@ public static class AddItemsBulk
         string? GroupLabel = null,
         System.Text.Json.JsonElement? QuestionImage = null,
         System.Text.Json.JsonElement? ExplanationImage = null,
-        Dictionary<int, string>? IncorrectAnswerRationale = null);
+        Dictionary<int, string>? IncorrectAnswerRationale = null) : IItemImageImportInput;
 
     public sealed record Request(
         bool IsPrivate,
@@ -115,7 +115,8 @@ public static class AddItemsBulk
                 .WithMessage("Question must not exceed 1000 characters");
 
             this.AddSpeechSupportRules(x => x.QuestionSpeech, 1000, "QuestionSpeech");
-            this.AddPictureImportRejectionRules(x => x.QuestionImage, x => x.ExplanationImage);
+            RuleFor(x => x.QuestionImage).Must(ItemImageImport.IsValid).WithMessage("Only owned uploaded asset references can be imported.");
+            RuleFor(x => x.ExplanationImage).Must(ItemImageImport.IsValid).WithMessage("Only owned uploaded asset references can be imported.");
 
             RuleFor(x => x.CorrectAnswer)
                 .NotEmpty()
@@ -179,6 +180,7 @@ public static class AddItemsBulk
                 .RequireAuthorization("Admin")
                 .Produces<Response>(StatusCodes.Status200OK)
                 .Produces(StatusCodes.Status400BadRequest)
+                .Produces(StatusCodes.Status429TooManyRequests)
                 .Produces(StatusCodes.Status401Unauthorized)
                 .Produces(StatusCodes.Status403Forbidden);
         }

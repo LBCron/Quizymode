@@ -23,10 +23,11 @@ public static class ExportItems
         [property: JsonPropertyName("explanation")] string Explanation,
         [property: JsonPropertyName("keywords")] List<string> Keywords,
         [property: JsonPropertyName("source")] string? Source,
-        [property: JsonPropertyName("questionImage")] ItemImageReference? QuestionImage = null,
-        [property: JsonPropertyName("explanationImage")] ItemImageReference? ExplanationImage = null,
+        [property: JsonPropertyName("questionImage")] object? QuestionImage = null,
+        [property: JsonPropertyName("explanationImage")] object? ExplanationImage = null,
         [property: JsonPropertyName("starterWorld")] string? StarterWorld = null,
         [property: JsonPropertyName("wowLine")] string? WowLine = null,
+        [property: JsonPropertyName("omittedPictures")] List<string>? OmittedPictures = null,
         [property: JsonPropertyName("incorrectAnswerRationale")] Dictionary<int, string>? IncorrectAnswerRationale = null);
 
     public sealed class Endpoint : IEndpoint
@@ -44,6 +45,7 @@ public static class ExportItems
         private static async Task<IResult> Handler(
             string? category,
             string? nav,
+            bool? acknowledgePictureLoss,
             ApplicationDbContext db,
             IUserContext userContext,
             CancellationToken cancellationToken)
@@ -80,6 +82,8 @@ public static class ExportItems
                 .Include(i => i.NavigationKeyword2)
                 .ToListAsync(cancellationToken);
 
+            bool foreignPictures = items.Any(i => i.CreatedBy != userContext.UserId && (i.QuestionImageAssetId != null || i.ExplanationImageAssetId != null));
+            if (foreignPictures && acknowledgePictureLoss != true) return Results.Problem(statusCode: 409, title: "Export.PictureLossAcknowledgementRequired", detail: "Some pictures belong to another author and cannot be reused. Explicitly acknowledge a text-only export to omit them.");
             List<SeedItemDto> result = items.Select(item =>
             {
                 List<string> tagKeywords = item.ItemKeywords
@@ -100,10 +104,11 @@ public static class ExportItems
                     tagKeywords,
                     item.Source,
                     // Uploaded pictures are never exported (AC 3.25.8); the export carries curated pictures only.
-                    item.QuestionImageAssetId is null ? ItemImageReferenceHelper.FromColumns(item.QuestionImageKey, item.QuestionImageAlt) : null,
-                    item.ExplanationImageAssetId is null ? ItemImageReferenceHelper.FromColumns(item.ExplanationImageKey, item.ExplanationImageAlt) : null,
+                    item.QuestionImageAssetId is Guid questionId && item.CreatedBy == userContext.UserId ? new ImageSlotInput(questionId, item.QuestionImageAlt, item.QuestionImageAttribution, LongDescription: item.QuestionImageLongDescription) : item.QuestionImageAssetId is null ? ItemImageReferenceHelper.FromColumns(item.QuestionImageKey, item.QuestionImageAlt) : null,
+                    item.ExplanationImageAssetId is Guid explanationId && item.CreatedBy == userContext.UserId ? new ImageSlotInput(explanationId, item.ExplanationImageAlt, item.ExplanationImageAttribution, LongDescription: item.ExplanationImageLongDescription) : item.ExplanationImageAssetId is null ? ItemImageReferenceHelper.FromColumns(item.ExplanationImageKey, item.ExplanationImageAlt) : null,
                     item.StarterWorld,
                     item.WowLine,
+                    item.CreatedBy == userContext.UserId ? null : new[] { item.QuestionImageAssetId is not null ? "questionImage" : null, item.ExplanationImageAssetId is not null ? "explanationImage" : null }.OfType<string>().ToList(),
                     item.IncorrectAnswerRationale.Count > 0 ? item.IncorrectAnswerRationale : null);
             }).ToList();
 

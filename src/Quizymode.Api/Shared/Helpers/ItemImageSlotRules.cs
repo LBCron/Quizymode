@@ -11,7 +11,7 @@ internal static class ItemImageSlotRules
     internal const string AssetIdRequiredMessage =
         "assetId is required. Upload the picture with POST /media/images first; URLs, keys and files can't be sent here.";
 
-    internal const string UnmappedMessage = "only assetId, altText, attribution and remove are accepted; keys and URLs can't be sent here.";
+    internal const string UnmappedMessage = "only assetId, altText, attribution, longDescription and remove are accepted; keys and URLs can't be sent here.";
 
     internal const string AltTextMessage = "altText is required (1-300 characters, no line breaks or control characters).";
     internal const string AttributionMessage = "attribution must be at most 300 characters with no line breaks or control characters.";
@@ -40,7 +40,7 @@ internal static class ItemImageSlotRules
             .WithMessage($"{name}: {RemoveNotAllowedMessage}");
 
         validator.RuleFor(expression)
-            .Must(slot => slot is null || slot.Remove != true || (slot.AssetId is null && slot.AltText is null && slot.Attribution is null))
+            .Must(slot => slot is null || slot.Remove != true || (slot.AssetId is null && slot.AltText is null && slot.Attribution is null && slot.LongDescription is null))
             .WithName(name)
             .WithMessage($"{name}: {RemoveExclusiveMessage}");
 
@@ -55,6 +55,11 @@ internal static class ItemImageSlotRules
             .WithMessage($"{name}: {AltTextMessage}");
 
         validator.RuleFor(expression)
+            .Must(slot => slot is null || IsValidLongDescription(slot.LongDescription))
+            .WithName(name)
+            .WithMessage($"{name}: longDescription must be at most 2000 characters without control characters other than line breaks.");
+
+        validator.RuleFor(expression)
             .Must(slot => slot is null || slot.Remove == true || IsValidAttribution(slot.Attribution))
             .WithName(name)
             .WithMessage($"{name}: {AttributionMessage}");
@@ -66,13 +71,11 @@ internal static class ItemImageSlotRules
         System.Linq.Expressions.Expression<Func<T, ImageSlotInput?>> slot,
         System.Linq.Expressions.Expression<Func<T, string?>> explanation)
     {
-        Func<T, ImageSlotInput?> slotOf = slot.Compile();
-        Func<T, string?> explanationOf = explanation.Compile();
-        validator.RuleFor(x => x)
-            .Must(x => slotOf(x) is null || slotOf(x)!.Remove == true || !string.IsNullOrWhiteSpace(explanationOf(x)))
-            .WithName("ExplanationImage")
-            .WithMessage(ExplanationRequiredMessage);
+
     }
+
+    internal static bool IsValidLongDescription(string? text) =>
+        text is null || (text.Trim().Length <= 2000 && !text.Any(c => char.IsControl(c) && c is not '\n' and not '\r'));
 
     private static bool IsValidAttribution(string? attribution)
     {

@@ -51,6 +51,7 @@ export interface LearnRunState {
    * only the other items. A missing field in a stored run reads as empty (no schema bump).
    */
   skipped: string[];
+  skippedReasons?: Record<string, "picture-unavailable" | "picture-inaccessible">;
   round: LearnRound;
   progress: Record<string, LearnItemProgress>;
   view: LearnView;
@@ -62,7 +63,7 @@ export type LearnRunAction =
   | { type: "answer"; itemId: string; selectedIndex: number; isCorrect: boolean; completedAt: string }
   | { type: "advance" }
   /** Leave the current, unanswered item because its picture is unavailable: no attempt and no miss are recorded. */
-  | { type: "skip-unavailable"; itemId: string; completedAt: string }
+  | { type: "skip-unavailable"; itemId: string; completedAt: string; reason?: "picture-unavailable" | "picture-inaccessible" }
   | { type: "next-round" }
   | { type: "mark-completion-emitted" };
 
@@ -262,7 +263,7 @@ export function reduceLearnRun(run: LearnRunState, action: LearnRunAction): Lear
     if (run.view !== "active" || action.itemId !== getCurrentLearnItemId(run)) return run;
     if (getLearnAttemptInRound(run, action.itemId) || run.skipped.includes(action.itemId)) return run;
     const skipped = run.itemIds.filter((itemId) => itemId === action.itemId || run.skipped.includes(itemId));
-    const updated: LearnRunState = { ...run, skipped };
+    const updated: LearnRunState = { ...run, skipped, skippedReasons: { ...run.skippedReasons, [action.itemId]: action.reason ?? "picture-unavailable" } };
     const completedAt = summarizeLearnRun(updated).isComplete ? action.completedAt : null;
     const completed: LearnRunState = { ...updated, completedAt };
     if (completedAt) return { ...completed, view: "finished" };
@@ -423,6 +424,8 @@ export function restoreLearnRun(value: unknown, expectedScope: QuizRunScope, ide
   const completedAt = candidate.completedAt;
   if (completedAt !== null && (typeof completedAt !== "string" || Number.isNaN(Date.parse(completedAt)))) return null;
 
+  const reasons = candidate.skippedReasons;
+  if (reasons !== undefined && (!reasons || typeof reasons !== "object" || Object.entries(reasons).some(([id, reason]) => !skipped.includes(id) || !["picture-unavailable", "picture-inaccessible"].includes(String(reason))))) return null;
   const restored: LearnRunState = {
     schemaVersion: LEARN_RUN_SCHEMA_VERSION,
     runId: candidate.runId,
@@ -430,6 +433,7 @@ export function restoreLearnRun(value: unknown, expectedScope: QuizRunScope, ide
     scope: expectedScope,
     itemIds: [...itemIds],
     skipped,
+    skippedReasons: reasons as LearnRunState["skippedReasons"],
     round,
     progress,
     view: candidate.view as LearnView,

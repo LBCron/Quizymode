@@ -8,7 +8,7 @@ using Quizymode.Api.Shared.Models;
 namespace Quizymode.Api.Shared.Helpers;
 
 /// <summary>An uploaded picture attached to an item slot, as the reviewer sees it.</summary>
-internal sealed record PictureSlot(Guid AssetId, string Sha256, string AltText, string? Attribution);
+internal sealed record PictureSlot(Guid AssetId, string Sha256, string AltText, string? Attribution, string? LongDescription = null);
 
 /// <summary>What a save does to the item's picture review: <see cref="Changed"/> means a new revision is claimed.</summary>
 internal readonly record struct ImageReviewTransition(bool Changed, ItemImageReviewState? State, int Revision, bool CreatesSubmission);
@@ -64,7 +64,8 @@ internal static class ItemImageReviewRules
         string explanation,
         ItemSpeechSupport? questionSpeech,
         PictureSlot? questionImage,
-        PictureSlot? explanationImage)
+        PictureSlot? explanationImage,
+        IReadOnlyDictionary<int, string>? incorrectAnswerRationale = null)
     {
         using MemoryStream stream = new();
         using (Utf8JsonWriter writer = new(stream))
@@ -95,6 +96,13 @@ internal static class ItemImageReviewRules
 
             WriteSlot(writer, "questionImage", questionImage);
             WriteSlot(writer, "explanationImage", explanationImage);
+            // Omit empty rationale entirely to preserve historical canonical hashes.
+            if (incorrectAnswerRationale is { Count: > 0 })
+            {
+                writer.WriteStartObject("incorrectAnswerRationale");
+                foreach (KeyValuePair<int, string> rationale in incorrectAnswerRationale.OrderBy(x => x.Key)) writer.WriteString(rationale.Key.ToString(System.Globalization.CultureInfo.InvariantCulture), rationale.Value);
+                writer.WriteEndObject();
+            }
             writer.WriteEndObject();
         }
 
@@ -113,6 +121,8 @@ internal static class ItemImageReviewRules
         writer.WriteString("sha256", slot.Sha256);
         writer.WriteString("altText", slot.AltText);
         writer.WriteString("attribution", slot.Attribution);
+        // Preserve the v1 hash byte-for-byte for existing null descriptions.
+        if (slot.LongDescription is not null) writer.WriteString("longDescription", slot.LongDescription);
         writer.WriteEndObject();
     }
 

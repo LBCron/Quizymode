@@ -15,6 +15,7 @@ using Quizymode.Api.Features.Featured;
 using Quizymode.Api.Features.Items.ImageReview;
 using Quizymode.Api.Features.Items.Update;
 using Quizymode.Api.Features.Keywords;
+using Quizymode.Api.Features.Media;
 using Quizymode.Api.Features.Search;
 using Quizymode.Api.Services;
 using Quizymode.Api.Services.Taxonomy;
@@ -443,6 +444,7 @@ public sealed class ItemImageReviewPostgresTests(PostgresContainerFixture fixtur
             {
                 new UpdateItem.Endpoint().MapEndpoint(app);
                 new SetItemImageReview.Endpoint().MapEndpoint(app);
+                new MediaLifecycleEndpoints.Endpoint().MapEndpoint(app);
             });
         return new Scenario { Host = host, Hook = hook, OwnerId = ownerId, AdminId = adminId };
     }
@@ -538,7 +540,9 @@ public sealed class ItemImageReviewPostgresTests(PostgresContainerFixture fixtur
         await using Scenario s = await StartScenarioAsync();
         (Item item, MediaAsset asset) = await SeedPendingAsync(s);
         (HttpStatusCode Status, string Body) decision = default;
-        s.Hook.BeforeClaim = async () => decision = await DecideAsync(s, item.Id, "approve", 1);
+        // Approval and attachment now serialize on the same transaction advisory lock.
+        // Commit the first actor before starting the edit rather than awaiting it from inside the edit lock.
+        decision = await DecideAsync(s, item.Id, "approve", 1);
 
         (HttpStatusCode editStatus, string editBody) = await SendAsync(s.Host, HttpMethod.Put, $"/items/{item.Id}", PutBody(asset, "Edited?"), s.OwnerToken);
 
@@ -669,4 +673,22 @@ public sealed class ItemImageReviewPostgresTests(PostgresContainerFixture fixtur
             result.Value.Items.Where(i => i.ImageReview.SubmittedAt != null).Min(i => i.ImageReview.SubmittedAt)!.Value, TimeSpan.FromMilliseconds(1));
         result.Value.OldestSubmittedAt.Should().BeOnOrBefore(olderAt.AddSeconds(1));
     }
+    [SkippableFact]
+    public async Task WithdrawalRacingApprovalAndAttachmentCannotRestoreAnAsset()
+    {
+        await using Scenario s = await StartScenarioAsync();
+        (Item item, MediaAsset asset) = await SeedPendingAsync(s);
+        string withdrawal = $"{{\"itemId\":\"{item.Id}\",\"expectedRevision\":1,\"category\":\"privacy\"}}";
+        Task<(HttpStatusCode Status, string Body)> withdraw = SendAsync(s.Host, HttpMethod.Post, $"/admin/media/{asset.Id}/withdraw", withdrawal, s.AdminToken);
+        Task<(HttpStatusCode Status, string Body)> approve = DecideAsync(s, item.Id, "approve", 1);
+        await Task.WhenAll(withdraw, approve);
+        withdraw.Result.Status.Should().Be(HttpStatusCode.OK, withdraw.Result.Body);
+        approve.Result.Status.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.Conflict);
+        await using ApplicationDbContext db = fixture.CreateDbContext();
+        (await db.Items.AsNoTracking().SingleAsync(x => x.Id == item.Id)).ImageReviewState.Should().Be(ItemImageReviewState.Withdrawn);
+        (await db.MediaAssets.AsNoTracking().SingleAsync(x => x.Id == asset.Id)).DeletedAt.Should().NotBeNull();
+        var reattach = await SendAsync(s.Host, HttpMethod.Put, $"/items/{item.Id}", PutBody(asset, "Cannot resurrect?"), s.OwnerToken);
+        reattach.Status.Should().Be(HttpStatusCode.BadRequest, reattach.Body);
+    }
+
 }

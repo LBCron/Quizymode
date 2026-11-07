@@ -92,7 +92,7 @@ const QuestionQualityTab = ({ days, includeBots, includeInternal = false }: Ques
                 <tr key={item.itemId}>
                   <td className="max-w-xs px-4 py-3 text-sm font-medium text-slate-900">
                     <div className="flex items-center gap-2">
-                      <QuestionImage image={item.questionImage} size="xs" />
+                      <QuestionImage itemId={item.itemId} image={item.questionImage} size="xs" />
                       <span>{item.question}</span>
                     </div>
                   </td>

@@ -53,8 +53,8 @@ describe("adminApi", () => {
   it("fetchItemImageBlob fetches the slot as a blob", async () => {
     const blob = new Blob(["x"]);
     mockGet.mockResolvedValueOnce({ data: blob });
-    const result = await adminApi.fetchItemImageBlob("i1", "explanation");
-    expect(mockGet).toHaveBeenCalledWith("/items/i1/images/explanation", { responseType: "blob" });
+    const result = await adminApi.fetchItemImageBlob("i1", "explanation", 4);
+    expect(mockGet).toHaveBeenCalledWith("/items/i1/images/explanation", { responseType: "blob", params: { expectedRevision: 4 } });
     expect(result).toBe(blob);
   });
 

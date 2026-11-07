@@ -8,7 +8,7 @@ import ErrorMessage from "@/components/ErrorMessage";
 import { PronunciationHint } from "@/components/items/PronunciationHint";
 import { QuestionImage } from "@/components/study/QuestionImage";
 import { getIndexedSpeech } from "@/utils/itemSpeech";
-import { ImageReviewQueue } from "../components/ImageReviewQueue";
+import { ImageReviewBulkQueue } from "../components/ImageReviewBulkQueue";
 import { useImageReviewQueue } from "../hooks/useImageReviewQueue";
 import type { ItemImageReference, ItemSpeechSupport } from "@/types/api";
 
@@ -102,7 +102,7 @@ const ReviewBoardPage = () => {
         aria-labelledby={`review-board-tab-${activeTab}`}
       >
         {activeTab === "pictures" ? (
-          <ImageReviewQueue />
+          <ImageReviewBulkQueue />
         ) : isLoading ? (
           <LoadingSpinner />
         ) : error ? (
@@ -177,7 +177,7 @@ function ReviewBoardItemCard({
     <div className="bg-white shadow rounded-lg p-6">
       <div className="flex flex-col gap-4">
         <div className="flex justify-between items-start gap-4">
-          <QuestionImage image={item.questionImage} size="sm" />
+          <QuestionImage itemId={item.id} image={item.questionImage} size="sm" />
           <div className="flex-1">
             <h3 className="text-lg font-medium text-gray-900">
               {item.question}
@@ -210,7 +210,7 @@ function ReviewBoardItemCard({
             )}
             {(item.explanation || item.explanationImage) && (
               <div className="mt-1 flex items-start gap-3">
-                <QuestionImage image={item.explanationImage} slot="explanation" size="sm" />
+                <QuestionImage itemId={item.id} image={item.explanationImage} slot="explanation" size="sm" />
                 {item.explanation && <p className="min-w-0 text-sm text-gray-600">{item.explanation}</p>}
               </div>
             )}

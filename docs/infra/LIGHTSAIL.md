@@ -6,7 +6,7 @@ AWS Lightsail hosts the Quizymode API container in production.
 
 - Production runtime for the ASP.NET Core API
 - Environment-variable based application configuration
-- Public API hosting behind the Cloudflare edge
+- Public API hosting; the tracked production SPA currently calls the Lightsail hostname directly (verify deployment routing before asserting Cloudflare coverage)
 
 ## Operational Notes
 

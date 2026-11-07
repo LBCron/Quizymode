@@ -12,9 +12,14 @@ import { composeItemSuggestionText } from "@/features/topics/suggestionText";
 import type { TopicSuggestion } from "@/api/taxonomy";
 import { NAV_KEYWORD_MAX_LEN } from "@/utils/navigationKeywordRules";
 
+import { ImageSlotEditor } from "./ImageSlotEditor";
+import type { ImageSlotInput } from "@/api/media";
+
 const EXTRA_KEYWORD_AUTOCOMPLETE_LIMIT = 10;
 
 export interface ItemFormValues {
+  questionImage?: ImageSlotInput;
+  explanationImage?: ImageSlotInput;
   category: string;
   isPrivate: boolean;
   /** Navigation keyword rank 1 (from dropdown or custom private). */
@@ -39,6 +44,8 @@ export interface ItemFormValues {
 
 export interface ItemFormProps {
   mode: "create" | "edit";
+  questionPictureReadOnly?: boolean;
+  explanationPictureReadOnly?: boolean;
   values: ItemFormValues;
   onChange: (values: ItemFormValues) => void;
   onSubmit: (e: React.FormEvent) => void;
@@ -71,6 +78,8 @@ const MORE_OPTIONS_ERROR_PATTERN =
 
 export function ItemForm({
   mode,
+  questionPictureReadOnly,
+  explanationPictureReadOnly,
   values,
   onChange,
   onSubmit,
@@ -89,6 +98,9 @@ export function ItemForm({
   statusMessage,
   questionRef,
 }: ItemFormProps) {
+  const [questionBusy, setQuestionBusy] = useState(false);
+  const [explanationBusy, setExplanationBusy] = useState(false);
+  const picturesBusy = questionBusy || explanationBusy;
   const [newKeywordName, setNewKeywordName] = useState("");
   const [suggestOpen, setSuggestOpen] = useState(false);
   const [highlightIndex, setHighlightIndex] = useState(-1);
@@ -106,6 +118,7 @@ export function ItemForm({
     if (errorInMoreOptions) setMoreOpenChoice(true);
   }
   const moreOptionsHasValue =
+    Boolean(values.explanationImage?.assetId) ||
     values.explanation.trim() !== "" ||
     values.source.trim() !== "" ||
     values.groupLabel.trim() !== "" ||
@@ -361,7 +374,7 @@ export function ItemForm({
 
   return (
     <form
-      onSubmit={onSubmit}
+      onSubmit={e => { if (picturesBusy) { e.preventDefault(); return; } onSubmit(e); }}
       className="bg-white shadow rounded-lg p-6 space-y-6"
     >
       {validationError && (
@@ -395,6 +408,8 @@ export function ItemForm({
             className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white text-gray-900 placeholder:text-gray-500"
           />
         </div>
+
+        {!questionPictureReadOnly && <ImageSlotEditor label="Question picture" value={values.questionImage} onChange={questionImage => onChange({ ...values, questionImage })} onBusy={setQuestionBusy} />}
 
         <div>
           <label
@@ -506,6 +521,8 @@ export function ItemForm({
               className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white text-gray-900 placeholder:text-gray-500"
             />
           </div>
+
+          {!explanationPictureReadOnly && <ImageSlotEditor label="Explanation picture" value={values.explanationImage} onChange={explanationImage => onChange({ ...values, explanationImage })} onBusy={setExplanationBusy} />}
 
           <div>
             <label
@@ -733,7 +750,7 @@ export function ItemForm({
           <button
             type="submit"
             data-action="another"
-            disabled={isPending}
+            disabled={isPending || picturesBusy}
             className="px-4 py-2 text-sm font-medium text-indigo-700 bg-white border border-indigo-300 rounded-md hover:bg-indigo-50 disabled:opacity-50"
           >
             Save and add another
@@ -741,7 +758,7 @@ export function ItemForm({
         )}
         <button
           type="submit"
-          disabled={isPending}
+          disabled={isPending || picturesBusy}
           className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 disabled:opacity-50"
         >
           {isPending ? "Saving..." : mode === "create" ? "Save and study" : "Save"}

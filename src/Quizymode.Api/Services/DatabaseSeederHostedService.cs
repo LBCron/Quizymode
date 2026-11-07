@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 using Quizymode.Api.Data;
 using Quizymode.Api.Features.Admin;
 using Quizymode.Api.Shared.Kernel;
+using Quizymode.Api.Shared.Helpers;
 using Quizymode.Api.Shared.Models;
 using Quizymode.Api.Shared.Options;
 using Quizymode.Api.Services.Taxonomy;
@@ -255,6 +256,28 @@ internal sealed class DatabaseSeederHostedService(
         return null;
     }
 
+    internal static void ValidateSeedMediaJson(string json)
+    {
+        using JsonDocument document = JsonDocument.Parse(json);
+        if (document.RootElement.ValueKind != JsonValueKind.Array) return;
+        foreach (JsonElement item in document.RootElement.EnumerateArray())
+        {
+            if (item.ValueKind != JsonValueKind.Object) continue;
+            foreach (JsonProperty property in item.EnumerateObject())
+            {
+                if (property.Name.Equals("assetId", StringComparison.OrdinalIgnoreCase) || property.Name.Equals("objectKey", StringComparison.OrdinalIgnoreCase) || property.Name.Equals("mediaKey", StringComparison.OrdinalIgnoreCase) || property.Name.Equals("imageBase64", StringComparison.OrdinalIgnoreCase) || property.Name.Equals("imageUrl", StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException("Uploaded media fields are not allowed in seed data.");
+                if (!property.Name.Equals("questionImage", StringComparison.OrdinalIgnoreCase) && !property.Name.Equals("explanationImage", StringComparison.OrdinalIgnoreCase)) continue;
+                if (property.Value.ValueKind == JsonValueKind.Null) continue;
+                try
+                {
+                    ItemImageReference? image = property.Value.Deserialize<ItemImageReference>(SeedJsonOptions);
+                    if (image is null || !ItemImageReferenceHelper.IsValidKey(image.Key) || !ItemImageReferenceHelper.IsValidAltText(image.AltText) || !ItemImageSlotRules.IsValidLongDescription(image.LongDescription)) throw new InvalidDataException("Seed pictures must be valid curated references; uploaded assets, URLs and bytes are forbidden.");
+                }
+                catch (JsonException) { throw new InvalidDataException("Unsupported picture fields in seed data."); }
+            }
+        }
+    }
+
     private static readonly JsonSerializerOptions SeedJsonOptions = new() { PropertyNameCaseInsensitive = true };
 
     internal static async Task<List<SeedSyncAdmin.SeedItemRequest>> LoadSeedItemRequestsAsync(
@@ -274,6 +297,7 @@ internal sealed class DatabaseSeederHostedService(
             List<RepoManagedItemSeedData>? items;
             try
             {
+                ValidateSeedMediaJson(fileJson);
                 items = JsonSerializer.Deserialize<List<RepoManagedItemSeedData>>(fileJson, SeedJsonOptions);
             }
             catch (JsonException)

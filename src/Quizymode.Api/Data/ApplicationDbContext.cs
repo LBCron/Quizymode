@@ -102,6 +102,14 @@ public sealed class ApplicationDbContext : DbContext
 
     public DbSet<StudyPlan> StudyPlans => Set<StudyPlan>();
 
+    internal DbSet<MediaIngressAttempt> MediaIngressAttempts => Set<MediaIngressAttempt>();
+
+    public DbSet<MediaUploadAttempt> MediaUploadAttempts => Set<MediaUploadAttempt>();
+    public DbSet<MediaAdvisoryJob> MediaAdvisoryJobs => Set<MediaAdvisoryJob>();
+    public DbSet<MediaUploadClaim> MediaUploadClaims => Set<MediaUploadClaim>();
+    public DbSet<MediaReport> MediaReports => Set<MediaReport>();
+    public DbSet<MediaControl> MediaControls => Set<MediaControl>();
+
     public DbSet<MediaAsset> MediaAssets => Set<MediaAsset>();
 
     public DbSet<ItemImageReview> ItemImageReviews => Set<ItemImageReview>();

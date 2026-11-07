@@ -3,7 +3,7 @@ import { findPictureImportError } from "./pictureImport";
 
 const picture = { key: "curated:flags/fr", altText: "Three bands" };
 const HINT =
-  "Pictures can't be imported. Remove questionImage and explanationImage from your JSON. Curated pictures are added through seed data.";
+  "Only your own uploaded asset references can be imported. Curated keys, URLs, bytes and other authors' pictures cannot be imported.";
 
 describe("findPictureImportError", () => {
   it("accepts rows without picture fields and rows that carry null (an exported file)", () => {

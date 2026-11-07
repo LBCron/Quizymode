@@ -337,7 +337,7 @@ internal sealed class SeedSyncAdminService(
 
         foreach (Item existingItem in existingItems)
         {
-            if (existingItem.IsPrivate || !existingItem.IsRepoManaged)
+            if (existingItem.IsPrivate || !existingItem.IsRepoManaged || existingItem.QuestionImageAssetId is not null || existingItem.ExplanationImageAssetId is not null)
             {
                 return Result.Failure<SeedSyncPlan>(
                     Error.Validation(
@@ -656,8 +656,12 @@ internal sealed class SeedSyncAdminService(
         item.Source = change.Item.Source;
         item.QuestionImageKey = change.Item.QuestionImage?.Key;
         item.QuestionImageAlt = change.Item.QuestionImage?.AltText;
+        item.QuestionImageAttribution = change.Item.QuestionImage?.Attribution;
+        item.QuestionImageLongDescription = change.Item.QuestionImage?.LongDescription;
         item.ExplanationImageKey = change.Item.ExplanationImage?.Key;
         item.ExplanationImageAlt = change.Item.ExplanationImage?.AltText;
+        item.ExplanationImageAttribution = change.Item.ExplanationImage?.Attribution;
+        item.ExplanationImageLongDescription = change.Item.ExplanationImage?.LongDescription;
         item.StarterWorld = change.Item.StarterWorld;
         item.WowLine = change.Item.WowLine;
         item.IncorrectAnswerRationale = change.Item.IncorrectAnswerRationale;
@@ -1152,8 +1156,8 @@ internal sealed class SeedSyncAdminService(
             item.Explanation.Trim(),
             string.IsNullOrWhiteSpace(item.Source) ? null : item.Source.Trim(),
             extras,
-            ItemImageReferenceHelper.FromColumns(item.QuestionImageKey, item.QuestionImageAlt),
-            ItemImageReferenceHelper.FromColumns(item.ExplanationImageKey, item.ExplanationImageAlt),
+            ItemImageReferenceHelper.FromColumns(item.QuestionImageKey, item.QuestionImageAlt, item.QuestionImageAttribution, item.QuestionImageLongDescription),
+            ItemImageReferenceHelper.FromColumns(item.ExplanationImageKey, item.ExplanationImageAlt, item.ExplanationImageAttribution, item.ExplanationImageLongDescription),
             item.StarterWorld,
             item.WowLine,
             IncorrectAnswerRationaleHelper.Normalize(item.IncorrectAnswerRationale, item.IncorrectAnswers.Count));

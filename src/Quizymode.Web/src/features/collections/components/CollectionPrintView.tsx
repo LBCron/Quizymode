@@ -1,53 +1,23 @@
 import type { ExportableItem } from "../utils/exportFormats";
-import { resolveCuratedImage } from "@/media/curatedImages";
+import { QuestionImage } from "@/components/study/QuestionImage";
 
 interface CollectionPrintViewProps {
   title: string;
+  collectionId?: string;
   items: readonly ExportableItem[];
   /** Worksheet mode: show a blank answer line instead of the answer and explanation. */
   hideAnswers: boolean;
 }
 
-/** Explanation picture (#403): printed after the answer and explanation, never on a worksheet. */
-function PrintedExplanationPicture({ image }: { image: NonNullable<ExportableItem["explanationImage"]> }) {
-  const url = resolveCuratedImage(image.key);
-  if (url === null) {
-    return <p className="text-sm italic">[Picture unavailable: {image.altText}]</p>;
-  }
-  return (
-    <img
-      src={url}
-      alt={image.altText}
-      loading="eager"
-      className="mt-2 w-full max-w-[8cm] break-inside-avoid border border-gray-400 bg-slate-200 object-contain p-1 print:[print-color-adjust:exact]"
-    />
-  );
-}
-
-function PrintedPicture({ image }: { image: NonNullable<ExportableItem["questionImage"]> }) {
-  const url = resolveCuratedImage(image.key);
-  if (url === null) {
-    return <p className="text-sm italic">[Picture unavailable: {image.altText}]</p>;
-  }
-  return (
-    <img
-      src={url}
-      alt={image.altText}
-      loading="eager"
-      className="mt-2 h-32 w-48 border border-gray-400 bg-slate-200 object-contain p-1 print:[print-color-adjust:exact] break-inside-avoid"
-    />
-  );
-}
-
 /** Hidden on screen; shown only when printing (Tailwind `print:` utilities). */
-export const CollectionPrintView = ({ title, items, hideAnswers }: CollectionPrintViewProps) => (
+export const CollectionPrintView = ({ title, items, hideAnswers, collectionId }: CollectionPrintViewProps) => (
   <section data-testid="collection-print-view" className="hidden text-black print:block">
     <h1 className="mb-4 text-2xl font-bold">{title}</h1>
     <ol className="list-decimal space-y-4 pl-6">
       {items.map((item, index) => (
         <li key={index} className="break-inside-avoid">
           <p className="font-medium">{item.question}</p>
-          {item.questionImage && <PrintedPicture image={item.questionImage} />}
+          {item.questionImage && <QuestionImage collectionId={collectionId} itemId={item.id} image={item.questionImage} showEnlarge={false} />}
           {hideAnswers ? (
             <p className="mt-2 border-b border-black pb-4">Answer:</p>
           ) : (
@@ -60,7 +30,7 @@ export const CollectionPrintView = ({ title, items, hideAnswers }: CollectionPri
                   <span className="font-semibold">Explanation:</span> {item.explanation}
                 </p>
               )}
-              {item.explanationImage && <PrintedExplanationPicture image={item.explanationImage} />}
+              {item.explanationImage && <QuestionImage collectionId={collectionId} itemId={item.id} image={item.explanationImage} slot="explanation" showEnlarge={false} />}
             </>
           )}
         </li>

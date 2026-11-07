@@ -285,6 +285,7 @@ export interface ImageReviewQueueItem {
   explanationImage?: ItemImageReference | null;
   imageReview: ImageReviewQueueReview;
   ageSeconds?: number | null;
+  incorrectAnswerRationale?: Record<number, string> | null;
 }
 
 export interface ImageReviewQueueResponse {
@@ -300,6 +301,27 @@ export interface SetImageReviewRequest {
   decision: "approve" | "reject";
   expectedRevision: number;
   reason?: string;
+}
+
+/** POST /admin/items/image-review/bulk (AC 3.26.4): up to 25 items, each with the revision the reviewer saw. */
+export interface BulkImageReviewRequest {
+  decision: "approve" | "reject";
+  items: { id: string; expectedRevision: number }[];
+  reason?: string;
+}
+
+export interface BulkImageReviewOutcome {
+  id: string;
+  applied: boolean;
+  state?: string | null;
+  revision?: number | null;
+  errorCode?: string | null;
+}
+
+export interface BulkImageReviewResponse {
+  applied: number;
+  failed: number;
+  results: BulkImageReviewOutcome[];
 }
 
 /**
@@ -1020,10 +1042,16 @@ export const adminApi = {
     return response.data;
   },
 
+  setImageReviewBulk: async (request: BulkImageReviewRequest): Promise<BulkImageReviewResponse> => {
+    const response = await apiClient.post<BulkImageReviewResponse>("/admin/items/image-review/bulk", request);
+    return response.data;
+  },
+
   /** Fetches an uploaded picture with the admin bearer token (an <img> tag cannot send it). */
-  fetchItemImageBlob: async (id: string, slot: "question" | "explanation"): Promise<Blob> => {
+  fetchItemImageBlob: async (id: string, slot: "question" | "explanation", expectedRevision: number): Promise<Blob> => {
+    if (!Number.isSafeInteger(expectedRevision) || expectedRevision <= 0) throw new Error("Picture revision unavailable");
     const response = await apiClient.get<Blob>(`/items/${id}/images/${slot}`, {
-      responseType: "blob",
+      responseType: "blob", params: { expectedRevision },
     });
     return response.data;
   },

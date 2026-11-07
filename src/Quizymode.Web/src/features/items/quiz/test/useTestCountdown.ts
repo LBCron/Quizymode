@@ -7,7 +7,7 @@ import { getTestDeadlineMs, isTestInProgress, type QuizRunState } from "../quizR
  * reload after the deadline) `onExpire` is called with the deadline as an ISO string. Returns null when the
  * run is not a started, unsubmitted, timed Test.
  */
-export function useTestCountdown(run: QuizRunState | null, onExpire: (deadlineIso: string) => void): number | null {
+export function useTestCountdown(run: QuizRunState | null, onExpire: (deadlineIso: string) => void, paused = false): number | null {
   const deadline = run && isTestInProgress(run) ? getTestDeadlineMs(run) : null;
   const [now, setNow] = useState(() => Date.now());
   const onExpireRef = useRef(onExpire);
@@ -27,11 +27,12 @@ export function useTestCountdown(run: QuizRunState | null, onExpire: (deadlineIs
     };
   }, [deadline]);
 
-  const expired = deadline !== null && now >= deadline;
+  const frozenNow = paused ? (run?.picturePausedAt ? Date.parse(run.picturePausedAt) : now) : now;
+  const expired = !paused && !run?.picturePausedAt && deadline !== null && now >= deadline;
   useEffect(() => {
     if (deadline !== null && expired) onExpireRef.current(new Date(deadline).toISOString());
   }, [deadline, expired]);
 
   if (deadline === null) return null;
-  return Math.max(0, Math.ceil((deadline - now) / 1000));
+  return Math.max(0, Math.ceil((deadline - frozenNow) / 1000));
 }

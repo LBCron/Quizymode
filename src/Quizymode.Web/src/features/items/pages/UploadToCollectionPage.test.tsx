@@ -318,7 +318,7 @@ describe("UploadToCollectionPage", () => {
     expect(itemsApi.uploadToCollection).not.toHaveBeenCalled();
   });
 
-  it("rejects a pasted item with a picture before sending, names the item and field, and disables Upload until edited (#403)", async () => {
+  it("rejects an unsupported curated picture reference before sending and retains the input for correction (#403)", async () => {
     const user = userEvent.setup({ delay: null });
     renderPage("/items/upload-to-collection?category=science&keywords=anatomy,muscular");
     await screen.findByLabelText(/^category \*$/i);
@@ -338,7 +338,7 @@ describe("UploadToCollectionPage", () => {
 
     expect(
       await screen.findByText(
-        `Item 2 has "questionImage". Pictures can't be imported. Remove questionImage and explanationImage from your JSON. Curated pictures are added through seed data.`
+        `Item 2 has "questionImage". Only your own uploaded asset references can be imported. Curated keys, URLs, bytes and other authors' pictures cannot be imported.`
       )
     ).toBeInTheDocument();
     expect(itemsApi.uploadToCollection).not.toHaveBeenCalled();
@@ -437,7 +437,7 @@ describe("UploadToCollectionPage", () => {
     await user.click(screen.getByLabelText(/json array of items/i));
     await user.paste(
       JSON.stringify([
-        { question: "Q", correctAnswer: "A", incorrectAnswers: [" W1 ", "", "W2", "W3", "W4", "W5"] },
+        { question: "Q", correctAnswer: "A", incorrectAnswers: [" W1 ", "", "W2", "W3", "W4", "W5"], incorrectAnswerRationale: { W1: "First reason", W3: "Second reason", W5: "Omitted answer reason" } },
       ])
     );
     await user.click(screen.getByRole("button", { name: /upload and open collection/i }));
@@ -445,6 +445,7 @@ describe("UploadToCollectionPage", () => {
     await waitFor(() => expect(itemsApi.uploadToCollection).toHaveBeenCalledTimes(1));
     const payload = vi.mocked(itemsApi.uploadToCollection).mock.calls[0][0];
     expect(payload.items[0].incorrectAnswers).toEqual(["W1", "W2", "W3", "W4"]);
+    expect(payload.items[0].incorrectAnswerRationale).toEqual({ 0: "First reason", 2: "Second reason" });
   });
 
   it("asks for 1-4 incorrect answers in the prompt", async () => {

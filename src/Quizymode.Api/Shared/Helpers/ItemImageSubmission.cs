@@ -16,8 +16,8 @@ internal static class ItemImageSubmission
     private static readonly string[] ClaimedProperties =
     [
         nameof(Item.ImageRevision), nameof(Item.ImageReviewState),
-        nameof(Item.QuestionImageAssetId), nameof(Item.QuestionImageKey), nameof(Item.QuestionImageAlt), nameof(Item.QuestionImageAttribution),
-        nameof(Item.ExplanationImageAssetId), nameof(Item.ExplanationImageKey), nameof(Item.ExplanationImageAlt), nameof(Item.ExplanationImageAttribution)
+        nameof(Item.QuestionImageAssetId), nameof(Item.QuestionImageKey), nameof(Item.QuestionImageAlt), nameof(Item.QuestionImageAttribution), nameof(Item.QuestionImageLongDescription),
+        nameof(Item.ExplanationImageAssetId), nameof(Item.ExplanationImageKey), nameof(Item.ExplanationImageAlt), nameof(Item.ExplanationImageAttribution), nameof(Item.ExplanationImageLongDescription)
     ];
 
     /// <summary>A slot that holds a curated (seed-managed) picture rather than an upload.</summary>
@@ -38,7 +38,8 @@ internal static class ItemImageSubmission
         string? currentAlt,
         string? currentAttribution,
         ImageSlotInput? input,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        string? currentLongDescription = null)
     {
         if (input is null)
         {
@@ -51,7 +52,7 @@ internal static class ItemImageSubmission
                 .Where(a => a.Id == currentAssetId.Value)
                 .Select(a => a.Sha256)
                 .FirstAsync(cancellationToken);
-            return (new PictureSlot(currentAssetId.Value, currentSha, currentAlt ?? string.Empty, currentAttribution), null);
+            return (new PictureSlot(currentAssetId.Value, currentSha, currentAlt ?? string.Empty, currentAttribution, currentLongDescription), null);
         }
 
         if (input.Remove == true)
@@ -76,7 +77,7 @@ internal static class ItemImageSubmission
             return (null, ItemImageReviewRules.AssetInvalid());
         }
 
-        return (new PictureSlot(assetId, sha, (input.AltText ?? string.Empty).Trim(), NormalizeAttribution(input.Attribution)), null);
+        return (new PictureSlot(assetId, sha, (input.AltText ?? string.Empty).Trim(), NormalizeAttribution(input.Attribution), NormalizeAttribution(input.LongDescription)), null);
     }
 
     /// <summary>Writes the two slots onto the item, leaving a curated slot untouched.</summary>
@@ -88,6 +89,7 @@ internal static class ItemImageSubmission
             item.QuestionImageKey = question is null ? null : ItemImageReviewRules.KeyOf(question.AssetId);
             item.QuestionImageAlt = question?.AltText;
             item.QuestionImageAttribution = question?.Attribution;
+            item.QuestionImageLongDescription = question?.LongDescription;
         }
 
         if (!IsCurated(item.ExplanationImageKey, item.ExplanationImageAssetId))
@@ -96,7 +98,14 @@ internal static class ItemImageSubmission
             item.ExplanationImageKey = explanation is null ? null : ItemImageReviewRules.KeyOf(explanation.AssetId);
             item.ExplanationImageAlt = explanation?.AltText;
             item.ExplanationImageAttribution = explanation?.Attribution;
+            item.ExplanationImageLongDescription = explanation?.LongDescription;
         }
+    }
+
+    internal static async Task<Error?> PendingQuotaAsync(ApplicationDbContext db, string owner, Guid? excludeItemId, int additionalItems, CancellationToken ct)
+    {
+        int existing = await db.Items.CountAsync(i => i.CreatedBy == owner && i.Id != excludeItemId && i.ImageReviewState == ItemImageReviewState.PendingReview, ct);
+        return existing + additionalItems > 20 ? Error.Validation("Media.PendingReviewQuota", "Resolve pending picture reviews before submitting more items (limit 20).") : null;
     }
 
     public static ItemImageReview NewSubmission(
@@ -125,14 +134,19 @@ internal static class ItemImageSubmission
     /// </summary>
     public static async Task<IDbContextTransaction?> BeginAsync(ApplicationDbContext db, CancellationToken cancellationToken)
     {
-        if (!db.Database.IsRelational() || db.Database.CurrentTransaction is not null)
+        if (!db.Database.IsRelational()) return null;
+        if (db.Database.CurrentTransaction is not null)
         {
+            if (db.Database.IsNpgsql()) await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(398405)", cancellationToken);
             return null;
         }
 
         try
         {
-            return await db.Database.BeginTransactionAsync(cancellationToken);
+            IDbContextTransaction transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+            if (db.Database.IsNpgsql())
+                await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(398405)", cancellationToken);
+            return transaction;
         }
         catch (NotSupportedException)
         {
@@ -170,10 +184,12 @@ internal static class ItemImageSubmission
                 .SetProperty(i => i.QuestionImageAssetId, item.QuestionImageAssetId)
                 .SetProperty(i => i.QuestionImageKey, item.QuestionImageKey)
                 .SetProperty(i => i.QuestionImageAlt, item.QuestionImageAlt)
+                .SetProperty(i => i.QuestionImageLongDescription, item.QuestionImageLongDescription)
                 .SetProperty(i => i.QuestionImageAttribution, item.QuestionImageAttribution)
                 .SetProperty(i => i.ExplanationImageAssetId, item.ExplanationImageAssetId)
                 .SetProperty(i => i.ExplanationImageKey, item.ExplanationImageKey)
                 .SetProperty(i => i.ExplanationImageAlt, item.ExplanationImageAlt)
+                .SetProperty(i => i.ExplanationImageLongDescription, item.ExplanationImageLongDescription)
                 .SetProperty(i => i.ExplanationImageAttribution, item.ExplanationImageAttribution),
                 cancellationToken);
         if (claimed == 0)

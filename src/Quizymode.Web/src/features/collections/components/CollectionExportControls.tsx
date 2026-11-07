@@ -18,6 +18,7 @@ interface CollectionExportControlsProps {
   items: readonly ExportableItem[];
   collectionName: string | null | undefined;
   hideAnswers: boolean;
+  onPreparePrint?: () => void;
   onHideAnswersChange: (hide: boolean) => void;
 }
 
@@ -48,7 +49,7 @@ interface PictureExportDialogProps {
  */
 function PictureExportDialog({ items, format, onCancel, onDownload }: PictureExportDialogProps) {
   const plan = planTextExport(items);
-  const [choice, setChoice] = useState<PictureChoice>("skip");
+  const [choice, setChoice] = useState<PictureChoice>(plan.pictureCount === 0 ? "text-only" : "skip");
   const [acknowledged, setAcknowledged] = useState(false);
   const firstRadioRef = useRef<HTMLInputElement>(null);
   const remaining = plan.total - plan.pictureCount;
@@ -149,6 +150,7 @@ export const CollectionExportControls = ({
   collectionName,
   hideAnswers,
   onHideAnswersChange,
+  onPreparePrint,
 }: CollectionExportControlsProps) => {
   const [pendingFormat, setPendingFormat] = useState<TextFormat | null>(null);
   const [announcement, setAnnouncement] = useState("");
@@ -161,7 +163,7 @@ export const CollectionExportControls = ({
   const requestExport = (format: TextFormat): void => {
     setAnnouncement("");
     // No dialog without a question picture: a text export loses nothing then.
-    if (planTextExport(items).pictureCount === 0) {
+    if (planTextExport(items).pictureCount === 0 && !planTextExport(items).hasExplanationPictures) {
       download(format, items);
       return;
     }
@@ -171,6 +173,7 @@ export const CollectionExportControls = ({
   const confirmExport = (choice: PictureChoice): void => {
     if (pendingFormat === null) return;
     const plan = planTextExport(items);
+    if (choice === "skip" && plan.hasExplanationPictures && !window.confirm("Explanation pictures will be omitted from this text export. Continue?")) return;
     if (choice === "skip") {
       download(pendingFormat, plan.withoutPictureQuestions);
       setAnnouncement(
@@ -197,7 +200,15 @@ export const CollectionExportControls = ({
       <button type="button" className={buttonClass} onClick={() => requestExport("txt")}>
         Quizlet text
       </button>
-      <button type="button" className={buttonClass} onClick={() => window.print()}>
+      <button type="button" className={buttonClass} onClick={async () => {
+        setAnnouncement("Preparing pictures for print…");
+        if (onPreparePrint) { onPreparePrint(); await new Promise<void>(resolve => requestAnimationFrame(() => resolve())); }
+        const statuses = () => Array.from(document.querySelectorAll('[data-testid="collection-print-view"] [data-picture-status]')).map(node => node.getAttribute("data-picture-status"));
+        const until = Date.now() + 30000;
+        while (statuses().some(status => status === "loading" || status === "stuck") && Date.now() < until) await new Promise(resolve => window.setTimeout(resolve, 100));
+        if (statuses().some(status => status !== "loaded")) { setAnnouncement("Print blocked: a required picture is unavailable. Retry the picture before printing."); return; }
+        setAnnouncement(""); window.print();
+      }}>
         Print
       </button>
       <label className="flex items-center gap-2 text-sm text-slate-700">

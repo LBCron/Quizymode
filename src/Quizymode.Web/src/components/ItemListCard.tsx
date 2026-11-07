@@ -19,6 +19,7 @@ interface ItemListCardProps {
   /** When true, shows full ratings (set stars) and comments link */
   showRatingsAndComments?: boolean;
   returnUrl?: string;
+  collectionId?: string;
   /**
    * Controls answer visibility. When false the answer is hidden; when true it is
    * revealed with a green highlight (like a correct answer in quiz mode). When
@@ -34,6 +35,7 @@ const ItemListCard = ({
   actions,
   showRatingsAndComments,
   returnUrl,
+  collectionId,
   showAnswer,
 }: ItemListCardProps) => {
   const { isSupported } = useSpeech();
@@ -42,7 +44,7 @@ const ItemListCard = ({
     <div className="bg-white shadow rounded-lg p-6">
       <div className="space-y-3">
         <div className="flex items-start gap-3">
-          <QuestionImage image={item.questionImage} size="sm" />
+          <QuestionImage collectionId={collectionId} itemId={item.id} image={item.questionImage} size="sm" />
           <div className="flex-1">
             <h3 className="text-lg font-medium text-gray-900"><ForeignPhraseText text={item.question} /></h3>
             <PronunciationHint text={item.question} speech={item.questionSpeech} />
@@ -83,7 +85,7 @@ const ItemListCard = ({
               />
               {(item.explanation?.trim() || item.explanationImage) && (
                 <div className="mt-2 flex items-start gap-3 border-t border-green-200 pt-2 text-gray-800">
-                  <QuestionImage image={item.explanationImage} slot="explanation" size="sm" />
+                  <QuestionImage collectionId={collectionId} itemId={item.id} image={item.explanationImage} slot="explanation" size="sm" />
                   {item.explanation?.trim() && (
                     <p className="min-w-0">
                       <strong>Explanation:</strong>{" "}

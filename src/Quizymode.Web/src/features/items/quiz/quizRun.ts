@@ -47,10 +47,13 @@ export interface QuizRunState {
    * neither correct, scored total nor missed. Optional in stored v3 snapshots (read as empty).
    */
   skipped: string[];
+  skippedReasons?: Record<string, "picture-unavailable" | "picture-inaccessible">;
   /** Test only: flagged item ids in roster order. Always empty in Practice. */
   flagged: string[];
   /** Test only: ISO time of Start test; null on the setup card and in Practice. */
   startedAt: string | null;
+  picturePausedAt?: string | null;
+  picturePausedMs?: number;
   /** Test only: overall limit in seconds, or null for no limit. */
   timeLimitSec: number | null;
   /** Test only: ISO time of submit (the deadline for a timeout). */
@@ -93,13 +96,14 @@ export interface QuizCompletionSnapshot {
 }
 
 export type QuizRunAction =
+  | { type: "picture-pause"; paused: boolean; at: string }
   | { type: "answer"; itemId: string; selectedAnswer: string; isCorrect: boolean; completedAt: string; inputMode?: QuizInputMode }
   | { type: "start-test"; startedAt: string; timeLimitSec: number | null }
   | { type: "toggle-flag"; itemId: string }
   /** `unavailableItemIds`: items whose picture was unavailable at submit; they become skipped (unanswered ones only). */
   | { type: "submit"; submittedAt: string; reason: TestSubmitReason; unavailableItemIds?: string[] }
   /** Practice: skip an unanswered item whose picture is unavailable (#403); it is not scored. */
-  | { type: "skip-unavailable"; itemId: string; completedAt: string }
+  | { type: "skip-unavailable"; itemId: string; completedAt: string; reason?: "picture-unavailable" | "picture-inaccessible" }
   | { type: "show-summary" }
   | { type: "review-mistakes" }
   | { type: "review-all" }
@@ -144,10 +148,10 @@ export function createQuizRun(
 }
 
 /** Test deadline in epoch ms, or null when the Test has no limit or has not started. */
-export function getTestDeadlineMs(run: Pick<QuizRunState, "startedAt" | "timeLimitSec">): number | null {
+export function getTestDeadlineMs(run: Pick<QuizRunState, "startedAt" | "timeLimitSec" | "picturePausedMs">): number | null {
   if (!run.startedAt || run.timeLimitSec === null) return null;
   const started = Date.parse(run.startedAt);
-  return Number.isNaN(started) ? null : started + run.timeLimitSec * 1000;
+  return Number.isNaN(started) ? null : started + run.timeLimitSec * 1000 + (run.picturePausedMs ?? 0);
 }
 
 /** True once a Test has been started and not yet submitted. */
@@ -184,6 +188,12 @@ export function summarizeQuizRun(run: QuizRunState): QuizRunSummary {
 }
 
 export function reduceQuizRun(run: QuizRunState, action: QuizRunAction): QuizRunState {
+  if (action.type === "picture-pause") {
+    if (!isTestInProgress(run) || run.timeLimitSec === null || Number.isNaN(Date.parse(action.at))) return run;
+    if (action.paused) return run.picturePausedAt ? run : { ...run, picturePausedAt: action.at };
+    if (!run.picturePausedAt) return run;
+    return { ...run, picturePausedMs: (run.picturePausedMs ?? 0) + Math.max(0, Date.parse(action.at) - Date.parse(run.picturePausedAt)), picturePausedAt: null };
+  }
   if (action.type === "start-test") {
     if (run.mode !== "test" || run.startedAt !== null || Number.isNaN(Date.parse(action.startedAt))) return run;
     if (
@@ -210,7 +220,8 @@ export function reduceQuizRun(run: QuizRunState, action: QuizRunAction): QuizRun
     if (Number.isNaN(submittedMs)) return run;
     let submittedAt = action.submittedAt;
     let reason = action.reason;
-    const deadline = getTestDeadlineMs(run);
+    const activePauseMs = run.picturePausedAt ? Math.max(0, submittedMs - Date.parse(run.picturePausedAt)) : 0;
+    const deadline = getTestDeadlineMs({ ...run, picturePausedMs: (run.picturePausedMs ?? 0) + activePauseMs });
     if (deadline !== null && submittedMs >= deadline) {
       // The deadline is the completion time, however late the submit arrives (AC 3.18.6).
       submittedAt = new Date(deadline).toISOString();
@@ -218,14 +229,15 @@ export function reduceQuizRun(run: QuizRunState, action: QuizRunAction): QuizRun
     }
     const unavailable = new Set(action.unavailableItemIds ?? []);
     const skipped = run.itemIds.filter((itemId) => !run.outcomes[itemId] && (unavailable.has(itemId) || run.skipped.includes(itemId)));
-    return { ...run, skipped, submittedAt, submitReason: reason, completedAt: submittedAt, view: "summary" };
+    return { ...run, skipped, submittedAt, submitReason: reason, completedAt: submittedAt, view: "summary", picturePausedAt: null, picturePausedMs: (run.picturePausedMs ?? 0) + activePauseMs };
   }
 
   if (action.type === "skip-unavailable") {
-    if (run.mode !== "practice" || run.view !== "active" || !run.itemIds.includes(action.itemId)) return run;
+    if (run.view !== "active" || (run.mode === "test" && !isTestInProgress(run)) || !run.itemIds.includes(action.itemId)) return run;
     if (run.outcomes[action.itemId] || run.skipped.includes(action.itemId)) return run;
     const skipped = run.itemIds.filter((itemId) => itemId === action.itemId || run.skipped.includes(itemId));
-    const updated: QuizRunState = { ...run, skipped };
+    const updated: QuizRunState = { ...run, skipped, skippedReasons: { ...run.skippedReasons, [action.itemId]: action.reason ?? "picture-unavailable" } };
+    if (run.mode === "test") return updated;
     return { ...updated, completedAt: summarizeQuizRun(updated).isComplete ? action.completedAt : null };
   }
 
@@ -234,7 +246,7 @@ export function reduceQuizRun(run: QuizRunState, action: QuizRunAction): QuizRun
   }
 
   if (action.type === "answer") {
-    if (!run.itemIds.includes(action.itemId)) return run;
+    if (!run.itemIds.includes(action.itemId) || run.skipped.includes(action.itemId)) return run;
 
     if (run.mode === "test") {
       // Test: the last answer before submit counts; answers at or after the deadline are ignored.
@@ -421,8 +433,8 @@ export function restoreQuizRun(
     return null;
   }
   const skipped = expectedItemIds.filter((id) => rawSkipped.includes(id));
-  // Test skips are only recorded at submit.
-  if (expectedMode === "test" && skipped.length > 0 && testFields.submittedAt === null) return null;
+  const rawReasons = candidate.skippedReasons;
+  if (rawReasons !== undefined && (!rawReasons || typeof rawReasons !== "object" || Object.entries(rawReasons).some(([id, reason]) => !skipped.includes(id) || !["picture-unavailable", "picture-inaccessible"].includes(String(reason))))) return null;
 
   const completedAt = candidate.completedAt;
   if (completedAt !== null && (typeof completedAt !== "string" || Number.isNaN(Date.parse(completedAt)))) {
@@ -438,7 +450,10 @@ export function restoreQuizRun(
     outcomes,
     mode: expectedMode,
     skipped,
+    skippedReasons: rawReasons as QuizRunState["skippedReasons"],
     ...testFields,
+    ...(candidate.picturePausedAt !== undefined ? { picturePausedAt: typeof candidate.picturePausedAt === "string" && !Number.isNaN(Date.parse(candidate.picturePausedAt)) ? candidate.picturePausedAt : null } : {}),
+    ...(candidate.picturePausedMs !== undefined ? { picturePausedMs: typeof candidate.picturePausedMs === "number" && Number.isFinite(candidate.picturePausedMs) && candidate.picturePausedMs >= 0 ? candidate.picturePausedMs : 0 } : {}),
     view: candidate.view as QuizRunView,
     completedAt: completedAt ?? null,
     completionEmitted: candidate.completionEmitted,

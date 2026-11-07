@@ -351,6 +351,32 @@ public sealed class SeedSyncAdminTests : ItemTestFixture
         existing.Id.Should().Be(conflictingItemId);
     }
 
+    [Fact]
+    public async Task ApplyAsync_RefusesAnExistingItemThatHoldsUploadedPictureState_AndLeavesItUntouched()
+    {
+        // #400/#403 (AC 3.27.4): sync cannot overwrite or orphan an owner's uploaded attachment, even for a repo-managed public item.
+        await EnsureGeographyPublicWithNavAsync("seeder");
+        Category category = await DbContext.Categories.FirstAsync(c => c.Name == "geography");
+        MediaAsset asset = PictureSeed.AddAsset(DbContext, "owner");
+        Item uploaded = PictureSeed.AddPictureItem(DbContext, category, "owner", false, ItemImageReviewState.Approved, asset);
+        uploaded.IsRepoManaged = true;
+        string originalQuestion = uploaded.Question;
+        await DbContext.SaveChangesAsync();
+
+        SeedSyncAdmin.Request request = BuildRequest(
+            [BuildItem(uploaded.Id, "What is the capital of France?", "Paris", ["Lyon", "Marseille", "Nice"])]);
+
+        Result<SeedSyncAdmin.ApplyResponse> result = await _service.ApplyAsync(request, CancellationToken.None);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error!.Code.Should().Be("Admin.ItemSyncIdConflict");
+        DbContext.ChangeTracker.Clear();
+        Item after = await DbContext.Items.AsNoTracking().SingleAsync(i => i.Id == uploaded.Id);
+        after.QuestionImageAssetId.Should().Be(asset.Id);
+        after.ImageReviewState.Should().Be(ItemImageReviewState.Approved);
+        after.Question.Should().Be(originalQuestion);
+    }
+
     // --- #273: ValidateManifest must not throw on null lists ---
 
     private static SeedSyncAdmin.ManifestRequest Manifest(
@@ -743,8 +769,6 @@ public sealed class SeedSyncAdminTests : ItemTestFixture
     [InlineData("curated:diagrams/X", "alt", "text")]
     [InlineData("curated:diagrams/x", "", "text")]
     [InlineData("curated:diagrams/x", "line one\nline two", "text")]
-    [InlineData("curated:diagrams/x", "alt", "")]
-    [InlineData("curated:diagrams/x", "alt", "   ")]
     public async Task ApplyAsync_InvalidExplanationImage_IsRejectedAndNothingApplied(string key, string altText, string explanation)
     {
         await EnsureGeographyPublicWithNavAsync("seeder");
@@ -754,6 +778,21 @@ public sealed class SeedSyncAdminTests : ItemTestFixture
 
         result.IsFailure.Should().BeTrue();
         (await DbContext.Items.AnyAsync(i => i.Id == PictureItemId)).Should().BeFalse();
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public async Task ApplyAsync_ExplanationPictureWithoutProse_PreservesPictureAndIdentity(string explanation)
+    {
+        await EnsureGeographyPublicWithNavAsync("seeder");
+        Result<SeedSyncAdmin.ApplyResponse> result = await _service.ApplyAsync(DiagramRequest(Diagram, explanation), CancellationToken.None);
+        result.IsSuccess.Should().BeTrue();
+        Item item = await DbContext.Items.AsNoTracking().SingleAsync(i => i.Id == PictureItemId);
+        item.Id.Should().Be(PictureItemId);
+        item.ExplanationImageKey.Should().Be(Diagram.Key);
+        item.ExplanationImageAlt.Should().Be(Diagram.AltText);
+        item.Explanation.Should().Be(explanation.Trim());
     }
 
     private SeedSyncAdmin.Request BuildRequest(

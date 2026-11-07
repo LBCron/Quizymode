@@ -76,7 +76,7 @@ export function ExploreRenderer({
         <div className="mb-3">
           <QuestionImage
             key={item.id}
-            image={item.questionImage}
+            itemId={item.id} image={item.questionImage}
             onStatusChange={questionPicture?.onStatusChange}
             onSkip={questionPicture?.onSkip}
           />
@@ -191,7 +191,7 @@ export function ExploreRenderer({
               {isFlipped && (
                 <QuestionImage
                   key={`${item.id}-explanation`}
-                  image={item.explanationImage}
+                  itemId={item.id} image={item.explanationImage}
                   slot="explanation"
                   className="mt-3 rounded-lg bg-white"
                 />

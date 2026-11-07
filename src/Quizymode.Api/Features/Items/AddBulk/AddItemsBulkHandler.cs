@@ -26,6 +26,10 @@ internal static class AddItemsBulkHandler
         {
             string userId = userContext.UserId ?? throw new InvalidOperationException("User ID is required for bulk item creation");
 
+            await using IDbContextTransaction? mediaTransaction = await ItemImageSubmission.BeginAsync(db, cancellationToken);
+            Error? mediaError = await ItemImageImport.ValidateAsync(db, userId, request.Items, cancellationToken);
+            if (mediaError is not null) return Result.Failure<AddItemsBulk.Response>(mediaError);
+            Dictionary<Guid, string> ownedHashes = await db.MediaAssets.AsNoTracking().Where(a => a.OwnerUserId == userId).ToDictionaryAsync(a => a.Id, a => a.Sha256, cancellationToken);
             bool effectiveIsPrivate = userContext.IsAdmin ? request.IsPrivate : true;
 
             List<Item> itemsToInsert = [];
@@ -153,6 +157,9 @@ internal static class AddItemsBulkHandler
                             continue;
                         }
 
+                        (PictureSlot? questionPicture, _) = await ItemImageSubmission.ResolveSlotAsync(db, userId, null, null, null, ItemImageImport.Parse(itemRequest.QuestionImage), cancellationToken);
+                        (PictureSlot? explanationPicture, _) = await ItemImageSubmission.ResolveSlotAsync(db, userId, null, null, null, ItemImageImport.Parse(itemRequest.ExplanationImage), cancellationToken);
+                        string? identity = questionPicture is null ? null : ItemImageReviewRules.DuplicateIdentity(null, questionPicture.AssetId, questionPicture.Sha256);
                         string questionText = ItemSimHashInput.Normalize(itemRequest.Question);
                         string fuzzySignature = simHashService.ComputeSimHash(questionText);
                         int fuzzyBucket = simHashService.GetFuzzyBucket(fuzzySignature);
@@ -169,11 +176,12 @@ internal static class AddItemsBulkHandler
                                     !existingItemIds.Contains(item.Id))
                                 .ToListAsync(cancellationToken);
 
-                            // Bulk creates text-only items: a non-null upload identity is enough to distinguish pictured peers.
+                            candidateItems.AddRange(itemsToInsert);
+                            // Same-owner normalized bytes distinguish pictured peers, including this batch.
                             isDuplicate = candidateItems.Any(item => ItemDuplicateRules.IsDuplicate(
                                 item.Question, item.FuzzySignature,
-                                ItemImageReviewRules.DuplicateIdentity(item.QuestionImageKey, item.QuestionImageAssetId, null),
-                                itemRequest.Question, fuzzySignature, null));
+                                ItemImageReviewRules.DuplicateIdentity(item.QuestionImageKey, item.QuestionImageAssetId, item.QuestionImageAssetId is Guid assetId ? ownedHashes.GetValueOrDefault(assetId) : null),
+                                itemRequest.Question, fuzzySignature, identity));
                         }
                         catch (Exception ex)
                         {
@@ -218,6 +226,13 @@ internal static class AddItemsBulkHandler
                             UploadId = request.UploadId,
                         };
 
+                        ItemImageSubmission.ApplySlots(item, questionPicture, explanationPicture);
+                        if (questionPicture is not null || explanationPicture is not null)
+                        {
+                            item.IsPrivate = true; item.ImageRevision = 1; item.ImageReviewState = ItemImageReviewState.PendingReview;
+                            string contentHash = ItemImageReviewRules.ComputeContentHash(item.Question, item.CorrectAnswer, item.IncorrectAnswers, item.Explanation, item.QuestionSpeech, questionPicture, explanationPicture, item.IncorrectAnswerRationale);
+                            db.ItemImageReviews.Add(ItemImageSubmission.NewSubmission(item.Id, 1, contentHash, questionPicture, explanationPicture, userId));
+                        }
                         itemsToInsert.Add(item);
                         itemIndexMap[index] = item;
                     }
@@ -342,6 +357,7 @@ internal static class AddItemsBulkHandler
                     await transaction.CommitAsync(cancellationToken);
                 }
 
+                if (mediaTransaction is not null) await mediaTransaction.CommitAsync(cancellationToken);
                 List<Guid> createdIds = itemsToInsert.Select(item => item.Id).ToList();
                 return Result.Success(new AddItemsBulk.Response(
                     request.Items.Count,

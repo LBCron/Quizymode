@@ -198,7 +198,7 @@ describe("CollectionPrintView picture", () => {
         items={[{ ...baseItem, questionImage: { key: "curated:flags/zz", altText: "Green and white" } }]}
       />,
     );
-    expect(screen.getByText("[Picture unavailable: Green and white]")).toBeInTheDocument();
+    expect(screen.getByText("Picture isn't available")).toBeInTheDocument();
     expect(document.querySelector("img")).toBeNull();
   });
 });
@@ -416,7 +416,8 @@ describe("CollectionPrintView explanation picture", () => {
   it("prints the explanation picture after the answer, but not in worksheet mode", () => {
     const { unmount } = render(<CollectionPrintView title="T" hideAnswers={false} items={[{ ...baseItem, explanationImage }]} />);
     const img = screen.getByAltText(explanationImage.altText);
-    expect(img).toHaveClass("max-w-[8cm]", "break-inside-avoid");
+    expect(img).toHaveClass("object-contain");
+    expect(img.closest('[data-testid="explanation-image"]')).toBeInTheDocument();
     unmount();
 
     render(<CollectionPrintView title="T" hideAnswers items={[{ ...baseItem, explanationImage }]} />);

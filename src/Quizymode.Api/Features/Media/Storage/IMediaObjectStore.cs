@@ -3,13 +3,16 @@ using System.Text.RegularExpressions;
 namespace Quizymode.Api.Features.Media.Storage;
 
 /// <summary>
-/// Private object storage for normalized pictures. Deliberately has no delete: deletion and cleanup belong to a later
-/// slice (#405), so the API principal needs only put and get on <c>normalized/*</c>.
+/// Private object storage for normalized pictures. Cleanup uses scoped delete/list operations only when explicitly enabled;
+/// deployment permissions are verified separately from this interface.
 /// </summary>
 internal interface IMediaObjectStore
 {
     /// <summary>False when no storage is configured (provider None, or a refused configuration).</summary>
     bool IsAvailable { get; }
+
+    Task DeleteAsync(string key, CancellationToken cancellationToken) => throw new MediaStorageException("Deletion is not configured.");
+    Task<MediaObjectPage> ListAsync(string? continuationToken, CancellationToken cancellationToken) => throw new MediaStorageException("Listing is not configured.");
 
     /// <summary>
     /// Writes <paramref name="content"/> at <paramref name="key"/> only if nothing exists there. An existing object is
@@ -63,3 +66,6 @@ internal static partial class MediaObjectKey
         }
     }
 }
+
+internal sealed record MediaObjectEntry(string Key, DateTime LastModified);
+internal sealed record MediaObjectPage(IReadOnlyList<MediaObjectEntry> Objects, string? ContinuationToken);

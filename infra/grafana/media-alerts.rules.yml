@@ -1,0 +1,40 @@
+# Provisioning candidate only. Verify actual exporter names, datasource and notification routing before applying.
+groups:
+  - name: quizymode-media
+    interval: 1m
+    rules:
+      - alert: QuizymodeMediaCleanupFailure
+        expr: sum(increase(quizymode_media_cleanup_total{outcome=~"retry|failure|missing"}[15m])) > 0
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: Picture cleanup or reconciliation needs attention
+          description: Inspect scoped IAM/storage and tombstone retry backlog; follow docs/infra/MEDIA_OPERATIONS.md.
+      - alert: QuizymodeMediaAdvisoryUnavailable
+        expr: sum(increase(quizymode_media_advisory_total{outcome="Unavailable"}[15m])) >= 5
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: Optional picture assistance is unavailable
+          description: Disable assistance and continue human review; inspect only content-free failure codes.
+      - alert: QuizymodeMediaReviewAge
+        expr: quizymode_media_oldest_pending_seconds > 172800
+        for: 15m
+        labels: { severity: warning }
+        annotations:
+          summary: A picture review has waited over 48 hours
+          description: Check Admin Review Board Pictures; no response-time promise is made to authors.
+      - alert: QuizymodeMediaStorageBudget
+        expr: quizymode_media_retained_bytes > 858993459
+        for: 15m
+        labels: { severity: warning }
+        annotations:
+          summary: Pictures exceed 80 percent of the default global retained-storage budget
+          description: Inspect scoped retention and reconcile actual configured budget before any broader deletion.
+      - alert: QuizymodeMediaReports
+        expr: sum(increase(quizymode_media_reports_total[15m])) >= 5
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: Picture reports need human triage
+          description: Inspect current revisions; reports do not automatically remove content.

@@ -182,7 +182,7 @@ export function QuizRenderer({
         <PronunciationHint text={item.question} speech={item.questionSpeech} />
         <QuestionImage
           key={item.id}
-          image={item.questionImage}
+          itemId={item.id} image={item.questionImage}
           className="mt-3"
           onStatusChange={questionPicture?.onStatusChange}
           onSkip={questionPicture?.onSkip}
@@ -328,7 +328,7 @@ export function QuizRenderer({
           {/* Mounted only once the answer is revealed: the picture can show the answer (#403). */}
           <QuestionImage
             key={`${item.id}-explanation`}
-            image={item.explanationImage}
+            itemId={item.id} image={item.explanationImage}
             slot="explanation"
             className="mt-3 rounded-lg bg-white"
           />

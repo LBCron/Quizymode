@@ -90,7 +90,7 @@ export function useGameRoster() {
     queryKey: ["gameRoster", "v3", identityKey, collectionId ?? null, category ?? null, navigationKeywords, filterKeywords, resolution],
     queryFn: async () => {
       if (collectionId) {
-        const response = await collectionsApi.getItems(collectionId);
+        const response = await collectionsApi.getItems(collectionId, true);
         return { items: response.items, scopes: [] };
       }
       if (resolution.mode === "topics") return gamesApi.getRoster(resolution.topics, GAME_FETCH_SIZE);
@@ -99,7 +99,7 @@ export function useGameRoster() {
         category,
         GAME_FETCH_SIZE,
         filterKeywords.length > 0 ? filterKeywords : undefined,
-        { navigationKeywords: hasCategoryScope && navigationKeywords.length > 0 ? navigationKeywords : undefined },
+        { navigationKeywords: hasCategoryScope && navigationKeywords.length > 0 ? navigationKeywords : undefined, excludeQuestionPictures: true },
       );
       return { items: response.items, scopes: [] };
     },

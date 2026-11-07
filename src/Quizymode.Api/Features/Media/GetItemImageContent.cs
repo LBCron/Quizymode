@@ -24,21 +24,25 @@ public static class GetItemImageContent
         {
             app.MapGet("items/{id:guid}/images/{slot}", ItemHandler)
                 .WithTags("Media")
+                .RequireRateLimiting("media-reads")
                 .WithSummary("Download an item's uploaded question or explanation picture")
                 .WithDescription("slot is 'question' or 'explanation'. The creator and admins can read any state; everyone else, including anonymous callers, " +
-                    "only an Approved picture of an item they can see. Everything else, including curated pictures, is 404. Responses are private and no-store.")
+                    "only an Approved picture of an item they can see. Everything else, including curated pictures, is 404. Optional positive expectedRevision binds delivery to the current semantic revision; mismatch is 404 and invalid input is 400. Omitted query retains legacy current-slot delivery. Responses are private and no-store.")
                 .AllowAnonymous()
                 .Produces<byte[]>(StatusCodes.Status200OK, MediaObjectKey.ContentType)
+                .Produces(StatusCodes.Status400BadRequest)
                 .Produces(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 
             app.MapGet("collections/{collectionId:guid}/items/{itemId:guid}/images/{slot}", CollectionHandler)
                 .WithTags("Media")
+                .RequireRateLimiting("media-reads")
                 .WithSummary("Download an uploaded picture of an item through a collection that holds it")
                 .WithDescription("Allowed when the caller can open the collection (public, share link, or owner), the item is in it, and the picture is Approved " +
-                    "(or the caller created the item). Everything else is 404. Responses are private and no-store.")
+                    "(or the caller created the item). Everything else is 404. Optional positive expectedRevision binds delivery to the current semantic revision; mismatch is 404 and invalid input is 400. Omitted query retains legacy current-slot delivery. Responses are private and no-store.")
                 .AllowAnonymous()
                 .Produces<byte[]>(StatusCodes.Status200OK, MediaObjectKey.ContentType)
+                .Produces(StatusCodes.Status400BadRequest)
                 .Produces(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
         }
@@ -46,18 +50,22 @@ public static class GetItemImageContent
         private static async Task<IResult> ItemHandler(
             Guid id,
             string slot,
+            int? expectedRevision,
+            HttpRequest request,
             ApplicationDbContext db,
             IUserContext userContext,
             IMediaObjectStore store,
             ILoggerFactory loggerFactory,
             CancellationToken cancellationToken)
         {
+            if (request.Query.ContainsKey("expectedRevision") && (expectedRevision is null or <= 0)) return Results.BadRequest();
             Item? item = await LoadItemAsync(db, id, cancellationToken);
             if (item is null || !CanReadFromItem(item, userContext))
             {
                 return Results.NotFound();
             }
 
+            if (expectedRevision.HasValue && item.ImageRevision != expectedRevision.Value) return Results.NotFound();
             return await DeliverAsync(db, item, slot, store, loggerFactory, cancellationToken);
         }
 
@@ -65,12 +73,15 @@ public static class GetItemImageContent
             Guid collectionId,
             Guid itemId,
             string slot,
+            int? expectedRevision,
+            HttpRequest request,
             ApplicationDbContext db,
             IUserContext userContext,
             IMediaObjectStore store,
             ILoggerFactory loggerFactory,
             CancellationToken cancellationToken)
         {
+            if (request.Query.ContainsKey("expectedRevision") && (expectedRevision is null or <= 0)) return Results.BadRequest();
             Collection? collection = await db.Collections.AsNoTracking().FirstOrDefaultAsync(c => c.Id == collectionId, cancellationToken);
             if (collection is null || !GetCollectionById.CanAccess(collection, userContext))
             {
@@ -85,6 +96,7 @@ public static class GetItemImageContent
                 return Results.NotFound();
             }
 
+            if (expectedRevision.HasValue && item.ImageRevision != expectedRevision.Value) return Results.NotFound();
             return await DeliverAsync(db, item, slot, store, loggerFactory, cancellationToken);
         }
 
@@ -108,6 +120,8 @@ public static class GetItemImageContent
             ILoggerFactory loggerFactory,
             CancellationToken cancellationToken)
         {
+            if (await db.MediaControls.AnyAsync(x => x.Id == 1 && !x.DeliveryEnabled, cancellationToken)) return Results.NotFound();
+
             Guid? assetId = slot switch
             {
                 "question" => item.QuestionImageAssetId,

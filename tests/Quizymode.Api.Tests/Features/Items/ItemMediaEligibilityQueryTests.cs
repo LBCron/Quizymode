@@ -59,6 +59,22 @@ public sealed class ItemMediaEligibilityQueryTests : DatabaseTestFixture
             .Should().BeEquivalentTo(AllIds);
     }
 
+    [Theory]
+    [InlineData(ItemImageReviewState.Processing)]
+    [InlineData(ItemImageReviewState.Failed)]
+    public async Task ProcessingAndFailedStates_RoundTripAndStayHiddenFromEveryoneButTheCreator(ItemImageReviewState state)
+    {
+        Item item = Picture(state);
+        await DbContext.SaveChangesAsync();
+        DbContext.ChangeTracker.Clear();
+
+        (await DbContext.Items.AsNoTracking().SingleAsync(i => i.Id == item.Id)).ImageReviewState.Should().Be(state);
+        (await DbContext.Items.Where(ItemVisibility.VisibleTo(Other)).Select(i => i.Id).ToListAsync()).Should().NotContain(item.Id);
+        (await DbContext.Items.Where(ItemVisibility.PublicEligible).Select(i => i.Id).ToListAsync()).Should().NotContain(item.Id);
+        (await DbContext.Items.Where(ItemVisibility.EligibleFor(null)).Select(i => i.Id).ToListAsync()).Should().NotContain(item.Id);
+        (await DbContext.Items.Where(ItemVisibility.VisibleTo(Creator)).Select(i => i.Id).ToListAsync()).Should().Contain(item.Id);
+    }
+
     [Fact]
     public async Task AccessibleById_KeepsTheAdminBypass_ButNotForAnonymousOrUnrelatedUsers()
     {

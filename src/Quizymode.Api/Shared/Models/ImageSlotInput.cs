@@ -8,7 +8,8 @@ public sealed record ImageSlotInput(
     Guid? AssetId = null,
     string? AltText = null,
     string? Attribution = null,
-    bool? Remove = null)
+    bool? Remove = null,
+    string? LongDescription = null)
 {
     /// <summary>Any member other than the four above (for example <c>key</c> or <c>url</c>); rejected by validation.</summary>
     [System.Text.Json.Serialization.JsonExtensionData]

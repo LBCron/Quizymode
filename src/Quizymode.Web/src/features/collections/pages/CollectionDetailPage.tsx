@@ -42,6 +42,8 @@ const CollectionDetailPage = () => {
   const { showAnswers, toggleShowAnswers } = useShowAnswers(showAnswersOverride);
   const [showDetails, setShowDetails] = useState(false);
   const [hideAnswersOnPrint, setHideAnswersOnPrint] = useState(false);
+  const [printing, setPrinting] = useState(false);
+  useEffect(() => { const done = () => setPrinting(false); window.addEventListener("afterprint", done); return () => window.removeEventListener("afterprint", done); }, []);
 
   const {
     data: collectionData,
@@ -257,6 +259,7 @@ const CollectionDetailPage = () => {
       </div>
       {allItems.length > 0 && (
         <CollectionExportControls
+            onPreparePrint={() => setPrinting(true)}
           items={allItems}
           collectionName={collectionData?.name}
           hideAnswers={hideAnswersOnPrint}
@@ -462,6 +465,7 @@ const CollectionDetailPage = () => {
             )}
           </div>
           <ItemListSection
+            collectionId={id}
             items={paginatedItems}
             totalCount={totalCount}
             page={itemsPage}
@@ -520,8 +524,10 @@ const CollectionDetailPage = () => {
         />
       )}
     </div>
-    {allItems.length > 0 && (
+    {!printing && <p className="hidden print:block">Use the collection Print button to prepare required pictures before printing.</p>}
+    {printing && allItems.length > 0 && (
       <CollectionPrintView
+        collectionId={id}
         title={collectionData?.name ?? "Untitled collection"}
         items={allItems}
         hideAnswers={hideAnswersOnPrint}

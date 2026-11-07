@@ -50,6 +50,7 @@ public sealed class ItemImageReviewHttpTests : ItemTestFixture, IAsyncLifetime
                 services.AddScoped<IValidator<AddItem.Request>, AddItem.Validator>();
                 services.AddScoped<IValidator<UpdateItem.Request>, UpdateItem.Validator>();
                 services.AddScoped<IValidator<SetItemImageReview.Request>, SetItemImageReview.Validator>();
+                services.AddScoped<IValidator<BulkSetItemImageReview.Request>, BulkSetItemImageReview.Validator>();
                 services.AddSingleton<ISimHashService>(SimHashService);
                 services.AddSingleton(TaxonomyRegistry);
                 services.AddScoped<ITaxonomyItemCategoryResolver>(sp =>
@@ -65,10 +66,12 @@ public sealed class ItemImageReviewHttpTests : ItemTestFixture, IAsyncLifetime
                 new ExportItems.Endpoint().MapEndpoint(app);
                 new GetCollectionById.Endpoint().MapEndpoint(app);
                 new SetItemImageReview.Endpoint().MapEndpoint(app);
+                new BulkSetItemImageReview.Endpoint().MapEndpoint(app);
                 new ApproveItem.Endpoint().MapEndpoint(app);
                 new SetItemVisibility.Endpoint().MapEndpoint(app);
                 new GetItemImageContent.Endpoint().MapEndpoint(app);
                 new GetImageContent.Endpoint().MapEndpoint(app);
+                new MediaLifecycleEndpoints.Endpoint().MapEndpoint(app);
             });
 
         _ownerId = Guid.NewGuid();
@@ -297,17 +300,17 @@ public sealed class ItemImageReviewHttpTests : ItemTestFixture, IAsyncLifetime
     }
 
     [Fact]
-    public async Task Post_ExplanationPictureNeedsExplanationText()
+    public async Task Post_ExplanationPictureCanBeTheWholeExplanation()
     {
         MediaAsset asset = await AssetAsync();
 
         (HttpStatusCode status, string body) = await SendAsync(
             HttpMethod.Post, "/items", Body(explanation: "", explanationImage: Pic(asset)), OwnerToken);
-        status.Should().Be(HttpStatusCode.BadRequest, body);
-        body.Should().Contain("Explanation is required when an explanation picture is set");
+        status.Should().Be(HttpStatusCode.Created, body);
+        Json(body).GetProperty("explanation").GetString().Should().BeEmpty();
 
         (HttpStatusCode ok, string okBody) = await SendAsync(
-            HttpMethod.Post, "/items", Body(explanation: "Because", explanationImage: Pic(asset)), OwnerToken);
+            HttpMethod.Post, "/items", Body(question: "Another explanation?", explanation: "Because", explanationImage: Pic(asset)), OwnerToken);
         ok.Should().Be(HttpStatusCode.Created, okBody);
         Json(okBody).GetProperty("imageReview").GetProperty("state").GetString().Should().Be("PendingReview");
     }
@@ -388,6 +391,26 @@ public sealed class ItemImageReviewHttpTests : ItemTestFixture, IAsyncLifetime
         await CreateAsync(Body(question: "Plain?"));
         (await SendAsync(HttpMethod.Post, "/items", Body(question: "Plain?", questionImage: Pic(c)), OwnerToken)).Status
             .Should().Be(HttpStatusCode.Created, "a picture copy of a text-only question");
+    }
+
+    [Fact]
+    public async Task Duplicate_AnotherUsersPrivateHash_DoesNotRevealExistence()
+    {
+        string sha = PictureSeed.Sha('e');
+        MediaAsset owners = await AssetAsync(sha: sha);
+        await CreateAsync(Body(isPrivate: true, questionImage: Pic(owners)));
+        MediaAsset sameBytes = await AssetAsync(owner: _otherId.ToString(), sha: sha);
+        MediaAsset differentBytes = await AssetAsync(owner: _otherId.ToString());
+
+        (HttpStatusCode collides, string collidesBody) = await SendAsync(
+            HttpMethod.Post, "/items", Body(isPrivate: true, questionImage: Pic(sameBytes)), OtherToken);
+        (HttpStatusCode control, string controlBody) = await SendAsync(
+            HttpMethod.Post, "/items", Body(question: "Which other flag?", isPrivate: true, questionImage: Pic(differentBytes)), OtherToken);
+
+        collides.Should().Be(HttpStatusCode.Created, collidesBody);
+        control.Should().Be(collides, "the same response as a picture nobody else has");
+        collidesBody.Should().NotContain("Duplicate");
+        controlBody.Should().NotContain("Duplicate");
     }
 
     [Fact]
@@ -540,7 +563,7 @@ public sealed class ItemImageReviewHttpTests : ItemTestFixture, IAsyncLifetime
         Guid id = await CreateAsync(Body(explanation: "Because", questionImage: Pic(q), explanationImage: Pic(e)));
 
         (HttpStatusCode keepStatus, string keepBody) = await SendAsync(HttpMethod.Put, $"/items/{id}", Body(explanation: ""), OwnerToken);
-        keepStatus.Should().Be(HttpStatusCode.BadRequest, keepBody);
+        keepStatus.Should().Be(HttpStatusCode.OK, keepBody);
 
         (HttpStatusCode status, string body) = await SendAsync(
             HttpMethod.Put, $"/items/{id}", Body(explanation: "", questionImage: "{\"remove\":true}", explanationImage: "{\"remove\":true}"), OwnerToken);
@@ -965,6 +988,9 @@ public sealed class ItemImageReviewHttpTests : ItemTestFixture, IAsyncLifetime
             body.Should().BeEmpty();
             response.Content.Headers.ContentType.Should().BeNull();
         }
+        using HttpResponseMessage snapshot = await SendRawAsync(HttpMethod.Get, $"/items/{item.Id}/images/question?expectedRevision={item.ImageRevision}", token: TokenOf(caller));
+        snapshot.StatusCode.Should().Be(allowed ? HttpStatusCode.OK : HttpStatusCode.NotFound, "positive snapshot binding must preserve the exact route authorization");
+
     }
 
     [Theory]
@@ -985,6 +1011,9 @@ public sealed class ItemImageReviewHttpTests : ItemTestFixture, IAsyncLifetime
         using HttpResponseMessage response = await SendRawAsync(HttpMethod.Get, $"/items/{item.Id}/images/question", token: TokenOf(caller));
 
         response.StatusCode.Should().Be(allowed ? HttpStatusCode.OK : HttpStatusCode.NotFound);
+        using HttpResponseMessage snapshot = await SendRawAsync(HttpMethod.Get, $"/items/{item.Id}/images/question?expectedRevision={item.ImageRevision}", token: TokenOf(caller));
+        snapshot.StatusCode.Should().Be(allowed ? HttpStatusCode.OK : HttpStatusCode.NotFound, "positive snapshot binding must preserve the exact route authorization");
+
     }
 
     [Theory]
@@ -1093,6 +1122,9 @@ public sealed class ItemImageReviewHttpTests : ItemTestFixture, IAsyncLifetime
         {
             (await response.Content.ReadAsByteArrayAsync()).Should().BeEmpty();
         }
+        using HttpResponseMessage snapshot = await SendRawAsync(HttpMethod.Get, $"/collections/{collection.Id}/items/{item.Id}/images/question?expectedRevision={item.ImageRevision}", token: TokenOf(caller));
+        snapshot.StatusCode.Should().Be(allowed ? HttpStatusCode.OK : HttpStatusCode.NotFound, "positive snapshot binding must preserve the exact route authorization");
+
     }
 
     [Fact]
@@ -1253,13 +1285,14 @@ public sealed class ItemImageReviewHttpTests : ItemTestFixture, IAsyncLifetime
         curated.QuestionImageAlt = "Three bands";
         await DbContext.SaveChangesAsync();
 
-        (HttpStatusCode status, string body) = await SendAsync(HttpMethod.Get, "/items/export?category=geography", token: OtherToken);
+        (HttpStatusCode status, string body) = await SendAsync(HttpMethod.Get, "/items/export?category=geography&acknowledgePictureLoss=true", token: OtherToken);
 
         status.Should().Be(HttpStatusCode.OK, body);
         JsonElement[] exported = Json(body).EnumerateArray().ToArray();
         exported.Select(e => e.GetProperty("question").GetString()).Should().NotContain(pending.Question);
         JsonElement picture = exported.Single(e => e.GetProperty("question").GetString() == approved.Question);
         picture.GetProperty("questionImage").ValueKind.Should().Be(JsonValueKind.Null);
+        picture.GetProperty("omittedPictures").EnumerateArray().Should().NotBeEmpty("AC 3.27.4 lists foreign picture loss in the omittedPictures manifest");
         exported.Single(e => e.GetProperty("question").GetString() == "Curated?").GetProperty("questionImage").GetProperty("key").GetString()
             .Should().Be("curated:flags/fr");
         body.Should().NotContain("media:");
@@ -1385,5 +1418,151 @@ public sealed class ItemImageReviewHttpTests : ItemTestFixture, IAsyncLifetime
         JsonElement review = Json(body).GetProperty("imageReview");
         review.GetProperty("state").GetString().Should().Be("Rejected");
         review.GetProperty("reason").GetString().Should().Be("Wrong subject");
+    }
+
+    [Fact]
+    public async Task WithdrawalRevokesEveryReferenceAndOldDeliveryAndCannotReattach()
+    {
+        MediaAsset asset = await AssetAsync();
+        Item first = await SeedPictureItemAsync(ItemImageReviewState.Approved, question: asset);
+        Item second = await SeedPictureItemAsync(ItemImageReviewState.Approved, question: asset);
+        (await SendAsync(HttpMethod.Get, $"/items/{first.Id}/images/question")).Status.Should().Be(HttpStatusCode.OK);
+        string request = $"{{\"itemId\":\"{first.Id}\",\"expectedRevision\":1,\"category\":\"privacy\"}}";
+        (await SendAsync(HttpMethod.Post, $"/admin/media/{asset.Id}/withdraw", request, OtherToken)).Status.Should().Be(HttpStatusCode.Forbidden);
+        var withdrawn = await SendAsync(HttpMethod.Post, $"/admin/media/{asset.Id}/withdraw", request, AdminToken);
+        withdrawn.Status.Should().Be(HttpStatusCode.OK, withdrawn.Body);
+        (await ItemAsync(first.Id)).ImageReviewState.Should().Be(ItemImageReviewState.Withdrawn);
+        (await ItemAsync(second.Id)).ImageRevision.Should().Be(2);
+        (await SendAsync(HttpMethod.Get, $"/items/{first.Id}/images/question")).Status.Should().Be(HttpStatusCode.NotFound);
+        (await SendAsync(HttpMethod.Get, $"/items/{second.Id}/images/question", token: OwnerToken)).Status.Should().Be(HttpStatusCode.NotFound);
+        (await SendAsync(HttpMethod.Post, "/items", Body(question: "Cannot reuse?", questionImage: Pic(asset)), OwnerToken)).Status.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task ReportsRequireVisibleExactRevisionAndDoNotWithdrawAutomatically()
+    {
+        Item item = await SeedPictureItemAsync(ItemImageReviewState.Approved);
+        string report = "{\"slot\":\"question\",\"category\":\"privacy\",\"expectedRevision\":1}";
+        (await SendAsync(HttpMethod.Post, $"/items/{item.Id}/image-reports", report)).Status.Should().Be(HttpStatusCode.Accepted);
+        (await SendAsync(HttpMethod.Post, $"/items/{item.Id}/image-reports", report)).Status.Should().Be(HttpStatusCode.Accepted);
+        await using ApplicationDbContext db = CreateDbContext();
+        (await db.MediaReports.CountAsync()).Should().Be(1);
+        (await ItemAsync(item.Id)).ImageReviewState.Should().Be(ItemImageReviewState.Approved);
+        (await SendAsync(HttpMethod.Post, $"/items/{item.Id}/image-reports", report.Replace(":1", ":99"))).Status.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task LostSuccessCreateRetryUsesOneItemAndOneSubmission()
+    {
+        MediaAsset asset = await AssetAsync(); Guid key = Guid.NewGuid();
+        string body = Body(questionImage: Pic(asset), extra: $",\"createRequestId\":\"{key}\"");
+        var first = await SendAsync(HttpMethod.Post, "/items", body, OwnerToken);
+        var second = await SendAsync(HttpMethod.Post, "/items", body, OwnerToken);
+        first.Status.Should().Be(HttpStatusCode.Created, first.Body); second.Status.Should().Be(HttpStatusCode.Created, second.Body);
+        Json(first.Body).GetProperty("id").GetString().Should().Be(Json(second.Body).GetProperty("id").GetString());
+        (await DbContext.Items.CountAsync()).Should().Be(1); (await DbContext.ItemImageReviews.CountAsync()).Should().Be(1);
+        (await SendAsync(HttpMethod.Post, "/items", body.Replace("Which flag?", "Different content?"), OwnerToken)).Status.Should().Be(HttpStatusCode.Conflict);
+    }
+
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task SnapshotDeliveryNeverSubstitutesLaterApprovedRevision(bool replacement)
+    {
+        MediaAsset first = await AssetAsync(), second = replacement ? await AssetAsync() : first;
+        Guid id = await CreateAsync(Body(questionImage: Pic(first)));
+        await DecideAsync(id, "approve", 1);
+        Collection collection = VisibilitySeed.AddCollection(DbContext, Owner, true);
+        Item existing = await DbContext.Items.SingleAsync(x => x.Id == id);
+        VisibilitySeed.Link(DbContext, collection, existing); await DbContext.SaveChangesAsync();
+        string direct = $"/items/{id}/images/question", contextual = $"/collections/{collection.Id}/items/{id}/images/question";
+        foreach (string route in new[] { direct, contextual })
+            (await SendRawAsync(HttpMethod.Get, route + "?expectedRevision=1", token: OwnerToken)).StatusCode.Should().Be(HttpStatusCode.OK);
+        var edited = await SendAsync(HttpMethod.Put, $"/items/{id}", Body(question: "New context?", questionImage: Pic(second)), OwnerToken);
+        edited.Status.Should().Be(HttpStatusCode.OK, edited.Body);
+        await DecideAsync(id, "approve", 2);
+        foreach (string route in new[] { direct, contextual })
+        {
+            (await SendRawAsync(HttpMethod.Get, route + "?expectedRevision=1", token: OwnerToken)).StatusCode.Should().Be(HttpStatusCode.NotFound);
+            (await SendRawAsync(HttpMethod.Get, route + "?expectedRevision=1", token: AdminToken)).StatusCode.Should().Be(HttpStatusCode.NotFound);
+            (await SendRawAsync(HttpMethod.Get, route + "?expectedRevision=2", token: OwnerToken)).StatusCode.Should().Be(HttpStatusCode.OK);
+            (await SendRawAsync(HttpMethod.Get, route, token: OwnerToken)).StatusCode.Should().Be(HttpStatusCode.OK, "legacy omitted revision remains explicit current GET");
+            foreach (string invalid in new[] { "0", "-1", "bad", "" })
+                (await SendRawAsync(HttpMethod.Get, route + "?expectedRevision=" + invalid, token: OwnerToken)).StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        }
+    }
+
+    [Fact]
+    public async Task RationaleEditResubmitsPictureButUnchangedRationaleMetadataEditDoesNot()
+    {
+        MediaAsset asset = await AssetAsync();
+        Guid id = await CreateAsync(Body(questionImage: Pic(asset), extra: ",\"incorrectAnswerRationale\":{\"0\":\"A different country\"}"));
+        await DecideAsync(id, "approve", 1);
+        var same = await SendAsync(HttpMethod.Put, $"/items/{id}", Body(questionImage: Pic(asset), extra: ",\"incorrectAnswerRationale\":{\"0\":\"A different country\"},\"source\":\"metadata only\""), OwnerToken);
+        same.Status.Should().Be(HttpStatusCode.OK, same.Body);
+        (await ItemAsync(id)).ImageRevision.Should().Be(1);
+        var changed = await SendAsync(HttpMethod.Put, $"/items/{id}", Body(questionImage: Pic(asset), extra: ",\"incorrectAnswerRationale\":{\"0\":\"Revised reasoning\"}"), OwnerToken);
+        changed.Status.Should().Be(HttpStatusCode.OK, changed.Body);
+        Item saved = await ItemAsync(id); saved.ImageRevision.Should().Be(2); saved.ImageReviewState.Should().Be(ItemImageReviewState.PendingReview);
+    }
+
+    [Fact]
+    public async Task Bulk_ApprovesThePendingItems_AndReportsAStaleOneWithoutBlockingTheRest()
+    {
+        Item a = await SeedPictureItemAsync(ItemImageReviewState.PendingReview);
+        Item b = await SeedPictureItemAsync(ItemImageReviewState.PendingReview);
+        Item c = await SeedPictureItemAsync(ItemImageReviewState.PendingReview);
+        string body = $"{{\"decision\":\"approve\",\"items\":[{{\"id\":\"{a.Id}\",\"expectedRevision\":1}},{{\"id\":\"{b.Id}\",\"expectedRevision\":1}},{{\"id\":\"{c.Id}\",\"expectedRevision\":7}}]}}";
+
+        (HttpStatusCode status, string response) = await SendAsync(HttpMethod.Post, "/admin/items/image-review/bulk", body, AdminToken);
+
+        status.Should().Be(HttpStatusCode.OK, response);
+        JsonElement result = Json(response);
+        result.GetProperty("applied").GetInt32().Should().Be(2);
+        result.GetProperty("failed").GetInt32().Should().Be(1);
+        JsonElement results = result.GetProperty("results");
+        results[0].GetProperty("applied").GetBoolean().Should().BeTrue();
+        results[1].GetProperty("applied").GetBoolean().Should().BeTrue();
+        results[2].GetProperty("applied").GetBoolean().Should().BeFalse();
+        results[2].GetProperty("errorCode").GetString().Should().Be("Item.ImageReviewStale");
+        (await ItemAsync(a.Id)).ImageReviewState.Should().Be(ItemImageReviewState.Approved);
+        (await ItemAsync(b.Id)).ImageReviewState.Should().Be(ItemImageReviewState.Approved);
+        (await ItemAsync(c.Id)).ImageReviewState.Should().Be(ItemImageReviewState.PendingReview);
+    }
+
+    [Fact]
+    public async Task Bulk_RejectWithoutAReason_Is400_AndChangesNothing()
+    {
+        Item a = await SeedPictureItemAsync(ItemImageReviewState.PendingReview);
+        string body = $"{{\"decision\":\"reject\",\"items\":[{{\"id\":\"{a.Id}\",\"expectedRevision\":1}}]}}";
+
+        (HttpStatusCode status, string response) = await SendAsync(HttpMethod.Post, "/admin/items/image-review/bulk", body, AdminToken);
+
+        status.Should().Be(HttpStatusCode.BadRequest, response);
+        (await ItemAsync(a.Id)).ImageReviewState.Should().Be(ItemImageReviewState.PendingReview);
+    }
+
+    [Fact]
+    public async Task Bulk_MoreThan25Items_Is400()
+    {
+        string items = string.Join(",", Enumerable.Range(0, 26).Select(_ => $"{{\"id\":\"{Guid.NewGuid()}\",\"expectedRevision\":1}}"));
+
+        (HttpStatusCode status, string response) = await SendAsync(
+            HttpMethod.Post, "/admin/items/image-review/bulk", $"{{\"decision\":\"approve\",\"items\":[{items}]}}", AdminToken);
+
+        status.Should().Be(HttpStatusCode.BadRequest, response);
+    }
+
+    [Fact]
+    public async Task Bulk_IsAdminOnly()
+    {
+        Item a = await SeedPictureItemAsync(ItemImageReviewState.PendingReview);
+        string body = $"{{\"decision\":\"approve\",\"items\":[{{\"id\":\"{a.Id}\",\"expectedRevision\":1}}]}}";
+
+        (HttpStatusCode status, _) = await SendAsync(HttpMethod.Post, "/admin/items/image-review/bulk", body, OwnerToken);
+
+        status.Should().BeOneOf(HttpStatusCode.Forbidden, HttpStatusCode.Unauthorized);
+        (await ItemAsync(a.Id)).ImageReviewState.Should().Be(ItemImageReviewState.PendingReview);
     }
 }

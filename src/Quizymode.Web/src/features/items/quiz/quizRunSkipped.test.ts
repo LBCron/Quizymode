@@ -84,8 +84,10 @@ describe("Practice skip for an unavailable picture (#403)", () => {
     run = skip(run, "b");
     expect(skip(run, "b")).toBe(run);
 
-    const test = startedTest();
-    expect(skip(test, "a")).toBe(test);
+    const notStarted = createQuizRun(scope, ids, "guest", "test");
+    expect(skip(notStarted, "a")).toBe(notStarted);
+    // A started Test accepts skips for unavailable pictures (picture pause, #403).
+    expect(skip(startedTest(), "a").skipped).toEqual(["a"]);
   });
 });
 
@@ -180,10 +182,10 @@ describe("restoring runs with skipped items (#403)", () => {
     expect(mutate({ skipped: ["b", "c", "d"] })).toBeNull();
   });
 
-  it("only accepts skipped items in a Test after it was submitted", () => {
+  it("accepts skipped items in a started Test and after it was submitted", () => {
     const test = startedTest();
     const open = { ...baseSnapshot(test), skipped: ["c"] };
-    expect(restoreQuizRun(open, scope, ids, "guest", "test")).toBeNull();
+    expect(restoreQuizRun(open, scope, ids, "guest", "test")?.skipped).toEqual(["c"]);
 
     const submitted = reduceQuizRun(test, { type: "submit", submittedAt: T(30), reason: "manual", unavailableItemIds: ["c"] });
     expect(restoreQuizRun(baseSnapshot(submitted), scope, ids, "guest", "test")?.skipped).toEqual(["c"]);

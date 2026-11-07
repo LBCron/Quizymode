@@ -211,4 +211,20 @@ public sealed class ItemImageReviewRulesTests
         ItemImageReviewRules.DuplicateIdentity("curated:flags/fr", null, null).Should().Be("curated:flags/fr");
         ItemImageReviewRules.DuplicateIdentity(null, null, null).Should().BeNull();
     }
+    [Fact]
+    public void NullDescriptionKeepsLegacyCanonicalHashButDescriptionChangesRequireNewReview()
+    {
+        Hash().Should().Be("e7ffbb76d0cb6631725afcd8df6bc3527c78e0ab19b8f4f1c970cd9d93e3569d");
+        Hash(questionImage: Question with { LongDescription = "A rising line." }).Should().NotBe(Hash());
+    }
+
+
+    [Fact]
+    public void OptionalRationalePreservesOldHashAndUsesDeterministicSemanticOrder()
+    {
+        string Hash(IReadOnlyDictionary<int, string>? reasons) => ItemImageReviewRules.ComputeContentHash("Q", "A", ["B", "C"], "E", null, null, null, reasons);
+        Hash(null).Should().Be(Hash(new Dictionary<int, string>()));
+        Hash(new Dictionary<int, string> { [1] = "C reason", [0] = "B reason" }).Should().Be(Hash(new Dictionary<int, string> { [0] = "B reason", [1] = "C reason" }));
+        Hash(new Dictionary<int, string> { [0] = "B reason" }).Should().NotBe(Hash(null));
+    }
 }

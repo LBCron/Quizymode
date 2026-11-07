@@ -220,6 +220,8 @@ const UploadToCollectionPage = ({
             .slice(0, 4)
         : [],
       explanation: String(row.explanation ?? ""),
+      questionImage: row.questionImage as import("@/api/media").ImageSlotInput | undefined,
+      explanationImage: row.explanationImage as import("@/api/media").ImageSlotInput | undefined,
       keywords: Array.isArray(row.keywords)
         ? row.keywords.map((k: string | { name?: string }) =>
             typeof k === "string"

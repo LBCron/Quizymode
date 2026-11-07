@@ -17,17 +17,13 @@ export interface QuestionPictureControls {
   onSkip?: () => void;
 }
 
-function isProblem(status: PictureStatus | undefined): boolean {
-  return status === "error" || status === "stuck" || status === "unknown";
-}
-
 export const PICTURE_REQUIRED_NOTE_ID = "picture-required-note";
 
 export interface QuestionPictureStatuses {
   /** True when the item has a question picture that is not loaded (including never reported). */
   isBlocked: (item: Pick<ItemResponse, "id" | "questionImage"> | null | undefined) => boolean;
   controlsFor: (item: ItemResponse, onSkip?: () => void) => QuestionPictureControls;
-  /** Items whose picture failed, is stuck or is unknown right now. A picture that is merely loading is still scored. */
+  /** Items whose picture failed, is stuck or is unknown right now. Initial, unknown and still-loading pictures are excluded too. */
   unavailableIds: (items: ReadonlyArray<Pick<ItemResponse, "id" | "questionImage">>) => string[];
   statusOf: (itemId: string) => PictureStatus | undefined;
 }
@@ -57,7 +53,7 @@ export function useQuestionPictureStatuses(): QuestionPictureStatuses {
   const unavailableIds = useCallback<QuestionPictureStatuses["unavailableIds"]>(
     (items) =>
       items
-        .filter((item) => Boolean(item.questionImage) && isProblem(statuses[item.id]))
+        .filter((item) => Boolean(item.questionImage) && statuses[item.id] !== "loaded")
         .map((item) => item.id),
     [statuses],
   );

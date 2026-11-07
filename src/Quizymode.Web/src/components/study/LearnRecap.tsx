@@ -55,7 +55,7 @@ export function LearnRecap({ roundNumber, rows, mastered, total, caption, onCont
             ) : (
               <CheckCircleIcon className="h-5 w-5 shrink-0 text-green-600" aria-hidden="true" />
             )}
-            <QuestionImage image={row.questionImage} size="xs" />
+            <QuestionImage itemId={row.itemId} image={row.questionImage} size="xs" />
             <span className="min-w-0 flex-1 truncate sm:whitespace-normal" title={row.question}>
               {row.question}
             </span>

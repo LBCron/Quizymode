@@ -105,7 +105,7 @@ describe("GamesHubPage", () => {
     expect(screen.getByRole("heading", { name: "Match Race" })).toBeInTheDocument();
     expect(screen.getByText("Match each question to its answer.")).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "Games", selected: true })).toBeInTheDocument();
-    expect(itemsApi.getRandom).toHaveBeenCalledWith("science", 200, ["optics"], { navigationKeywords: ["physics"] });
+    expect(itemsApi.getRandom).toHaveBeenCalledWith("science", 200, ["optics"], { navigationKeywords: ["physics"], excludeQuestionPictures: true });
 
     fireEvent.click(screen.getByRole("link", { name: "Play Match Race" }));
     expect(await screen.findByTestId("location")).toHaveTextContent("/games/match-race/science?nav=physics&keywords=optics");
@@ -160,7 +160,7 @@ describe("GamesHubPage", () => {
   it("loads a collection through getItems", async () => {
     renderPage(`/games/collections/${COLLECTION_ID}/practice+set`);
     expect(await screen.findByRole("heading", { name: "Games" })).toBeInTheDocument();
-    expect(collectionsApi.getItems).toHaveBeenCalledWith(COLLECTION_ID);
+    expect(collectionsApi.getItems).toHaveBeenCalledWith(COLLECTION_ID, true);
     expect(itemsApi.getRandom).not.toHaveBeenCalled();
     expect(gamesApi.getRoster).not.toHaveBeenCalled();
   });
@@ -195,7 +195,7 @@ describe("GamesHubPage", () => {
       renderPage("/games/aiml");
       await screen.findByRole("heading", { name: "Games" });
       expect(gamesApi.getRoster).not.toHaveBeenCalled();
-      expect(itemsApi.getRandom).toHaveBeenCalledWith("ai/ml", 200, undefined, { navigationKeywords: undefined });
+      expect(itemsApi.getRandom).toHaveBeenCalledWith("ai/ml", 200, undefined, { navigationKeywords: undefined, excludeQuestionPictures: true });
     });
   });
 

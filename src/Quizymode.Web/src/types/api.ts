@@ -37,13 +37,15 @@ export interface KeywordResponse {
 
 /** Curated question picture (#407): key resolved by the web build into a bundled image, plus alt text. */
 export interface ItemImageReference {
+  revision?: number;
+  longDescription?: string | null;
   key: string;
   altText: string;
   /** Credit line for an uploaded picture (#400), when the author supplied one. */
   attribution?: string | null;
 }
 
-export type ImageReviewState = "PendingReview" | "Approved" | "Rejected" | "Withdrawn";
+export type ImageReviewState = "PendingReview" | "Approved" | "Rejected" | "Withdrawn" | "Processing" | "Failed";
 
 /** Picture review state of an item (AC 3.25.2, 3.26.5); returned to the creator and admins only. */
 export interface ItemImageReviewInfo {
@@ -211,6 +213,9 @@ export interface KeywordRequest {
 }
 
 export interface CreateItemRequest {
+  createRequestId?: string;
+  questionImage?: import("@/api/media").ImageSlotInput;
+  explanationImage?: import("@/api/media").ImageSlotInput;
   category: string;
   navigationKeyword1: string;
   navigationKeyword2: string;
@@ -232,6 +237,9 @@ export interface CreateItemRequest {
 }
 
 export interface UpdateItemRequest {
+  expectedImageRevision?: number;
+  questionImage?: import("@/api/media").ImageSlotInput;
+  explanationImage?: import("@/api/media").ImageSlotInput;
   category?: string;
   navigationKeyword1?: string;
   navigationKeyword2?: string;

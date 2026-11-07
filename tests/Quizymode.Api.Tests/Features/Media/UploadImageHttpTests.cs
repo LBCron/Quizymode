@@ -164,6 +164,8 @@ public sealed class UploadImageHttpTests : DatabaseTestFixture
         store.Objects.Should().BeEmpty();
         using ApplicationDbContext verify = CreateDbContext();
         (await verify.MediaAssets.CountAsync()).Should().Be(0, "a refused upload creates no row");
+        (await verify.MediaIngressAttempts.CountAsync()).Should().Be(1, "admitted oversized input spends transport allowance");
+        (await verify.MediaUploadAttempts.CountAsync()).Should().Be(0);
     }
 
     [Fact]
@@ -206,6 +208,9 @@ public sealed class UploadImageHttpTests : DatabaseTestFixture
             response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
             TitleOf(await ReadJsonAsync(response)).Should().Be("Media.InvalidRequest");
         }
+        await using var verify = CreateDbContext();
+        (await verify.MediaIngressAttempts.CountAsync()).Should().Be(3, "malformed, missing and duplicate parts all spend durable transport allowance");
+        (await verify.MediaUploadAttempts.CountAsync()).Should().Be(0);
     }
 
     [Theory]
@@ -594,5 +599,26 @@ public sealed class UploadImageHttpTests : DatabaseTestFixture
             length = 0;
             return false;
         }
+    }
+
+    [Fact]
+    public async Task ReplaySpendsTransportButNotAnotherDecodeAndChangedSourceConflicts()
+    {
+        await using JwtHttpTestHost host = await StartAsync(new FakeMediaObjectStore());
+        string token = host.CreateToken("owner", "owner@example.com");
+        byte[] source = MediaTestImages.Png(16, 16, SKColors.Red);
+        async Task<HttpStatusCode> Send(byte[] bytes)
+        {
+            using var request = Upload(token, bytes); request.Headers.Add("Idempotency-Key", "transport-replay");
+            using var response = await host.Client.SendAsync(request); return response.StatusCode;
+        }
+        (await Send(source)).Should().Be(HttpStatusCode.Created);
+        (await Send(source)).Should().Be(HttpStatusCode.Created);
+        (await Send(MediaTestImages.Png(16, 16, SKColors.Blue))).Should().Be(HttpStatusCode.Conflict);
+        await using var restarted = CreateDbContext();
+        (await restarted.MediaIngressAttempts.CountAsync()).Should().Be(3);
+        (await restarted.MediaIngressAttempts.AllAsync(x => x.CompletedAt != null && x.ReceivedBytes > 0)).Should().BeTrue();
+        (await restarted.MediaUploadAttempts.CountAsync()).Should().Be(1);
+        (await restarted.MediaUploadClaims.CountAsync()).Should().Be(1);
     }
 }

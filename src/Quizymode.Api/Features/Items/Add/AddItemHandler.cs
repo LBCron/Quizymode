@@ -31,6 +31,14 @@ internal static class AddItemHandler
             int fuzzyBucket = simHashService.GetFuzzyBucket(fuzzySignature);
 
             string userId = userContext.UserId ?? throw new InvalidOperationException("User ID is required for item creation");
+            transaction = await ItemImageSubmission.BeginAsync(db, cancellationToken);
+            string requestHash = Quizymode.Api.Features.Media.MediaAdmission.Hash(System.Text.Json.JsonSerializer.Serialize(request));
+            if (request.CreateRequestId is Guid requestId)
+            {
+                Item? prior = await db.Items.AsNoTracking().Include(x => x.Category).SingleOrDefaultAsync(x => x.CreatedBy == userId && x.CreateRequestId == requestId, cancellationToken);
+                if (prior is not null) return prior.CreateRequestHash == requestHash ? Result.Success(BuildResponse(prior, prior.Category?.Name ?? request.Category)) : Result.Failure<AddItem.Response>(Error.Conflict("Item.RequestKeyReused", "This save request belongs to different content. Start a new save."));
+            }
+
 
             Result<Category> categoryResult = await itemCategoryResolver.ResolveForItemAsync(
                 request.Category,
@@ -79,6 +87,7 @@ internal static class AddItemHandler
                 return Result.Failure<AddItem.Response>(navResult.Error!);
 
             (Keyword navK1, Keyword navK2) = navResult.Value!;
+
 
             (PictureSlot? questionPicture, Error? questionPictureError) = await ItemImageSubmission.ResolveSlotAsync(
                 db, userId, null, null, null, request.QuestionImage, cancellationToken);
@@ -129,19 +138,25 @@ internal static class AddItemHandler
             string? contentHash = hasUpload
                 ? ItemImageReviewRules.ComputeContentHash(
                     request.Question, request.CorrectAnswer, request.IncorrectAnswers, request.Explanation,
-                    questionSpeech, questionPicture, explanationPicture)
+                    questionSpeech, questionPicture, explanationPicture, IncorrectAnswerRationaleHelper.Normalize(request.IncorrectAnswerRationale, request.IncorrectAnswers.Count))
                 : null;
             ImageReviewTransition transition = ItemImageReviewRules.Plan(null, 0, hasUpload, contentHash, null);
+            if (transition.CreatesSubmission)
+            {
+                Error? quotaError = await ItemImageSubmission.PendingQuotaAsync(db, userId, null, 1, cancellationToken);
+                if (quotaError is not null) return Result.Failure<AddItem.Response>(quotaError);
+            }
             if (ItemImageReviewRules.BlocksPublish(true, effectiveIsPrivate, transition.State))
             {
                 return Result.Failure<AddItem.Response>(ItemImageReviewRules.ReviewRequired());
             }
 
-            transaction = await ItemImageSubmission.BeginAsync(db, cancellationToken);
 
             Item item = new Item
             {
                 Id = Guid.NewGuid(),
+                CreateRequestId = request.CreateRequestId,
+                CreateRequestHash = request.CreateRequestId is null ? null : requestHash,
                 IsRepoManaged = false,
                 IsPrivate = effectiveIsPrivate,
                 Question = request.Question,
@@ -256,26 +271,7 @@ internal static class AddItemHandler
                     cancellationToken: cancellationToken);
             }
 
-            AddItem.Response response = new AddItem.Response(
-                item.Id.ToString(),
-                category.Name,
-                item.IsPrivate,
-                item.Question,
-                item.CorrectAnswer,
-                item.IncorrectAnswers,
-                item.Explanation,
-                item.CreatedAt,
-                item.Source,
-                item.UploadId?.ToString(),
-                item.QuestionSpeech,
-                item.CorrectAnswerSpeech,
-                item.IncorrectAnswerSpeech.Count > 0 ? item.IncorrectAnswerSpeech : null,
-                item.GroupLabel,
-                ItemImageReferenceHelper.FromColumns(item.QuestionImageKey, item.QuestionImageAlt, item.QuestionImageAttribution),
-                ItemImageReferenceHelper.FromColumns(item.ExplanationImageKey, item.ExplanationImageAlt, item.ExplanationImageAttribution),
-                ItemImageReviewRules.InfoOf(item),
-                item.IncorrectAnswerRationale.Count > 0 ? item.IncorrectAnswerRationale : null);
-
+            AddItem.Response response = BuildResponse(item, category.Name);
             return Result.Success(response);
         }
         catch (DbUpdateException ex) when (ItemImageReviewRules.IsRevisionConflict(ex))
@@ -294,5 +290,27 @@ internal static class AddItemHandler
                 await transaction.DisposeAsync();
             }
         }
+    }
+    private static AddItem.Response BuildResponse(Item item, string category)
+    {
+        return new AddItem.Response(
+                item.Id.ToString(),
+                category,
+                item.IsPrivate,
+                item.Question,
+                item.CorrectAnswer,
+                item.IncorrectAnswers,
+                item.Explanation,
+                item.CreatedAt,
+                item.Source,
+                item.UploadId?.ToString(),
+                item.QuestionSpeech,
+                item.CorrectAnswerSpeech,
+                item.IncorrectAnswerSpeech.Count > 0 ? item.IncorrectAnswerSpeech : null,
+                item.GroupLabel,
+                ItemImageReferenceHelper.FromColumns(item.QuestionImageKey, item.QuestionImageAlt, item.QuestionImageAttribution, item.QuestionImageLongDescription, item.ImageRevision),
+                ItemImageReferenceHelper.FromColumns(item.ExplanationImageKey, item.ExplanationImageAlt, item.ExplanationImageAttribution, item.ExplanationImageLongDescription, item.ImageRevision),
+                ItemImageReviewRules.InfoOf(item), item.IncorrectAnswerRationale.Count > 0 ? item.IncorrectAnswerRationale : null);
+
     }
 }

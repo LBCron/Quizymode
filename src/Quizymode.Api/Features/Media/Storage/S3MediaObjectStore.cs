@@ -70,5 +70,21 @@ internal sealed class S3MediaObjectStore(IAmazonS3 client, string bucketName) : 
         }
     }
 
+    public async Task DeleteAsync(string key, CancellationToken cancellationToken)
+    {
+        MediaObjectKey.EnsureValid(key);
+        try { await client.DeleteObjectAsync(new DeleteObjectRequest { BucketName = bucketName, Key = key }, cancellationToken); }
+        catch (Exception ex) when (ex is AmazonServiceException or AmazonClientException) { throw new MediaStorageException("S3 DeleteObject failed.", ex); }
+    }
+    public async Task<MediaObjectPage> ListAsync(string? continuationToken, CancellationToken cancellationToken)
+    {
+        if (continuationToken?.Length > 4096) throw new MediaStorageException("Invalid listing cursor.");
+        try
+        {
+            ListObjectsV2Response response = await client.ListObjectsV2Async(new ListObjectsV2Request { BucketName = bucketName, Prefix = "normalized/", ContinuationToken = continuationToken, MaxKeys = 100 }, cancellationToken);
+            return new MediaObjectPage(response.S3Objects.Where(x => MediaObjectKey.IsValid(x.Key)).Select(x => new MediaObjectEntry(x.Key, x.LastModified ?? DateTime.MinValue)).ToList(), response.NextContinuationToken);
+        }
+        catch (Exception ex) when (ex is AmazonServiceException or AmazonClientException) { throw new MediaStorageException("S3 ListObjects failed.", ex); }
+    }
     public void Dispose() => client.Dispose();
 }

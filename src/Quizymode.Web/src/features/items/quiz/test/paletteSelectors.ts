@@ -32,7 +32,7 @@ export function getTestPalette(
 ): TestPalette {
   const submitted = run.submittedAt !== null;
   const flagged = new Set(run.flagged);
-  const unavailable = new Set(unavailableItemIds);
+  const unavailable = new Set([...unavailableItemIds, ...run.skipped]);
   const entries = run.itemIds.map((itemId, index): TestPaletteEntry => {
     const outcome = run.outcomes[itemId];
     const entry: TestPaletteEntry = {

@@ -86,9 +86,9 @@ public static class GetReviewBoardItems
                     i.CorrectAnswerSpeech,
                     i.IncorrectAnswerSpeech.Count > 0 ? i.IncorrectAnswerSpeech : null,
                     i.GroupLabel,
-                    ItemImageReferenceHelper.FromColumns(i.QuestionImageKey, i.QuestionImageAlt),
-                    ItemImageReferenceHelper.FromColumns(i.ExplanationImageKey, i.ExplanationImageAlt),
-                    i.IncorrectAnswerRationale.Count > 0 ? i.IncorrectAnswerRationale : null);
+                    ItemImageReferenceHelper.FromColumns(i.QuestionImageKey, i.QuestionImageAlt, i.QuestionImageAttribution, i.QuestionImageLongDescription, i.ImageRevision),
+                    ItemImageReferenceHelper.FromColumns(i.ExplanationImageKey, i.ExplanationImageAlt, i.ExplanationImageAttribution, i.ExplanationImageLongDescription, i.ImageRevision),
+                                        i.IncorrectAnswerRationale.Count > 0 ? i.IncorrectAnswerRationale : null);
             }).ToList();
 
             return Result.Success(new Response(itemResponses));

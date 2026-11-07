@@ -27,7 +27,7 @@ internal static partial class ItemImageReferenceHelper
     internal static ItemImageReference? Normalize(ItemImageReference? image)
     {
         if (image is null) return null;
-        return new ItemImageReference(image.Key?.Trim() ?? string.Empty, image.AltText?.Trim() ?? string.Empty);
+        return new ItemImageReference(image.Key?.Trim() ?? string.Empty, image.AltText?.Trim() ?? string.Empty, ItemImageSubmission.NormalizeAttribution(image.Attribution), ItemImageSubmission.NormalizeAttribution(image.LongDescription));
     }
 
     internal static bool IsValidKey(string? key) =>
@@ -49,8 +49,8 @@ internal static partial class ItemImageReferenceHelper
     /// <summary>The stored image key, or null when the item has no picture.</summary>
     internal static string? KeyOf(ItemImageReference? image) => image?.Key;
 
-    internal static ItemImageReference? FromColumns(string? key, string? altText, string? attribution = null) =>
-        key is null ? null : new ItemImageReference(key, altText ?? string.Empty, attribution);
+    internal static ItemImageReference? FromColumns(string? key, string? altText, string? attribution = null, string? longDescription = null, int revision = 0) =>
+        key is null ? null : new ItemImageReference(key, altText ?? string.Empty, attribution, longDescription, revision);
 
     /// <summary>Adds key format and alt text rules for an optional image reference.</summary>
     internal static void AddQuestionImageRules<T>(
@@ -66,12 +66,7 @@ internal static partial class ItemImageReferenceHelper
     {
         validator.AddImageRules(expression, InvalidExplanationKeyMessage, InvalidExplanationAltTextMessage);
 
-        Func<T, ItemImageReference?> imageOf = expression.Compile();
-        Func<T, string?> explanationOf = explanation.Compile();
-        validator.RuleFor(x => x)
-            .Must(x => imageOf(x) is null || !string.IsNullOrWhiteSpace(explanationOf(x)))
-            .WithName("ExplanationImage")
-            .WithMessage(ExplanationRequiredMessage);
+
     }
 
     private static void AddImageRules<T>(
@@ -83,6 +78,10 @@ internal static partial class ItemImageReferenceHelper
         validator.RuleFor(expression)
             .Must(image => image is null || IsValidKey(image.Key?.Trim()))
             .WithMessage(keyMessage);
+
+        validator.RuleFor(expression)
+            .Must(image => image is null || ItemImageSlotRules.IsValidLongDescription(image.LongDescription))
+            .WithMessage("Picture longDescription must be at most 2000 characters without control characters other than line breaks.");
 
         validator.RuleFor(expression)
             .Must(image => image is null || IsValidAltText(image.AltText))

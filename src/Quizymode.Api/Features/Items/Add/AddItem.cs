@@ -36,6 +36,7 @@ public static class AddItem
         string? GroupLabel = null,
         ImageSlotInput? QuestionImage = null,
         ImageSlotInput? ExplanationImage = null,
+        Guid? CreateRequestId = null,
         Dictionary<int, string>? IncorrectAnswerRationale = null);
 
     public sealed record Response(
@@ -150,6 +151,7 @@ public static class AddItem
                 .RequireAuthorization()
                 .Produces<Response>(StatusCodes.Status201Created)
                 .Produces(StatusCodes.Status400BadRequest)
+                .Produces(StatusCodes.Status429TooManyRequests)
                 .Produces(StatusCodes.Status409Conflict);
         }
 

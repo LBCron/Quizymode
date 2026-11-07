@@ -146,7 +146,7 @@ public static class GetQuestionQualityReport
                     item.Category == null ? null : item.Category.Name,
                     item.UpdatedAt,
                     item.QuestionImageKey,
-                    item.QuestionImageAlt))
+                    item.QuestionImageAlt, item.QuestionImageAttribution, item.QuestionImageLongDescription, item.ImageRevision))
                 .ToDictionaryAsync(item => item.Id, cancellationToken);
 
         List<QuestionStats> stats = [];
@@ -208,7 +208,7 @@ public static class GetQuestionQualityReport
                     guess,
                     stat.Correct * 100.0 / stat.Answers < 100.0 / (stat.Item.IncorrectCount + 1),
                     stat.Item.UpdatedAt,
-                    ItemImageReferenceHelper.FromColumns(stat.Item.QuestionImageKey, stat.Item.QuestionImageAlt));
+                    ItemImageReferenceHelper.FromColumns(stat.Item.QuestionImageKey, stat.Item.QuestionImageAlt, stat.Item.QuestionImageAttribution, stat.Item.QuestionImageLongDescription, stat.Item.ImageRevision));
             })
             .ToList();
 
@@ -216,7 +216,7 @@ public static class GetQuestionQualityReport
             windowStartUtc, windowEndUtc, request.MinAnswers, botSessions, !request.IncludeBots, internalSessions, !request.IncludeInternal, responses));
     }
 
-    private sealed record ItemInfo(Guid Id, string Question, string CorrectAnswer, int IncorrectCount, string? Category, DateTime? UpdatedAt, string? QuestionImageKey, string? QuestionImageAlt);
+    private sealed record ItemInfo(Guid Id, string Question, string CorrectAnswer, int IncorrectCount, string? Category, DateTime? UpdatedAt, string? QuestionImageKey, string? QuestionImageAlt, string? QuestionImageAttribution, string? QuestionImageLongDescription, int ImageRevision);
 
     private sealed record QuestionStats(ItemInfo Item, int Answers, int Correct);
 }

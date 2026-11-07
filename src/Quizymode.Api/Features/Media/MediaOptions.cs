@@ -22,6 +22,22 @@ internal sealed class MediaOptions
 
     public const string ForbiddenWebBucket = "quizymode-web";
 
+    public int MaxUploadsPerHour { get; set; } = 20;
+    public int MaxUploadsPerDay { get; set; } = 20;
+    public int MaxPendingReviewItems { get; set; } = 20;
+    public long MaxRetainedBytes { get; set; } = 20 * 1024 * 1024;
+    public long MaxGlobalRetainedBytes { get; set; } = 1024L * 1024 * 1024;
+    public int MaxGlobalUploads { get; set; } = 8;
+    public int MaxGlobalIngress { get; set; } = 8;
+    public long MaxIngressBytesPerDay { get; set; } = 44L * 1024 * 1024;
+    public TimeSpan IngressReadTimeout { get; set; } = TimeSpan.FromSeconds(20);
+    public bool CleanupAllOwnersApproved { get; set; }
+    public bool CleanupEnabled { get; set; }
+    public string? CleanupOwnerUserId { get; set; }
+    public int UnattachedRetentionDays { get; set; } = 7;
+    public int RejectedRetentionDays { get; set; } = 7;
+    public int WithdrawnRetentionDays { get; set; } = 7;
+
     public StorageSettings Storage { get; set; } = new();
 
     public S3Settings S3 { get; set; } = new();
@@ -62,41 +78,52 @@ internal sealed class MediaOptions
     /// <summary>Kill switch: false makes uploads answer 503 Media.Disabled while reads keep working (AC 3.28).</summary>
     public bool UploadsEnabled { get; set; } = true;
 
-    /// <summary>Uploads one account may attempt in any rolling 24 hours (failed attempts count).</summary>
-    public int MaxUploadsPerUserPerDay { get; set; } = 20;
-
-    /// <summary>Normalized bytes one account may retain (20 MiB).</summary>
-    public long MaxRetainedBytesPerUser { get; set; } = 20L * 1024 * 1024;
-
-    /// <summary>Items of one account that may await picture review at once.</summary>
-    public int MaxPendingReviewsPerUser { get; set; } = 20;
-
-    /// <summary>Global ceiling on uploads in any rolling 24 hours, across all accounts.</summary>
+    /// <summary>Global ceiling on upload admissions in any rolling 24 hours, across all accounts (AC 3.28.2).</summary>
     public int MaxUploadsGlobalPerDay { get; set; } = 5000;
 
-    /// <summary>Global ceiling on retained normalized bytes (2 GiB).</summary>
-    public long MaxRetainedBytesGlobal { get; set; } = 2L * 1024 * 1024 * 1024;
+    // Deprecated #405 option names. They are aliases for the MediaAdmission/MediaIngress options, so existing
+    // Media__MaxUploadsPerUserPerDay-style settings keep working and cannot diverge from the enforced limits.
+
+    /// <summary>Deprecated alias for <see cref="MaxUploadsPerDay"/>.</summary>
+    public int MaxUploadsPerUserPerDay { get => MaxUploadsPerDay; set => MaxUploadsPerDay = value; }
+
+    /// <summary>Deprecated alias for <see cref="MaxRetainedBytes"/>.</summary>
+    public long MaxRetainedBytesPerUser { get => MaxRetainedBytes; set => MaxRetainedBytes = value; }
+
+    /// <summary>Deprecated alias for <see cref="MaxPendingReviewItems"/>.</summary>
+    public int MaxPendingReviewsPerUser { get => MaxPendingReviewItems; set => MaxPendingReviewItems = value; }
+
+    /// <summary>Deprecated alias for <see cref="MaxGlobalRetainedBytes"/>.</summary>
+    public long MaxRetainedBytesGlobal { get => MaxGlobalRetainedBytes; set => MaxGlobalRetainedBytes = value; }
 
     /// <summary>Returns a description of every invalid value (empty when valid).</summary>
     public IReadOnlyList<string> Validate()
     {
         List<string> errors = [];
+        Require(MaxUploadsPerHour > 0 && MaxUploadsPerHour <= 20, nameof(MaxUploadsPerHour));
+        Require(MaxUploadsPerDay > 0 && MaxUploadsPerDay <= 20, nameof(MaxUploadsPerDay));
+        Require(MaxPendingReviewItems > 0 && MaxPendingReviewItems <= 20, nameof(MaxPendingReviewItems));
+        Require(MaxRetainedBytes > 0 && MaxRetainedBytes <= 20 * 1024 * 1024, nameof(MaxRetainedBytes));
+        Require(MaxGlobalRetainedBytes > 0, nameof(MaxGlobalRetainedBytes));
+        Require(MaxGlobalIngress > 0 && MaxGlobalIngress <= 20, nameof(MaxGlobalIngress));
+        Require(MaxIngressBytesPerDay >= (long)MaxSourceBytes + 64 * 1024 && MaxIngressBytesPerDay <= 44L * 1024 * 1024, nameof(MaxIngressBytesPerDay));
+        Require(IngressReadTimeout > TimeSpan.Zero && IngressReadTimeout <= TimeSpan.FromSeconds(30), nameof(IngressReadTimeout));
+        Require(MaxGlobalUploads > 0 && MaxGlobalUploads <= 20, nameof(MaxGlobalUploads));
+        Require(UnattachedRetentionDays > 0 && UnattachedRetentionDays <= 7, nameof(UnattachedRetentionDays));
+        Require(RejectedRetentionDays > 0 && RejectedRetentionDays <= 7, nameof(RejectedRetentionDays));
+        Require(WithdrawnRetentionDays > 0 && WithdrawnRetentionDays <= 7, nameof(WithdrawnRetentionDays));
         Require(MaxSourceBytes > 0 && MaxSourceBytes <= DefaultMaxSourceBytes, nameof(MaxSourceBytes));
         Require(MaxPixels > 0, nameof(MaxPixels));
         Require(MaxSide > 0, nameof(MaxSide));
         Require(MaxOutputBytes > 0 && MaxOutputBytes <= AbsoluteMaxOutputBytes, nameof(MaxOutputBytes));
         Require(LosslessKeepBytes >= 0, nameof(LosslessKeepBytes));
-        Require(MaxOutputSide > 0, nameof(MaxOutputSide));
+        Require(MaxOutputSide > 0 && MaxOutputSide <= 1280, nameof(MaxOutputSide));
         Require(MaxConcurrentDecodes > 0, nameof(MaxConcurrentDecodes));
         Require(MaxWaiters >= 0, nameof(MaxWaiters));
-        Require(SemaphoreWaitTimeout >= TimeSpan.Zero, nameof(SemaphoreWaitTimeout));
-        Require(ProcessingBudget > TimeSpan.Zero, nameof(ProcessingBudget));
-        Require(StorageWriteTimeout > TimeSpan.Zero, nameof(StorageWriteTimeout));
-        Require(MaxUploadsPerUserPerDay > 0, nameof(MaxUploadsPerUserPerDay));
-        Require(MaxRetainedBytesPerUser > 0, nameof(MaxRetainedBytesPerUser));
-        Require(MaxPendingReviewsPerUser > 0, nameof(MaxPendingReviewsPerUser));
+        Require(SemaphoreWaitTimeout >= TimeSpan.Zero && SemaphoreWaitTimeout <= TimeSpan.FromSeconds(15), nameof(SemaphoreWaitTimeout));
+        Require(ProcessingBudget > TimeSpan.Zero && ProcessingBudget <= TimeSpan.FromSeconds(30), nameof(ProcessingBudget));
+        Require(StorageWriteTimeout > TimeSpan.Zero && StorageWriteTimeout <= TimeSpan.FromSeconds(45), nameof(StorageWriteTimeout));
         Require(MaxUploadsGlobalPerDay > 0, nameof(MaxUploadsGlobalPerDay));
-        Require(MaxRetainedBytesGlobal > 0, nameof(MaxRetainedBytesGlobal));
         return errors;
 
         void Require(bool condition, string name)

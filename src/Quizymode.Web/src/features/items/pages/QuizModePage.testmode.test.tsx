@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import QuizModePage from "./QuizModePage";
@@ -187,6 +188,26 @@ describe("QuizModePage Test mode (AC 3.18)", () => {
     onTestEnd = null;
     vi.useRealTimers();
     vi.restoreAllMocks();
+  });
+
+  it("keyboard-skips a loaded final picture as persisted unscored with no completion credit", async () => {
+    const pictured = { ...item1, questionImage: { key: "curated:flags/fr", altText: "Flag" } };
+    vi.mocked(collectionsApi.getItems).mockResolvedValue({ items: [pictured] } as Awaited<ReturnType<typeof collectionsApi.getItems>>);
+    const view = renderPage(TEST_URL); await startTest("custom-1");
+    fireEvent.load(await screen.findByAltText("Flag"));
+    const skip = screen.getByRole("button", { name: "Skip question (not scored)" }); skip.focus(); await userEvent.keyboard("{Enter}");
+    await waitFor(() => expect(JSON.parse(sessionStorage.getItem("navigationContext_quiz")!).quizRun.skipped).toEqual([GUID_1]));
+    const before = JSON.parse(sessionStorage.getItem("navigationContext_quiz")!).quizRun;
+    expect(before.skippedReasons[GUID_1]).toBe("picture-inaccessible");
+    expect(before.picturePausedAt).toBeNull();
+    view.unmount(); renderPage(TEST_URL);
+    await screen.findByText("What is 2 + 2?");
+    expect(screen.queryByRole("button", { name: "Skip question (not scored)" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Submit test" }));
+    fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Submit test" }));
+    await waitFor(() => expect(JSON.parse(sessionStorage.getItem("navigationContext_quiz")!).quizRun.submittedAt).not.toBeNull());
+    expect(names(mockTrackEventOnce)).not.toContain("quick_quiz_completed"); expect(questionAnswered()).toEqual([]);
+    expect(readGuestHistory()).toEqual([]);
   });
 
   it("shows only the setup card before Start test and sends nothing", async () => {

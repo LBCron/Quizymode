@@ -225,7 +225,7 @@ describe("SwipeBlitzPage", () => {
     it("loads every item of a collection", async () => {
       renderPage("/games/swipe-blitz/collections/11111111-1111-4111-8111-111111111111/practice+set");
       await screen.findByRole("heading", { name: "Swipe Blitz" });
-      expect(collectionsApi.getItems).toHaveBeenCalledWith("11111111-1111-4111-8111-111111111111");
+      expect(collectionsApi.getItems).toHaveBeenCalledWith("11111111-1111-4111-8111-111111111111", true);
     });
   });
 

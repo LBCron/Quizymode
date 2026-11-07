@@ -21,6 +21,7 @@ public static class GetImageContent
         {
             app.MapGet("media/images/{id:guid}/content", Handler)
                 .WithTags("Media")
+                .RequireRateLimiting("media-reads")
                 .WithSummary("Download the normalized WebP of a picture")
                 .WithDescription("Owner or admin only. Fetch with the bearer token and display from a blob URL. Other users, unknown ids, and " +
                     "assets that are not Ready get 404.")
@@ -43,6 +44,8 @@ public static class GetImageContent
             {
                 return CustomResults.Unauthorized();
             }
+
+            if (await db.MediaControls.AnyAsync(x => x.Id == 1 && !x.DeliveryEnabled, cancellationToken)) return Results.NotFound();
 
             if (!store.IsAvailable)
             {

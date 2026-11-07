@@ -139,7 +139,7 @@ const ItemsPage = () => {
                   onClick={() => handleItemClick(item.id)}
                 >
                   <div className="flex items-start gap-3">
-                    <QuestionImage image={item.questionImage} size="sm" />
+                    <QuestionImage itemId={item.id} image={item.questionImage} size="sm" />
                     <div className="min-w-0">
                       <p className="text-gray-900 font-medium">
                         {item.question.length > 100

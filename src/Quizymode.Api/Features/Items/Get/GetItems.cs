@@ -31,7 +31,8 @@ public static class GetItems
         bool? IsRandom,
         int Page = 1,
         int PageSize = 10,
-        List<string>? NavigationKeywords = null);
+        List<string>? NavigationKeywords = null,
+        bool ExcludeQuestionPictures = false);
 
     public sealed record Response(
         List<ItemResponse> Items,
@@ -100,6 +101,7 @@ public static class GetItems
             string? nav,
             Guid? collectionId,
             bool? isRandom,
+            bool excludeQuestionPictures = false,
             int page = 1,
             int pageSize = 10,
             ApplicationDbContext db = null!,
@@ -132,7 +134,7 @@ public static class GetItems
                     .ToList();
             }
 
-            var request = new QueryRequest(category, isPrivate, keywordList, collectionId, isRandom, page, pageSize, navigationKeywordList);
+            var request = new QueryRequest(category, isPrivate, keywordList, collectionId, isRandom, page, pageSize, navigationKeywordList, excludeQuestionPictures);
             Result<Response> result = await GetItemsHandler.HandleAsync(request, db, userContext, cancellationToken);
 
             return result.Match(

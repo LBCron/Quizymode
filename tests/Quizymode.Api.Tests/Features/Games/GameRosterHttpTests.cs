@@ -121,4 +121,31 @@ public sealed class GameRosterHttpTests(PostgresContainerFixture fixture) : ICla
         ItemIds(await GetJsonAsync(host, url, null, HttpStatusCode.OK))
             .Should().BeEquivalentTo([publicItem.Id.ToString()]);
     }
+
+    [SkippableFact]
+    public async Task UnapprovedUploadedPictureItems_AreOmittedAndNotCountedForANonOwner()
+    {
+        await using JwtHttpTestHost host = await StartAsync();
+        (string ownerToken, Guid ownerId) = await SeedUserAsync(host);
+        (string otherToken, _) = await SeedUserAsync(host);
+        Category category;
+        Item textItem;
+        Item pending;
+        await using (ApplicationDbContext db = fixture.CreateDbContext())
+        {
+            category = VisibilitySeed.AddCategory(db);
+            textItem = VisibilitySeed.AddItem(db, category, ownerId.ToString(), false);
+            pending = PictureSeed.AddPictureItem(db, category, ownerId.ToString(), false, ItemImageReviewState.PendingReview, PictureSeed.AddAsset(db, ownerId.ToString()));
+            await db.SaveChangesAsync();
+        }
+
+        string url = $"/games/roster?scope={Uri.EscapeDataString(category.Name)}";
+
+        JsonElement other = await GetJsonAsync(host, url, otherToken, HttpStatusCode.OK);
+        JsonElement owner = await GetJsonAsync(host, url, ownerToken, HttpStatusCode.OK);
+
+        ItemIds(other).Should().BeEquivalentTo([textItem.Id.ToString()]).And.NotContain(pending.Id.ToString());
+        other.GetProperty("scopes").EnumerateArray().Single().GetProperty("excludedPictures").GetInt32().Should().Be(0);
+        ItemIds(owner).Should().NotContain(pending.Id.ToString());
+    }
 }

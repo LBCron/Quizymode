@@ -2,6 +2,8 @@ namespace Quizymode.Api.Shared.Models;
 
 public sealed class Item
 {
+    public Guid? CreateRequestId { get; set; }
+    public string? CreateRequestHash { get; set; }
     public Guid Id { get; set; }
 
     public bool IsRepoManaged { get; set; }
@@ -77,8 +79,12 @@ public sealed class Item
     /// <summary>Optional credit line for an uploaded question picture (max 300).</summary>
     public string? QuestionImageAttribution { get; set; }
 
+    public string? QuestionImageLongDescription { get; set; }
+
     /// <summary>Optional credit line for an uploaded explanation picture (max 300).</summary>
     public string? ExplanationImageAttribution { get; set; }
+
+    public string? ExplanationImageLongDescription { get; set; }
 
     /// <summary>
     /// Review state of the item's uploaded pictures (#400, AC 3.25); null exactly when neither picture slot holds an upload.

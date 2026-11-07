@@ -35,6 +35,7 @@ public static class UpdateItem
         string? GroupLabel = null,
         ImageSlotInput? QuestionImage = null,
         ImageSlotInput? ExplanationImage = null,
+        int? ExpectedImageRevision = null,
         Dictionary<int, string>? IncorrectAnswerRationale = null);
 
     public sealed record Response(
@@ -148,6 +149,7 @@ public static class UpdateItem
                 .RequireAuthorization()
                 .Produces<Response>(StatusCodes.Status200OK)
                 .Produces(StatusCodes.Status400BadRequest)
+                .Produces(StatusCodes.Status429TooManyRequests)
                 .Produces(StatusCodes.Status401Unauthorized)
                 .Produces(StatusCodes.Status403Forbidden)
                 .Produces(StatusCodes.Status404NotFound)
@@ -228,15 +230,6 @@ public static class UpdateItem
                 return Result.Failure<Response>(accessError);
             }
 
-            // Omitted pictures are kept by PUT; an explanation picture needs explanation text to illustrate (#403). Removing it needs none.
-            if (item.ExplanationImageKey is not null
-                && request.ExplanationImage?.Remove != true
-                && string.IsNullOrWhiteSpace(request.Explanation))
-            {
-                return Result.Failure<Response>(
-                    Error.Validation("Item.ExplanationRequiredForImage", ItemImageReferenceHelper.ExplanationRequiredForUpdateMessage));
-            }
-
             string questionText = ItemSimHashInput.Normalize(request.Question);
             string fuzzySignature = simHashService.ComputeSimHash(questionText);
             int fuzzyBucket = simHashService.GetFuzzyBucket(fuzzySignature);
@@ -302,10 +295,16 @@ public static class UpdateItem
                 return Result.Failure<Response>(ItemImageReviewRules.ManagedBySeed());
             }
 
+            int originallyReadRevision = item.ImageRevision;
+            if (request.ExpectedImageRevision is int expected && expected != originallyReadRevision) return Result.Failure<Response>(ItemImageReviewRules.ReviewStale());
+            transaction = await ItemImageSubmission.BeginAsync(db, cancellationToken);
+            await db.Entry(item).ReloadAsync(cancellationToken);
+            if (item.ImageRevision != originallyReadRevision) return Result.Failure<Response>(ItemImageReviewRules.ReviewStale());
+
             // Assets must belong to the item's creator, so an admin can keep, remove or re-describe a picture but not attach their own upload.
             (PictureSlot? questionPicture, Error? questionPictureError) = await ItemImageSubmission.ResolveSlotAsync(
                 db, item.CreatedBy, item.QuestionImageAssetId, item.QuestionImageAlt, item.QuestionImageAttribution,
-                request.QuestionImage, cancellationToken);
+                request.QuestionImage, cancellationToken, item.QuestionImageLongDescription);
             if (questionPictureError is not null)
             {
                 return Result.Failure<Response>(questionPictureError);
@@ -313,7 +312,7 @@ public static class UpdateItem
 
             (PictureSlot? explanationPicture, Error? explanationPictureError) = await ItemImageSubmission.ResolveSlotAsync(
                 db, item.CreatedBy, item.ExplanationImageAssetId, item.ExplanationImageAlt, item.ExplanationImageAttribution,
-                request.ExplanationImage, cancellationToken);
+                request.ExplanationImage, cancellationToken, item.ExplanationImageLongDescription);
             if (explanationPictureError is not null)
             {
                 return Result.Failure<Response>(explanationPictureError);
@@ -350,7 +349,7 @@ public static class UpdateItem
             string? contentHash = hasUpload
                 ? ItemImageReviewRules.ComputeContentHash(
                     request.Question, request.CorrectAnswer, request.IncorrectAnswers, request.Explanation,
-                    questionSpeech, questionPicture, explanationPicture)
+                    questionSpeech, questionPicture, explanationPicture, IncorrectAnswerRationaleHelper.Normalize(request.IncorrectAnswerRationale, request.IncorrectAnswers.Count))
                 : null;
             string? storedHash = hasUpload && item.ImageReviewState is not null
                 ? await db.ItemImageReviews.AsNoTracking()
@@ -361,13 +360,17 @@ public static class UpdateItem
             ImageReviewTransition transition = ItemImageReviewRules.Plan(
                 item.ImageReviewState, item.ImageRevision, hasUpload, contentHash, storedHash,
                 assetsChanged: questionPicture?.AssetId != item.QuestionImageAssetId || explanationPicture?.AssetId != item.ExplanationImageAssetId);
+            if (transition.CreatesSubmission)
+            {
+                Error? quotaError = await ItemImageSubmission.PendingQuotaAsync(db, item.CreatedBy, item.Id, 1, cancellationToken);
+                if (quotaError is not null) return Result.Failure<Response>(quotaError);
+            }
             if (ItemImageReviewRules.BlocksPublish(item.IsPrivate, effectiveIsPrivate, transition.State))
             {
                 return Result.Failure<Response>(ItemImageReviewRules.ReviewRequired());
             }
 
             // Claim the revision first (one conditional UPDATE), so a decision or another edit that got there first is a 409, not an overwrite.
-            transaction = await ItemImageSubmission.BeginAsync(db, cancellationToken);
             if (transition.Changed)
             {
                 Error? claimError = await ItemImageSubmission.ClaimRevisionAsync(
@@ -522,10 +525,10 @@ public static class UpdateItem
                 item.CorrectAnswerSpeech,
                 item.IncorrectAnswerSpeech.Count > 0 ? item.IncorrectAnswerSpeech : null,
                 item.GroupLabel,
-                ItemImageReferenceHelper.FromColumns(item.QuestionImageKey, item.QuestionImageAlt, item.QuestionImageAttribution),
-                ItemImageReferenceHelper.FromColumns(item.ExplanationImageKey, item.ExplanationImageAlt, item.ExplanationImageAttribution),
+                ItemImageReferenceHelper.FromColumns(item.QuestionImageKey, item.QuestionImageAlt, item.QuestionImageAttribution, item.QuestionImageLongDescription, item.ImageRevision),
+                ItemImageReferenceHelper.FromColumns(item.ExplanationImageKey, item.ExplanationImageAlt, item.ExplanationImageAttribution, item.ExplanationImageLongDescription, item.ImageRevision),
                 ItemImageReviewRules.InfoOf(item, rejectionReason),
-                item.IncorrectAnswerRationale.Count > 0 ? item.IncorrectAnswerRationale : null);
+                                item.IncorrectAnswerRationale.Count > 0 ? item.IncorrectAnswerRationale : null);
 
             return Result.Success(response);
         }

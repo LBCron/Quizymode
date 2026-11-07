@@ -26,6 +26,18 @@ describe("QuestionImage", () => {
     expect(screen.queryByText(image.altText)).not.toBeInTheDocument();
   });
 
+  it("keeps a static narrow-screen layout guard: reserved 3:2 box, fluid width, uncropped image, no fixed pixel widths", () => {
+    // Static class check only: jsdom has no layout, so a real 375px / 200% zoom browser run is still required (#403 criterion 8).
+    render(<QuestionImage image={image} />);
+    const box = screen.getByTestId("question-image");
+    expect(box.className).toMatch(/aspect-\[3\/2\]|aspect-3\/2/);
+    expect(box.className).toContain("w-full");
+    expect(box.className).not.toMatch(/(?:^|\s)(?:min-)?w-\[\d+px\]/);
+    expect(box.parentElement?.className).toContain("max-w-md");
+    expect(box.parentElement?.className).toContain("w-full");
+    expect(screen.getByAltText(image.altText).className).toContain("object-contain");
+  });
+
   it("is busy with a status message until the picture loads", () => {
     render(<QuestionImage image={image} />);
     expect(screen.getByTestId("question-image")).toHaveAttribute("aria-busy", "true");

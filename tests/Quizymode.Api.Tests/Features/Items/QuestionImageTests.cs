@@ -143,7 +143,7 @@ public sealed class QuestionImageTests : ItemTestFixture
     // --- write paths ---
 
     [Fact]
-    public async Task Update_KeepsStoredExplanationImage_AndRejectsEmptyingTheExplanation()
+    public async Task Update_KeepsStoredExplanationImage_AndAllowsEmptyExplanation()
     {
         Item item = await SeedAsync(withExplanationImage: true);
         UpdateItem.Request Request(string explanation) => new(
@@ -164,12 +164,11 @@ public sealed class QuestionImageTests : ItemTestFixture
             TaxonomyItemCategoryResolver, TaxonomyRegistry, CancellationToken.None);
 
         edited.IsSuccess.Should().BeTrue();
-        emptied.IsFailure.Should().BeTrue();
-        emptied.Error!.Description.Should().Be(ItemImageReferenceHelper.ExplanationRequiredForUpdateMessage);
+        emptied.IsSuccess.Should().BeTrue();
         Item stored = await DbContext.Items.AsNoTracking().SingleAsync(i => i.Id == item.Id);
         stored.ExplanationImageKey.Should().Be(ExplanationKey);
         stored.ExplanationImageAlt.Should().Be(ExplanationAlt);
-        stored.Explanation.Should().Be("Edited");
+        stored.Explanation.Should().Be(" ");
     }
 
     [Fact]

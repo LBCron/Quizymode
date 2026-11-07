@@ -8,5 +8,9 @@ public enum ItemImageReviewState
     PendingReview,
     Approved,
     Rejected,
-    Withdrawn
+    Withdrawn,
+    /// <summary>The picture is still being processed; never visible to non-owners.</summary>
+    Processing,
+    /// <summary>Processing failed; never visible to non-owners. The owner can edit and resubmit.</summary>
+    Failed
 }

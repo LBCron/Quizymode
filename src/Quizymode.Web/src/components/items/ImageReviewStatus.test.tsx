@@ -29,6 +29,15 @@ describe("ImageReviewStatus", () => {
     expect(screen.getByText("Pictures: Withdrawn")).toBeInTheDocument();
   });
 
+  it("shows Processing and Failed as text, Failed with a resubmit link", () => {
+    const { unmount } = renderStatus({ state: "Processing", revision: 1 });
+    expect(screen.getByText("Pictures: Processing")).toBeInTheDocument();
+    unmount();
+    renderStatus({ state: "Failed", revision: 1 });
+    expect(screen.getByText("Pictures: Failed")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Edit to resubmit" })).toHaveAttribute("href", "/items/item-1/edit");
+  });
+
   it("shows the rejection reason and an Edit to resubmit link", () => {
     renderStatus({ state: "Rejected", revision: 2, reason: "Unclear source" });
     expect(screen.getByText("Pictures: Rejected — Unclear source")).toBeInTheDocument();

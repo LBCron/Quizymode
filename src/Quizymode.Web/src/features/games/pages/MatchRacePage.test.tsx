@@ -162,7 +162,7 @@ describe("MatchRacePage", () => {
     it("loads every item of a collection", async () => {
       renderPage("/games/match-race/collections/11111111-1111-4111-8111-111111111111/practice+set");
       await screen.findByRole("heading", { name: "Match Race" });
-      expect(collectionsApi.getItems).toHaveBeenCalledWith("11111111-1111-4111-8111-111111111111");
+      expect(collectionsApi.getItems).toHaveBeenCalledWith("11111111-1111-4111-8111-111111111111", true);
     });
 
     it("shows the empty state with Open Quiz when fewer than 3 items qualify", async () => {

@@ -8,6 +8,7 @@ using Quizymode.Api.Features;
 using Quizymode.Api.Features.Collections;
 using Quizymode.Api.Features.Items.AddBulk;
 using Quizymode.Api.Shared.Http;
+using Quizymode.Api.Shared.Helpers;
 using Quizymode.Api.Services;
 using Quizymode.Api.Services.Taxonomy;
 using Quizymode.Api.Shared.Kernel;
@@ -84,7 +85,8 @@ public static class UploadItemsToCollection
                 .WithDescription("Creates items (private for non-admin) and a new collection (optional collectionName, otherwise a unique GUID name), adds items to it. Returns collection ID to navigate. URL is shareable.")
                 .RequireAuthorization()
                 .Produces<Response>(StatusCodes.Status201Created)
-                .Produces(StatusCodes.Status400BadRequest);
+                .Produces(StatusCodes.Status400BadRequest)
+                .Produces(StatusCodes.Status429TooManyRequests);
         }
 
         private static async Task<IResult> Handler(
@@ -162,6 +164,9 @@ public static class UploadItemsToCollection
                 Error.Validation("Upload.CollectionNameBlocked", "The collection name contains blocked language. Edit it and try again."));
         }
 
+        await using var mediaTransaction = await ItemImageSubmission.BeginAsync(db, cancellationToken);
+        Error? mediaError = await ItemImageImport.ValidateAsync(db, userContext.UserId, request.Items, cancellationToken);
+        if (mediaError is not null) return Result.Failure<Response>(mediaError);
         byte[] hashBytes = SHA256.HashData(Encoding.UTF8.GetBytes(request.InputText));
         string hash = Convert.ToHexString(hashBytes).ToLowerInvariant();
 
@@ -241,6 +246,7 @@ public static class UploadItemsToCollection
             return Result.Failure<Response>(addResult.Error!);
         }
 
+        if (mediaTransaction is not null) await mediaTransaction.CommitAsync(cancellationToken);
         return Result.Success(new Response(
             collection.Id.ToString(),
             collection.Name,

@@ -25,13 +25,16 @@ describe("CollectionExportControls picture choice (#403)", () => {
     download = vi.spyOn(exportFormats, "downloadTextFile").mockImplementation(() => undefined);
   });
 
-  it("downloads straight away when no question has a picture, even with explanation pictures", async () => {
+  it("requires acknowledgement when only explanation pictures would be lost", async () => {
     const user = userEvent.setup();
     renderControls([text("one"), diagramOnly("two")]);
 
     await user.click(screen.getByRole("button", { name: "Download CSV" }));
 
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(download).not.toHaveBeenCalled();
+    await user.click(screen.getByRole("checkbox", { name: /I understand pictures/ }));
+    await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Download CSV" }));
     expect(download).toHaveBeenCalledTimes(1);
   });
 

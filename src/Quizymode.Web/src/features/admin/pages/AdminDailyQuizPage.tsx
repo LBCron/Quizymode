@@ -84,7 +84,7 @@ const AdminDailyQuizPage = () => {
               {active.map((item) => (
                 <li key={item.itemId} className="flex items-start justify-between gap-3 rounded-lg bg-white p-3 shadow">
                   <div className="flex min-w-0 items-start gap-3">
-                    <QuestionImage image={item.questionImage} size="sm" />
+                    <QuestionImage itemId={item.itemId} image={item.questionImage} size="sm" />
                     <div className="min-w-0">
                       <p className="text-xs font-semibold uppercase text-gray-500">
                         #{item.position + 1} · {item.category ?? "No category"}
@@ -114,7 +114,7 @@ const AdminDailyQuizPage = () => {
               <ul className="mt-2 space-y-1 text-sm text-gray-600">
                 {excluded.map((item) => (
                   <li key={item.itemId} className="flex items-center gap-2">
-                    <QuestionImage image={item.questionImage} size="xs" />
+                    <QuestionImage itemId={item.itemId} image={item.questionImage} size="xs" />
                     <span className="line-through">{item.question}</span>
                   </li>
                 ))}

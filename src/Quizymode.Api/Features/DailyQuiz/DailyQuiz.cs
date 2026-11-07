@@ -420,7 +420,7 @@ public static class DailyQuiz
         List<Guid> ids = set.Select(s => s.ItemId).ToList();
         var items = await db.Items.AsNoTracking()
             .Where(i => ids.Contains(i.Id))
-            .Select(i => new { i.Id, i.Question, Category = i.Category == null ? null : i.Category.Name, i.QuestionImageKey, i.QuestionImageAlt })
+            .Select(i => new { i.Id, i.Question, Category = i.Category == null ? null : i.Category.Name, i.QuestionImageKey, i.QuestionImageAlt, i.QuestionImageAttribution, i.QuestionImageLongDescription, i.ImageRevision })
             .ToDictionaryAsync(i => i.Id, cancellationToken);
         List<AdminItemDto> rows = set
             .OrderBy(s => s.Position).ThenBy(s => s.ExcludedAt is null ? 1 : 0).ThenBy(s => s.ExcludedAt)
@@ -431,7 +431,7 @@ public static class DailyQuiz
                 items.TryGetValue(s.ItemId, out var meta) ? meta.Category : null,
                 s.ExcludedAt is not null,
                 s.ExcludedAt is null ? null : DateTime.SpecifyKind(s.ExcludedAt.Value, DateTimeKind.Utc),
-                items.TryGetValue(s.ItemId, out var pic) ? ItemImageReferenceHelper.FromColumns(pic.QuestionImageKey, pic.QuestionImageAlt) : null))
+                items.TryGetValue(s.ItemId, out var pic) ? ItemImageReferenceHelper.FromColumns(pic.QuestionImageKey, pic.QuestionImageAlt, pic.QuestionImageAttribution, pic.QuestionImageLongDescription, pic.ImageRevision) : null))
             .ToList();
         return new AdminDayResponse(FormatDate(day), rows);
     }

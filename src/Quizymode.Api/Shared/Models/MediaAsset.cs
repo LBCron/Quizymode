@@ -48,5 +48,9 @@ public sealed class MediaAsset
 
     public DateTime UpdatedAt { get; set; }
 
+    public DateTime? PurgedAt { get; set; }
+    public int DeleteAttempts { get; set; }
+    public DateTime? DeleteRetryAt { get; set; }
+
     public DateTime? DeletedAt { get; set; }
 }

@@ -170,7 +170,7 @@ describe("SurvivalPage", () => {
     it("loads a collection through getItems", async () => {
       renderPage("/games/survival/collections/11111111-1111-4111-8111-111111111111/practice+set");
       await screen.findByRole("heading", { name: "Survival" });
-      expect(collectionsApi.getItems).toHaveBeenCalledWith("11111111-1111-4111-8111-111111111111");
+      expect(collectionsApi.getItems).toHaveBeenCalledWith("11111111-1111-4111-8111-111111111111", true);
     });
   });
 

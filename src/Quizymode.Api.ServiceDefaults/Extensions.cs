@@ -90,7 +90,7 @@ public static class Extensions
                     .AddHttpClientInstrumentation()
                     .AddRuntimeInstrumentation()
                     // Npgsql pool metrics (busy/idle connections, pending requests) (#350).
-                    .AddMeter("Npgsql");
+                    .AddMeter("Npgsql", "Quizymode.Media");
             })
             .WithTracing(tracing =>
             {
