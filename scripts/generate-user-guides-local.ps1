@@ -33,10 +33,13 @@ try {
     $env:PLAYWRIGHT_BASE_URL = "http://localhost:7000"
     Push-Location $RepoRoot
 
-    $desktopScreenshotDir = Join-Path $RepoRoot "docs\user-guide\screenshots\user"
-    $mobileScreenshotDir = Join-Path $RepoRoot "docs\user-guide\screenshots\mobile"
+    $screenshotDirs = foreach ($theme in @("dark", "light")) {
+        foreach ($viewport in @("desktop", "mobile")) {
+            Join-Path $RepoRoot "docs\user-guide\screenshots\$theme\$viewport"
+        }
+    }
 
-    foreach ($dir in @($desktopScreenshotDir, $mobileScreenshotDir)) {
+    foreach ($dir in $screenshotDirs) {
         if (Test-Path $dir) {
             Write-Host "Clearing previous screenshots in $dir..." -ForegroundColor Cyan
             Remove-Item -LiteralPath (Join-Path $dir "*.png") -Force -ErrorAction SilentlyContinue

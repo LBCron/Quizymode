@@ -4,6 +4,7 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { DEFAULT_THEME, publishedAssetPath, shotDir } from "./user-guide-themes.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const projectRoot = path.resolve(__dirname, "..");
@@ -11,28 +12,19 @@ export const projectRoot = path.resolve(__dirname, "..");
 const refreshCommand =
   "`npx playwright test --project=screenshots --project=screenshots-mobile && node scripts/generate-user-guide.js --all`";
 
-export function resolveScreenshotDir(guideKey) {
-  const screenshotRoot = process.env.USER_GUIDE_SCREENSHOT_ROOT;
-  if (screenshotRoot) {
-    return path.resolve(
-      screenshotRoot,
-      guideKey === "mobile" ? "mobile" : "desktop"
-    );
-  }
-
-  return path.join(
-    projectRoot,
-    guideKey === "mobile"
-      ? "docs/user-guide/screenshots/mobile"
-      : "docs/user-guide/screenshots/user"
-  );
+/** Screenshot folder for one viewport and theme: `<root>/<theme>/<viewport>` (AC 7.1.4). Dark unless told otherwise. */
+export function resolveScreenshotDir(guideKey, theme = DEFAULT_THEME) {
+  const root = process.env.USER_GUIDE_SCREENSHOT_ROOT
+    ? path.resolve(process.env.USER_GUIDE_SCREENSHOT_ROOT)
+    : path.join(projectRoot, "docs/user-guide/screenshots");
+  return shotDir(root, theme, guideKey);
 }
 
-export function resolveGuideConfig(guideKey) {
+export function resolveGuideConfig(guideKey, theme = DEFAULT_THEME) {
   if (guideKey === "desktop") {
     return {
       key: "desktop",
-      screenshotDir: resolveScreenshotDir("desktop"),
+      screenshotDir: resolveScreenshotDir("desktop", theme),
       outputFile: path.join(projectRoot, "docs/user-guide/user-guide.md"),
       title: "Quizymode User Guide",
       intro:
@@ -44,7 +36,7 @@ export function resolveGuideConfig(guideKey) {
   if (guideKey === "mobile") {
     return {
       key: "mobile",
-      screenshotDir: resolveScreenshotDir("mobile"),
+      screenshotDir: resolveScreenshotDir("mobile", theme),
       outputFile: path.join(projectRoot, "docs/user-guide/user-guide.mobile.md"),
       title: "Quizymode Mobile User Guide",
       intro:
@@ -266,11 +258,11 @@ export function getDescription(guideKey, slug) {
 export const PAGES_BASE_URL = "https://yanis-kr.github.io/Quizymode/";
 
 /**
- * Published screenshot URL for one guide's viewport. Phase A serves the current `assets/<viewport>/` folders;
- * the Dark/Light layout (`assets/dark/<viewport>/`) arrives with the theme switch (#506 Phase B).
+ * Published screenshot URL for one guide's viewport. The markdown guides link the Dark set, the default theme
+ * of the guide site (`assets/dark/<viewport>/`, AC 7.1.8).
  */
-export function publishedImageUrl(guideKey, filename) {
-  return `${PAGES_BASE_URL}assets/${guideKey === "mobile" ? "mobile" : "desktop"}/${filename}`;
+export function publishedImageUrl(guideKey, filename, theme = DEFAULT_THEME) {
+  return `${PAGES_BASE_URL}${publishedAssetPath(theme, guideKey, filename)}`;
 }
 
 export function buildGuide(config) {

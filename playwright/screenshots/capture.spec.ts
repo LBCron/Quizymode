@@ -4,6 +4,8 @@ import path from "path";
 import fs from "fs";
 import { slugToFilename } from "../../scripts/generate-user-guide.js";
 import { screenshotRoot, writeViewportRecords } from "../../scripts/user-guide-capture-report.js";
+import { THEMES, shotDir } from "../../scripts/user-guide-themes.js";
+import { setAppTheme, type GuideTheme } from "./theme-switch";
 
 const HOME_SAMPLE_COLLECTION_ID = "8f9b8c14-8d30-4d94-9b20-4c7bb7f7f511";
 const HOME_SAMPLE_COLLECTION_SLUG = "fun+trivia+facts";
@@ -94,15 +96,22 @@ const SHOT_RETRY_WINDOW_MS = 90_000;
 // Total time spent in retries across the whole run.
 const RUN_RETRY_BUDGET_MS = 5 * 60_000;
 
+type ThemeOutcome = { status: "captured" | "failed"; error?: string };
+
 type ShotRecord = {
   slug: string;
+  // Overall outcome: "captured" only when every theme was captured (AC 7.1.4).
   status: "captured" | "failed";
   attempts: number;
   error?: string;
   path?: string;
+  themes: Record<GuideTheme, ThemeOutcome>;
 };
 
 type Viewport = "desktop" | "mobile";
+
+// Per-theme outcomes of the attempt that is running now. Reset before every attempt of a shot.
+let attemptThemes: Partial<Record<GuideTheme, ThemeOutcome>> = {};
 
 // Every shot's outcome, per viewport, for failures.json. Rewritten after each shot so a later crash keeps earlier results.
 const shotRecords: Record<Viewport, ShotRecord[]> = { desktop: [], mobile: [] };
@@ -175,6 +184,7 @@ async function runShot(page: Page, testInfo: TestInfo, slug: string, shoot: () =
   const startedAt = Date.now();
   let attempts = 0;
   let lastError: unknown = null;
+  let lastThemes: Partial<Record<GuideTheme, ThemeOutcome>> = {};
 
   for (let attempt = 0; attempt < ATTEMPTS_PER_SHOT; attempt += 1) {
     const retryStartedAt = Date.now();
@@ -188,43 +198,43 @@ async function runShot(page: Page, testInfo: TestInfo, slug: string, shoot: () =
     }
 
     attempts += 1;
+    attemptThemes = {};
     try {
       await withAttemptTimeout(shoot, ATTEMPT_TIMEOUT_MS);
       if (attempt > 0) retryTimeSpentMs += Date.now() - retryStartedAt;
-      recordShot(viewport, { slug, status: "captured", attempts });
+      recordShot(viewport, {
+        slug,
+        status: "captured",
+        attempts,
+        themes: { dark: { status: "captured" }, light: { status: "captured" } },
+      });
       return;
     } catch (error) {
       if (attempt > 0) retryTimeSpentMs += Date.now() - retryStartedAt;
       lastError = error;
+      lastThemes = attemptThemes;
     }
   }
 
+  const error = describeError(lastError);
+  const themes = Object.fromEntries(
+    THEMES.map((theme) => [theme, lastThemes[theme as GuideTheme] ?? { status: "failed", error }])
+  ) as Record<GuideTheme, ThemeOutcome>;
   const record: ShotRecord = {
     slug,
     status: "failed",
     attempts,
-    error: describeError(lastError),
+    error,
     path: currentPath(page),
+    themes,
   };
   recordShot(viewport, record);
   console.warn(`User-guide shot failed: ${viewport}/${slug} after ${attempts} attempt(s): ${record.error}`);
 }
 
-function getScreenshotDir(testInfo: TestInfo) {
-  const configuredRoot = process.env.USER_GUIDE_SCREENSHOT_ROOT;
-  if (configuredRoot) {
-    return path.resolve(
-      configuredRoot,
-      testInfo.project.name === "screenshots-mobile" ? "mobile" : "desktop"
-    );
-  }
-
-  return path.resolve(
-    process.cwd(),
-    testInfo.project.name === "screenshots-mobile"
-      ? "docs/user-guide/screenshots/mobile"
-      : "docs/user-guide/screenshots/user"
-  );
+/** `<root>/<theme>/<viewport>` (AC 7.1.4). The root is USER_GUIDE_SCREENSHOT_ROOT or docs/user-guide/screenshots. */
+function getScreenshotDir(testInfo: TestInfo, theme: GuideTheme) {
+  return shotDir(screenshotRoot(), theme, viewportOf(testInfo));
 }
 
 async function openMobileMenuIfNeeded(page: Page, testInfo: TestInfo, slug: string) {
@@ -335,8 +345,6 @@ async function capture(
   url: string,
   waitFor?: string | string[]
 ) {
-  fs.mkdirSync(getScreenshotDir(testInfo), { recursive: true });
-
   await ensureSignedIn(page);
   await safeGoto(page, url);
   if (waitFor) {
@@ -347,17 +355,40 @@ async function capture(
   await captureCurrentPage(page, testInfo, slug);
 }
 
+/**
+ * Takes the Dark shot, switches to Light in place, takes the Light shot, and restores Dark, all from one navigation
+ * (AC 7.1.4). A theme that fails is recorded in `attemptThemes` and the error is rethrown so runShot retries.
+ */
 async function captureCurrentPage(page: Page, testInfo: TestInfo, slug: string) {
-  const screenshotDir = getScreenshotDir(testInfo);
-  fs.mkdirSync(screenshotDir, { recursive: true });
   await waitForUiToSettle(page);
   await assertPageReady(page);
   await openMobileMenuIfNeeded(page, testInfo, slug);
-  await page.screenshot({
-    path: path.join(screenshotDir, slugToFilename(slug)),
-    fullPage: true,
-    scale: "css",
-  });
+
+  try {
+    for (const theme of THEMES as GuideTheme[]) {
+      try {
+        await setAppTheme(page, theme);
+        if (theme !== "dark") {
+          await waitForUiToSettle(page);
+          await assertPageReady(page);
+        }
+        const screenshotDir = getScreenshotDir(testInfo, theme);
+        fs.mkdirSync(screenshotDir, { recursive: true });
+        await page.screenshot({
+          path: path.join(screenshotDir, slugToFilename(slug)),
+          fullPage: true,
+          scale: "css",
+        });
+        attemptThemes[theme] = { status: "captured" };
+      } catch (error) {
+        attemptThemes[theme] = { status: "failed", error: describeError(error) };
+        throw error;
+      }
+    }
+  } finally {
+    // Leave the app in Dark for the next shot, even when Light failed.
+    await setAppTheme(page, "dark").catch(() => {});
+  }
 }
 
 async function clickMode(page: Page, modeName: string) {

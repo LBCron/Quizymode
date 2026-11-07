@@ -33,10 +33,12 @@ export PLAYWRIGHT_BASE_URL="http://localhost:7000"
 cd "$REPO_ROOT"
 
 echo "Capturing desktop and mobile screenshots from local dev stack..."
-mkdir -p "$REPO_ROOT/docs/user-guide/screenshots/user"
-mkdir -p "$REPO_ROOT/docs/user-guide/screenshots/mobile"
-rm -f "$REPO_ROOT/docs/user-guide/screenshots/user"/*.png
-rm -f "$REPO_ROOT/docs/user-guide/screenshots/mobile"/*.png
+for theme in dark light; do
+  for viewport in desktop mobile; do
+    mkdir -p "$REPO_ROOT/docs/user-guide/screenshots/$theme/$viewport"
+    rm -f "$REPO_ROOT/docs/user-guide/screenshots/$theme/$viewport"/*.png
+  done
+done
 rm -f "$REPO_ROOT/docs/user-guide/screenshots/failures.json"
 capture_status=0
 npx playwright test --project=screenshots --project=screenshots-mobile || capture_status=$?

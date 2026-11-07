@@ -15,6 +15,7 @@ import { fileURLToPath } from "url";
 import {
   KEY_PAGE_SLUGS,
   MAX_FAILED_SHARE,
+  THEMES,
   VIEWPORTS,
   listShots,
   readCaptureReport,
@@ -57,15 +58,18 @@ export function evaluateCapture(report, viewports) {
       continue;
     }
     for (const slug of KEY_PAGE_SLUGS) {
-      const status = shotStatus(report, viewport, slug);
-      if (status !== "captured") {
-        keyFailures.push(`${viewport}/${slug} (${status})`);
+      for (const theme of THEMES) {
+        const status = shotStatus(report, viewport, slug, theme);
+        if (status !== "captured") {
+          keyFailures.push(`${viewport}/${theme}/${slug} (${status})`);
+        }
       }
     }
   }
 
   const shots = listShots(report).filter((shot) => viewports.includes(shot.viewport));
-  const failed = shots.filter((shot) => shot.status === "failed");
+  // Every theme/viewport shot counts once; a theme that was never recorded counts as failed.
+  const failed = shots.filter((shot) => shot.status !== "captured");
   const total = shots.length;
   const failedShare = total === 0 ? 1 : failed.length / total;
 
@@ -103,11 +107,11 @@ function renderSummary(result, root) {
   if (result.failed.length > 0) {
     lines.push("### Failed shots");
     lines.push("");
-    lines.push("| Viewport | Shot | Attempts | Last error |");
-    lines.push("| --- | --- | --- | --- |");
+    lines.push("| Viewport | Theme | Shot | Attempts | Last error |");
+    lines.push("| --- | --- | --- | --- | --- |");
     for (const shot of result.failed) {
       const error = (shot.error ?? "").replace(/\\/g, "\\\\").replace(/\|/g, "\\|").replace(/\r?\n/g, " ");
-      lines.push(`| ${shot.viewport} | ${shot.slug} | ${shot.attempts} | ${error} |`);
+      lines.push(`| ${shot.viewport} | ${shot.theme} | ${shot.slug} | ${shot.attempts} | ${error} |`);
     }
     lines.push("");
   }

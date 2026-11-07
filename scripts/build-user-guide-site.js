@@ -11,6 +11,9 @@ import {
   sections,
 } from "./generate-user-guide.js";
 import { readCaptureReport, screenshotRoot, shotStatus } from "./user-guide-capture-report.js";
+import { DEFAULT_THEME, THEMES, pickShot, publishedAssetPath } from "./user-guide-themes.js";
+
+const VIEWPORT_KEYS = ["desktop", "mobile"];
 
 function parseArgs(argv) {
   const options = {
@@ -133,11 +136,19 @@ function toAnchor(value) {
 }
 
 function buildManifest(report) {
-  const desktopConfig = resolveGuideConfig("desktop");
-  const mobileConfig = resolveGuideConfig("mobile");
-  const desktopShots = gatherAvailableScreenshots(desktopConfig.screenshotDir);
-  const mobileShots = gatherAvailableScreenshots(mobileConfig.screenshotDir);
-  const failed = (viewport, slug) => shotStatus(report, viewport, slug) === "failed";
+  // shots[viewport][theme] = Map<slug, filename> read from <root>/<theme>/<viewport>
+  const shots = {};
+  for (const viewport of VIEWPORT_KEYS) {
+    shots[viewport] = {};
+    for (const theme of THEMES) {
+      shots[viewport][theme] = gatherAvailableScreenshots(resolveGuideConfig(viewport, theme).screenshotDir);
+    }
+  }
+  const failed = (viewport, theme, slug) => shotStatus(report, viewport, slug, theme) === "failed";
+  const hasAny = (slug) =>
+    VIEWPORT_KEYS.some((viewport) =>
+      THEMES.some((theme) => shots[viewport][theme].has(slug) || failed(viewport, theme, slug))
+    );
 
   return sections
     .map((section) => ({
@@ -145,9 +156,7 @@ function buildManifest(report) {
       anchor: toAnchor(section.title),
       steps: section.slugs
         // A step stays in the guide when it has an image or a failed shot, so the "unavailable" card can show.
-        .filter((slug) =>
-          desktopShots.has(slug) || mobileShots.has(slug) || failed("desktop", slug) || failed("mobile", slug)
-        )
+        .filter(hasAny)
         .map((slug) => ({
           slug,
           title: label(slug),
@@ -155,14 +164,26 @@ function buildManifest(report) {
             desktop: getDescription("desktop", slug),
             mobile: getDescription("mobile", slug),
           },
-          images: {
-            desktop: desktopShots.has(slug) ? `assets/desktop/${desktopShots.get(slug)}` : "",
-            mobile: mobileShots.has(slug) ? `assets/mobile/${mobileShots.get(slug)}` : "",
-          },
-          failed: {
-            desktop: failed("desktop", slug),
-            mobile: failed("mobile", slug),
-          },
+          // images[viewport][theme]: published path, or "" when that file is missing.
+          images: Object.fromEntries(
+            VIEWPORT_KEYS.map((viewport) => [
+              viewport,
+              Object.fromEntries(
+                THEMES.map((theme) => [
+                  theme,
+                  shots[viewport][theme].has(slug)
+                    ? publishedAssetPath(theme, viewport, shots[viewport][theme].get(slug))
+                    : "",
+                ])
+              ),
+            ])
+          ),
+          failed: Object.fromEntries(
+            VIEWPORT_KEYS.map((viewport) => [
+              viewport,
+              Object.fromEntries(THEMES.map((theme) => [theme, failed(viewport, theme, slug)])),
+            ])
+          ),
         })),
     }))
     .filter((section) => section.steps.length > 0);
@@ -204,7 +225,7 @@ function buildIndexHtml(manifest, options) {
     .map((section) => {
       const stepsHtml = section.steps
         .map((step) => {
-          const initialSrc = step.images.desktop || step.images.mobile;
+          const initialSrc = pickShot(step.images.desktop, step.failed.desktop, DEFAULT_THEME).src;
           const initialDescription =
             step.descriptions.desktop || step.descriptions.mobile || "";
 
@@ -225,14 +246,15 @@ function buildIndexHtml(manifest, options) {
                 <img
                   alt="${escapeHtml(step.title)} screenshot"
                   class="guide-step__image"
-                  data-desktop-failed="${step.failed.desktop ? "true" : "false"}"
-                  data-desktop-src="${escapeHtml(step.images.desktop)}"
-                  data-mobile-failed="${step.failed.mobile ? "true" : "false"}"
-                  data-mobile-src="${escapeHtml(step.images.mobile)}"
+                  data-shots="${escapeHtml(JSON.stringify(step.images))}"
+                  data-failed="${escapeHtml(JSON.stringify(step.failed))}"
                   loading="lazy"
                   src="${escapeHtml(initialSrc)}"
                 />
-                <p class="guide-step__unavailable" hidden>Screenshot unavailable in this build</p>
+                <p class="guide-step__unavailable" hidden>
+                  <span>Screenshot unavailable in this build</span>
+                  <span class="guide-step__unavailable-note" data-unavailable-note></span>
+                </p>
                 <figcaption class="guide-step__meta">
                   <span class="guide-step__slug">${escapeHtml(step.slug)}</span>
                   <span class="guide-step__availability" hidden></span>
@@ -275,7 +297,7 @@ function buildIndexHtml(manifest, options) {
             Quizymode is a study and quiz application for learning from structured question banks. Browse items by subject area and topic, practise with flashcards or multiple-choice quizzes, and organise content into personal or shared collections. Items can be created manually, imported in bulk, or generated with AI assistance — all anchored to a subject-area taxonomy that keeps study sessions focused.
           </p>
           <p class="lede">
-            This guide walks through every major feature available to signed-in users. Screenshots are captured automatically from the live production site after each deployment. Use the Desktop / Mobile switch to compare the same scenario at each viewport.
+            This guide walks through every major feature available to signed-in users. Screenshots are captured automatically from the live production site after each deployment. Use the Desktop / Mobile and Dark / Light switches to compare the same scenario at each viewport and theme.
           </p>
         </div>
         <div class="page-header__controls">
@@ -283,8 +305,12 @@ function buildIndexHtml(manifest, options) {
             <button type="button" class="mode-switch__button" data-mode="desktop">Desktop</button>
             <button type="button" class="mode-switch__button" data-mode="mobile">Mobile</button>
           </div>
+          <div class="mode-switch" role="group" aria-label="Guide theme">
+            <button type="button" class="mode-switch__button" data-theme-choice="dark">Dark</button>
+            <button type="button" class="mode-switch__button" data-theme-choice="light">Light</button>
+          </div>
           <p class="mode-switch__status" aria-live="polite">
-            Showing <strong id="current-mode-label">Desktop</strong> screenshots
+            Showing <strong id="current-theme-label">Dark</strong> <strong id="current-mode-label">Desktop</strong> screenshots
           </p>
           <ul class="guide-meta">
             ${headerMeta}
@@ -595,6 +621,12 @@ a {
   font-weight: 600;
 }
 
+.guide-step__unavailable-note {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.85rem;
+}
+
 .guide-step__unavailable {
   margin: 0;
   padding: 36px 16px;
@@ -650,10 +682,17 @@ a {
 
 const siteJs = `(() => {
   const storageKey = "quizymode-user-guide-mode";
+  const themeStorageKey = "qm-guide-theme";
   const modeButtons = Array.from(document.querySelectorAll("[data-mode]"));
+  const themeButtons = Array.from(document.querySelectorAll("[data-theme-choice]"));
   const modeLabel = document.getElementById("current-mode-label");
+  const themeLabel = document.getElementById("current-theme-label");
   const mobileQuery = window.matchMedia("(max-width: 767px)");
   const articles = Array.from(document.querySelectorAll(".guide-step"));
+  let currentMode = "desktop";
+  let currentTheme = "dark";
+
+  ${pickShot.toString()}
 
   function renderInlineMarkup(value) {
     return value
@@ -676,84 +715,124 @@ const siteJs = `(() => {
     return mobileQuery.matches ? "mobile" : "desktop";
   }
 
-  function setMode(mode, persist) {
+  function getPreferredTheme() {
+    try {
+      return window.localStorage.getItem(themeStorageKey) === "light" ? "light" : "dark";
+    } catch (error) {
+      return "dark";
+    }
+  }
+
+  function render() {
+    const mode = currentMode;
+    const theme = currentTheme;
     document.documentElement.dataset.mode = mode;
+    document.documentElement.dataset.guideTheme = theme;
 
     if (modeLabel) {
       modeLabel.textContent = mode === "mobile" ? "Mobile" : "Desktop";
     }
+    if (themeLabel) {
+      themeLabel.textContent = theme === "light" ? "Light" : "Dark";
+    }
 
     for (const button of modeButtons) {
-      button.setAttribute(
-        "aria-pressed",
-        button.dataset.mode === mode ? "true" : "false"
-      );
+      button.setAttribute("aria-pressed", button.dataset.mode === mode ? "true" : "false");
+    }
+    for (const button of themeButtons) {
+      button.setAttribute("aria-pressed", button.dataset.themeChoice === theme ? "true" : "false");
     }
 
     for (const article of articles) {
       const image = article.querySelector(".guide-step__image");
       const description = article.querySelector(".guide-step__description");
       const availability = article.querySelector(".guide-step__availability");
+      const unavailable = article.querySelector(".guide-step__unavailable");
+      const unavailableNote = article.querySelector("[data-unavailable-note]");
 
       if (!image || !description || !availability) {
         continue;
       }
 
-      const preferredSrc =
-        mode === "mobile"
-          ? image.dataset.mobileSrc || image.dataset.desktopSrc || ""
-          : image.dataset.desktopSrc || image.dataset.mobileSrc || "";
-      const fallbackUsed =
-        mode === "mobile"
-          ? !image.dataset.mobileSrc && Boolean(image.dataset.desktopSrc)
-          : !image.dataset.desktopSrc && Boolean(image.dataset.mobileSrc);
+      const shots = JSON.parse(image.dataset.shots || "{}")[mode] || {};
+      const failed = JSON.parse(image.dataset.failed || "{}")[mode] || {};
+      // Never falls back to the other viewport (AC 7.1.7); the other theme of the same viewport is allowed.
+      const choice = pickShot(shots, failed, theme);
+      const themeName = theme === "light" ? "Light" : "Dark";
+      const otherName = theme === "light" ? "Dark" : "Light";
+      const note = choice.fallbackTheme
+        ? themeName + " variant missing; showing the " + otherName + " screenshot"
+        : choice.unavailable
+          ? themeName + " variant missing"
+          : "";
       const preferredDescription =
         mode === "mobile"
           ? description.dataset.mobileDescription || description.dataset.desktopDescription || ""
           : description.dataset.desktopDescription || description.dataset.mobileDescription || "";
 
-      // A failed shot in this viewport shows the card, not the other viewport's image (AC 7.1.7).
-      const ownFailed =
-        mode === "mobile" ? image.dataset.mobileFailed === "true" : image.dataset.desktopFailed === "true";
-      const showCard = ownFailed || !preferredSrc;
-      const unavailable = article.querySelector(".guide-step__unavailable");
-
-      image.hidden = showCard;
-      if (showCard) {
+      image.hidden = choice.unavailable;
+      if (choice.unavailable) {
         image.removeAttribute("src");
       } else {
-        image.src = preferredSrc;
+        image.src = choice.src;
       }
       if (unavailable) {
-        unavailable.hidden = !showCard;
+        unavailable.hidden = !choice.unavailable;
+      }
+      if (unavailableNote) {
+        unavailableNote.textContent = choice.unavailable ? note : "";
       }
       description.innerHTML = renderInlineMarkup(preferredDescription);
 
-      if (fallbackUsed && !showCard) {
+      if (choice.fallbackTheme) {
         availability.hidden = false;
-        availability.textContent =
-          mode === "mobile"
-            ? "Showing desktop image until a mobile capture is available"
-            : "Showing mobile image until a desktop capture is available";
+        availability.textContent = note;
       } else {
         availability.hidden = true;
         availability.textContent = "";
       }
     }
+  }
 
+  function setMode(mode, persist) {
+    currentMode = mode === "mobile" ? "mobile" : "desktop";
+    render();
     if (persist) {
-      window.localStorage.setItem(storageKey, mode);
+      try {
+        window.localStorage.setItem(storageKey, currentMode);
+      } catch (error) {
+        // Storage unavailable: the choice still applies to this page view.
+      }
+    }
+  }
+
+  function setTheme(theme, persist) {
+    currentTheme = theme === "light" ? "light" : "dark";
+    render();
+    if (persist) {
+      try {
+        window.localStorage.setItem(themeStorageKey, currentTheme);
+      } catch (error) {
+        // Storage unavailable: the choice still applies to this page view.
+      }
     }
   }
 
   for (const button of modeButtons) {
     button.addEventListener("click", () => {
-      const nextMode = button.dataset.mode === "mobile" ? "mobile" : "desktop";
-      setMode(nextMode, true);
+      setMode(button.dataset.mode, true);
     });
   }
 
-  setMode(getPreferredMode(), false);
+  for (const button of themeButtons) {
+    button.addEventListener("click", () => {
+      setTheme(button.dataset.themeChoice, true);
+    });
+  }
+
+  currentMode = getPreferredMode();
+  currentTheme = getPreferredTheme();
+  render();
 
   // Number steps sequentially across all sections
   const stepNumbers = Array.from(document.querySelectorAll("[data-step]"));
@@ -783,10 +862,14 @@ if (manifest.length === 0) {
 
 emptyDir(options.outputDir);
 
-const desktopConfig = resolveGuideConfig("desktop");
-const mobileConfig = resolveGuideConfig("mobile");
-copyPngs(desktopConfig.screenshotDir, path.join(options.outputDir, "assets", "desktop"));
-copyPngs(mobileConfig.screenshotDir, path.join(options.outputDir, "assets", "mobile"));
+for (const viewport of VIEWPORT_KEYS) {
+  for (const theme of THEMES) {
+    copyPngs(
+      resolveGuideConfig(viewport, theme).screenshotDir,
+      path.join(options.outputDir, publishedAssetPath(theme, viewport, ""))
+    );
+  }
+}
 writeSiteFiles(options.outputDir, manifest, options);
 
 console.log(`User guide site written to ${options.outputDir}`);

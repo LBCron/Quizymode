@@ -2,7 +2,7 @@
 
 Quizymode is a full-stack study and quiz application built for people who want to learn from structured question banks. Users can browse items by category, study with flashcards, test themselves in quiz mode, and organise content into personal or shared collections. Content can be created manually, imported in bulk, or generated with AI assistance — and everything is tied to a taxonomy of categories and keywords to keep study sessions focused.
 
-For a full walkthrough with screenshots, see the **[Live User Guide](https://yanis-kr.github.io/Quizymode/)** (desktop and mobile, refreshed daily when the UI changes) or the markdown sources: [User Guide](./docs/user-guide/user-guide.md) · [Mobile User Guide](./docs/user-guide/user-guide.mobile.md).
+For a full walkthrough with screenshots, see the **[Live User Guide](https://yanis-kr.github.io/Quizymode/)** (desktop and mobile, Dark and Light, refreshed daily when the UI changes) or the markdown sources: [User Guide](./docs/user-guide/user-guide.md) · [Mobile User Guide](./docs/user-guide/user-guide.mobile.md).
 
 **Tech:** `.NET 10` Minimal API, React 19 SPA, AWS Cognito authentication, PostgreSQL.
 
@@ -217,8 +217,8 @@ If you only want the desktop guide, keep using `generate-user-guide-local.*` or 
 
 Under the hood, the screenshot projects are:
 
-- `npx playwright test --project=screenshots` for desktop screenshots in `docs/user-guide/screenshots/user/`
-- `npx playwright test --project=screenshots-mobile` for mobile screenshots in `docs/user-guide/screenshots/mobile/`
+- `npx playwright test --project=screenshots` for desktop screenshots in `docs/user-guide/screenshots/{dark,light}/desktop/`
+- `npx playwright test --project=screenshots-mobile` for mobile screenshots in `docs/user-guide/screenshots/{dark,light}/mobile/`
 
 `node scripts/generate-user-guide.js --all` rebuilds both markdown guides, and `--guide desktop` / `--guide mobile` rebuild a single variant.
 

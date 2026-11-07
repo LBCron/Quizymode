@@ -16,10 +16,12 @@ $exitCode = 1
 try {
     Test-Prerequisites
 
-    $screenshotDir = Join-Path $RepoRoot "docs\user-guide\screenshots\user"
-    if (Test-Path $screenshotDir) {
-        Write-Host "Clearing previous desktop screenshots..." -ForegroundColor Cyan
-        Remove-Item -LiteralPath (Join-Path $screenshotDir "*.png") -Force -ErrorAction SilentlyContinue
+    foreach ($theme in @("dark", "light")) {
+        $screenshotDir = Join-Path $RepoRoot "docs\user-guide\screenshots\$theme\desktop"
+        if (Test-Path $screenshotDir) {
+            Write-Host "Clearing previous $theme desktop screenshots..." -ForegroundColor Cyan
+            Remove-Item -LiteralPath (Join-Path $screenshotDir "*.png") -Force -ErrorAction SilentlyContinue
+        }
     }
     $reportFile = Join-Path $RepoRoot "docs\user-guide\screenshots\failures.json"
     if (Test-Path $reportFile) {
