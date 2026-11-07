@@ -81,7 +81,7 @@ export function QuizCompletionView({
       </button>
     );
     return (
-      <section className="mx-auto max-w-4xl rounded-lg bg-white p-4 shadow sm:p-6">
+      <section className="mx-auto max-w-4xl rounded-lg bg-surface p-4 shadow sm:p-6">
         <h2 ref={headingRef} tabIndex={-1} className="text-2xl font-bold text-gray-900 focus:outline-none">
           {isReviewAll ? "Review all" : "Review mistakes"}
         </h2>
@@ -156,7 +156,7 @@ export function QuizCompletionView({
   }
 
   return (
-    <section className={`mx-auto ${isStarter ? "max-w-3xl" : "max-w-2xl"} rounded-lg bg-white p-4 text-center shadow sm:p-6`}>
+    <section className={`mx-auto ${isStarter ? "max-w-3xl" : "max-w-2xl"} rounded-lg bg-surface p-4 text-center shadow sm:p-6`}>
       <h2 ref={headingRef} tabIndex={-1} className="text-2xl font-bold text-gray-900 focus:outline-none">
         {isTest ? "Test complete" : "Quiz complete"}
       </h2>
@@ -169,12 +169,12 @@ export function QuizCompletionView({
       {summary.scoredTotal === 0 ? (
         <p className="mt-3 text-xl font-semibold text-gray-800">No questions were scored</p>
       ) : isStarter ? (
-        <p className="mt-3 text-2xl font-bold text-indigo-700">
+        <p className="mt-3 text-2xl font-bold text-indigo-ink">
           You got {summary.correct} of {summary.scoredTotal}.
         </p>
       ) : (
         <>
-          <p className="mt-3 text-3xl font-bold text-indigo-700">{summary.correct} / {summary.scoredTotal}</p>
+          <p className="mt-3 text-3xl font-bold text-indigo-ink">{summary.correct} / {summary.scoredTotal}</p>
           <p className="mt-1 text-gray-700">
             {summary.percentage}% correct · {summary.missedItemIds.length} missed
             {isTest && ` · ${summary.notAnswered} not answered`}
@@ -196,12 +196,12 @@ export function QuizCompletionView({
       )}
       <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row sm:flex-wrap">
         {isTest && onReviewAll && (
-          <button type="button" onClick={onReviewAll} className="rounded-md border border-indigo-600 px-4 py-2 font-semibold text-indigo-700 hover:bg-indigo-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
+          <button type="button" onClick={onReviewAll} className="rounded-md border border-indigo-600 px-4 py-2 font-semibold text-indigo-ink hover:bg-indigo-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
             Review all
           </button>
         )}
         {!isStarter && summary.missedItemIds.length > 0 && (
-          <button type="button" onClick={onReviewMistakes} className="rounded-md border border-indigo-600 px-4 py-2 font-semibold text-indigo-700 hover:bg-indigo-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
+          <button type="button" onClick={onReviewMistakes} className="rounded-md border border-indigo-600 px-4 py-2 font-semibold text-indigo-ink hover:bg-indigo-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
             Review mistakes
           </button>
         )}
@@ -210,7 +210,7 @@ export function QuizCompletionView({
           onClick={onPlayAgain}
           className={
             isPerfect && share && summary.scoredTotal > 0
-              ? "rounded-md border border-indigo-600 px-4 py-2 font-semibold text-indigo-700 hover:bg-indigo-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+              ? "rounded-md border border-indigo-600 px-4 py-2 font-semibold text-indigo-ink hover:bg-indigo-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
               : "rounded-md bg-indigo-600 px-4 py-2 font-semibold text-white hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
           }
         >
@@ -235,7 +235,7 @@ export function QuizCompletionView({
       {isStarter && endExtras}
       {isStarter && summary.missedItemIds.length > 0 && (
         <div className="mt-4">
-          <button type="button" onClick={onReviewMistakes} className="rounded-md border border-indigo-600 px-4 py-2 font-semibold text-indigo-700 hover:bg-indigo-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
+          <button type="button" onClick={onReviewMistakes} className="rounded-md border border-indigo-600 px-4 py-2 font-semibold text-indigo-ink hover:bg-indigo-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
             Review mistakes
           </button>
         </div>

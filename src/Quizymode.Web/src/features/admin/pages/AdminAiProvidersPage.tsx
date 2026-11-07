@@ -73,7 +73,7 @@ function RouteEditor({ routeName, label, route, savedRoute, keyConfigured, onCha
                 onClick={() => onChange(moveItem(route, index, -1))}
                 disabled={index === 0}
                 aria-label={`Move ${vendor} up in ${label}`}
-                className="rounded border border-gray-300 bg-white px-2 py-0.5 text-xs text-gray-700 hover:bg-gray-100 disabled:opacity-40"
+                className="rounded border border-gray-300 bg-surface px-2 py-0.5 text-xs text-gray-700 hover:bg-gray-100 disabled:opacity-40"
               >
                 Up
               </button>
@@ -82,7 +82,7 @@ function RouteEditor({ routeName, label, route, savedRoute, keyConfigured, onCha
                 onClick={() => onChange(moveItem(route, index, 1))}
                 disabled={index === route.length - 1}
                 aria-label={`Move ${vendor} down in ${label}`}
-                className="rounded border border-gray-300 bg-white px-2 py-0.5 text-xs text-gray-700 hover:bg-gray-100 disabled:opacity-40"
+                className="rounded border border-gray-300 bg-surface px-2 py-0.5 text-xs text-gray-700 hover:bg-gray-100 disabled:opacity-40"
               >
                 Down
               </button>
@@ -90,7 +90,7 @@ function RouteEditor({ routeName, label, route, savedRoute, keyConfigured, onCha
                 type="button"
                 onClick={() => onChange(route.filter((entry) => entry !== vendor))}
                 aria-label={`Remove ${vendor} from ${label}`}
-                className="rounded border border-gray-300 bg-white px-2 py-0.5 text-xs text-red-700 hover:bg-red-50"
+                className="rounded border border-gray-300 bg-surface px-2 py-0.5 text-xs text-red-700 hover:bg-red-50"
               >
                 Remove
               </button>
@@ -109,7 +109,7 @@ function RouteEditor({ routeName, label, route, savedRoute, keyConfigured, onCha
               id={addId}
               value={vendorToAdd}
               onChange={(event) => setVendorToAdd(event.target.value as LlmVendor | "")}
-              className="rounded-md border border-gray-300 bg-white px-2 py-1 text-sm"
+              className="rounded-md border border-gray-300 bg-surface px-2 py-1 text-sm"
             >
               <option value="">Choose…</option>
               {available.map((vendor) => (
@@ -127,7 +127,7 @@ function RouteEditor({ routeName, label, route, savedRoute, keyConfigured, onCha
               onChange([...route, vendorToAdd]);
               setVendorToAdd("");
             }}
-            className="rounded-md border border-gray-300 bg-white px-3 py-1 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            className="rounded-md border border-gray-300 bg-surface px-3 py-1 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
           >
             Add
           </button>
@@ -195,7 +195,7 @@ function ProvidersForm({ data }: ProvidersFormProps) {
 
   return (
     <form onSubmit={handleSubmit} noValidate className="space-y-6">
-      <section className="rounded-lg bg-white p-5 shadow">
+      <section className="rounded-lg bg-surface p-5 shadow">
         <h2 className="text-base font-semibold text-gray-900">Monthly section budget</h2>
         <p className="mt-1 text-sm text-gray-600">
           {data.monthlySectionsUsed.toLocaleString()} of {data.monthlySectionBudget.toLocaleString()} sections generated
@@ -216,7 +216,7 @@ function ProvidersForm({ data }: ProvidersFormProps) {
         </div>
       </section>
 
-      <section className="rounded-lg bg-white p-5 shadow">
+      <section className="rounded-lg bg-surface p-5 shadow">
         <h2 className="text-base font-semibold text-gray-900">Vendors</h2>
         <p className="mt-1 text-sm text-gray-600">API keys come from server configuration only and are never shown here.</p>
         <div className="mt-3 overflow-x-auto">
@@ -278,7 +278,7 @@ function ProvidersForm({ data }: ProvidersFormProps) {
         </div>
       </section>
 
-      <section className="rounded-lg bg-white p-5 shadow">
+      <section className="rounded-lg bg-surface p-5 shadow">
         <h2 className="text-base font-semibold text-gray-900">Routing</h2>
         <div className="mt-3 grid grid-cols-1 gap-4 md:grid-cols-2">
           <RouteEditor
@@ -325,7 +325,7 @@ function AttemptsTable() {
   });
 
   return (
-    <section className="rounded-lg bg-white p-5 shadow">
+    <section className="rounded-lg bg-surface p-5 shadow">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-base font-semibold text-gray-900">Recent attempts</h2>
         <div>
@@ -336,7 +336,7 @@ function AttemptsTable() {
             id="llm-attempts-days"
             value={days}
             onChange={(event) => setDays(Number(event.target.value))}
-            className="rounded-md border border-gray-300 bg-white px-2 py-1 text-sm"
+            className="rounded-md border border-gray-300 bg-surface px-2 py-1 text-sm"
           >
             {ATTEMPT_RANGES.map((range) => (
               <option key={range} value={range}>
@@ -411,7 +411,7 @@ const AdminAiProvidersPage = () => {
   return (
     <div className="px-4 py-6 sm:px-0 space-y-6">
       <div>
-        <Link to="/admin" className="text-sm font-medium text-indigo-600 hover:text-indigo-800">
+        <Link to="/admin" className="text-sm font-medium text-indigo-ink hover:text-indigo-ink">
           ← Admin
         </Link>
         <h1 className="mt-1 text-3xl font-bold text-gray-900">AI providers</h1>

@@ -97,7 +97,7 @@ const PasteTextImport = ({ maxItems, isPending, onImport, onPreviewChange }: Pas
               name="paste-format"
               checked={format === "term-pairs"}
               onChange={() => setFormat("term-pairs")}
-              className="h-4 w-4 border-gray-300 text-indigo-600"
+              className="h-4 w-4 border-gray-300 text-indigo-ink"
             />
             Term pairs (Quizlet, Anki, CSV/TSV)
           </label>
@@ -107,7 +107,7 @@ const PasteTextImport = ({ maxItems, isPending, onImport, onPreviewChange }: Pas
               name="paste-format"
               checked={format === "cloze"}
               onChange={() => setFormat("cloze")}
-              className="h-4 w-4 border-gray-300 text-indigo-600"
+              className="h-4 w-4 border-gray-300 text-indigo-ink"
             />
             Cloze
           </label>
@@ -133,7 +133,7 @@ const PasteTextImport = ({ maxItems, isPending, onImport, onPreviewChange }: Pas
           <button
             type="button"
             onClick={handleCopyPrompt}
-            className="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50"
+            className="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-surface hover:bg-gray-50"
           >
             Copy AI helper prompt
           </button>
@@ -233,7 +233,7 @@ const PasteTextImport = ({ maxItems, isPending, onImport, onPreviewChange }: Pas
           type="checkbox"
           checked={quotes}
           onChange={(e) => setQuotes(e.target.checked)}
-          className="h-4 w-4 rounded border-gray-300 text-indigo-600"
+          className="h-4 w-4 rounded border-gray-300 text-indigo-ink"
         />
         Treat double quotes as field quotes (CSV)
       </label>
@@ -268,7 +268,7 @@ const PasteTextImport = ({ maxItems, isPending, onImport, onPreviewChange }: Pas
             {clozePreview.items.length > 0 && (
               <ul className="space-y-2">
                 {clozePreview.items.slice(0, PREVIEW_ROWS).map((item, i) => (
-                  <li key={i} className="break-words rounded border border-gray-200 bg-white p-2">
+                  <li key={i} className="break-words rounded border border-gray-200 bg-surface p-2">
                     <div className="font-medium text-gray-900">{item.question}</div>
                     <div className="text-green-700">{item.correctAnswer}</div>
                     <div className="text-xs text-gray-500">Wrong: {item.incorrectAnswers.join(" | ")}</div>
@@ -317,7 +317,7 @@ const PasteTextImport = ({ maxItems, isPending, onImport, onPreviewChange }: Pas
             {preview.built.items.length > 0 && (
               <ul className="space-y-2">
                 {preview.built.items.slice(0, PREVIEW_ROWS).map((item, i) => (
-                  <li key={i} className="break-words rounded border border-gray-200 bg-white p-2">
+                  <li key={i} className="break-words rounded border border-gray-200 bg-surface p-2">
                     <div className="font-medium text-gray-900">{item.question}</div>
                     <div className="text-green-700">{item.correctAnswer}</div>
                     <div className="text-xs text-gray-500">Wrong: {item.incorrectAnswers.join(" | ")}</div>

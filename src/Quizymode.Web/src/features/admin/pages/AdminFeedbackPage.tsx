@@ -67,7 +67,7 @@ const AdminFeedbackPage = () => {
     <div className="px-4 py-6 sm:px-0">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-3xl font-bold text-gray-900">Feedback</h1>
-        <Link to="/admin" className="text-sm font-medium text-indigo-600 hover:text-indigo-800">
+        <Link to="/admin" className="text-sm font-medium text-indigo-ink hover:text-indigo-ink">
           Back to dashboard
         </Link>
       </div>
@@ -78,7 +78,7 @@ const AdminFeedbackPage = () => {
 
       <form
         onSubmit={onSearch}
-        className="mb-6 grid grid-cols-1 gap-3 rounded-lg bg-white p-4 shadow sm:grid-cols-2 lg:grid-cols-5"
+        className="mb-6 grid grid-cols-1 gap-3 rounded-lg bg-surface p-4 shadow sm:grid-cols-2 lg:grid-cols-5"
       >
         <label className="text-sm text-gray-700">
           Type
@@ -231,9 +231,9 @@ const FeedbackCard = ({ item, busy, onStatus }: FeedbackCardProps) => {
     .join(" / ");
 
   return (
-    <li className="rounded-lg bg-white p-4 shadow" data-testid="feedback-item">
+    <li className="rounded-lg bg-surface p-4 shadow" data-testid="feedback-item">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-semibold text-indigo-700">
+        <span className="rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-semibold text-indigo-ink">
           {TYPE_LABELS[item.type] ?? item.type}
         </span>
         <span
@@ -281,7 +281,7 @@ const FeedbackCard = ({ item, busy, onStatus }: FeedbackCardProps) => {
             type="button"
             aria-expanded={showJourney}
             onClick={() => setShowJourney((current) => !current)}
-            className="text-xs font-medium text-indigo-600 hover:text-indigo-800"
+            className="text-xs font-medium text-indigo-ink hover:text-indigo-ink"
           >
             {showJourney ? "Hide" : "Show"} session journey
           </button>

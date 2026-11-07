@@ -191,7 +191,7 @@ const AdminOverviewPanel = () => {
               const previous = data.previous[key];
               const change = value !== null && previous !== null ? formatChange(value, previous) : null;
               return (
-                <div key={key} className="rounded-lg bg-white p-4 shadow" data-testid={`kpi-${key}`}>
+                <div key={key} className="rounded-lg bg-surface p-4 shadow" data-testid={`kpi-${key}`}>
                   <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</p>
                   <p className="mt-1 text-2xl font-semibold text-gray-900">{value ?? "—"}</p>
                   <p className="mt-0.5 text-xs text-slate-600">
@@ -202,7 +202,7 @@ const AdminOverviewPanel = () => {
             })}
           </div>
 
-          <div className="rounded-lg bg-white p-4 shadow">
+          <div className="rounded-lg bg-surface p-4 shadow">
             <DailyChart data={data} />
           </div>
 
@@ -241,13 +241,13 @@ const WorkQueueLink = ({
 }) => (
   <Link
     to={to}
-    className="flex items-center justify-between gap-3 rounded-lg bg-white p-4 shadow hover:shadow-lg transition-shadow"
+    className="flex items-center justify-between gap-3 rounded-lg bg-surface p-4 shadow hover:shadow-lg transition-shadow"
   >
     <span>
       <span className="block text-sm font-medium text-gray-900">{label}</span>
       {sublabel ? <span className="block text-xs text-gray-500">{sublabel}</span> : null}
     </span>
-    <span className="text-xl font-semibold text-indigo-700">{count}</span>
+    <span className="text-xl font-semibold text-indigo-ink">{count}</span>
   </Link>
 );
 

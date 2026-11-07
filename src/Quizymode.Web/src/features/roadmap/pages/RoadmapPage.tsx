@@ -10,7 +10,7 @@ const RoadmapPage = () => {
         description="Upcoming features and improvements planned for Quizymode. Priorities may change as the product evolves and as user feedback comes in."
         canonical="https://www.quizymode.com/roadmap"
       />
-      <div className="bg-white rounded-lg shadow-sm px-4 py-8 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+      <div className="bg-surface rounded-lg shadow-sm px-4 py-8 sm:px-6 lg:px-8 max-w-4xl mx-auto">
         <h1 className="text-4xl font-bold text-gray-900 mb-6">Quizymode Roadmap</h1>
         
         <div className="prose prose-lg max-w-none mb-8">
@@ -96,7 +96,7 @@ const RoadmapPage = () => {
           </p>
           <Link
             to="/feedback"
-            className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-700 font-semibold transition-colors text-lg"
+            className="inline-flex items-center gap-2 text-indigo-ink hover:text-indigo-ink font-semibold transition-colors text-lg"
           >
             👉 Submit feedback here
             <ArrowRightIcon className="h-5 w-5" />

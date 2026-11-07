@@ -31,7 +31,7 @@ export function ModeSwitcher({
 }: ModeSwitcherProps) {
   const baseClass =
     "inline-flex shrink-0 items-center gap-1 px-1.5 sm:px-2 py-1 text-sm font-medium rounded-md transition-colors whitespace-nowrap";
-  const activeClass = "bg-indigo-50 text-indigo-700 border border-indigo-200";
+  const activeClass = "bg-indigo-50 text-indigo-ink border border-indigo-200";
   const inactiveClass =
     "text-gray-600 hover:bg-gray-100 hover:text-gray-900";
 

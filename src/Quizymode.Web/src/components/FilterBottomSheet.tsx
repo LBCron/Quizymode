@@ -40,12 +40,12 @@ export function FilterBottomSheet({
     >
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"
+        className="absolute inset-0 bg-panel-deep/60 backdrop-blur-sm"
         onClick={onClose}
       />
 
       {/* Dialog */}
-      <div className="relative w-full bg-white shadow-2xl rounded-2xl mx-4 max-w-lg max-h-[85dvh] flex flex-col">
+      <div className="relative w-full bg-surface shadow-2xl rounded-2xl mx-4 max-w-lg max-h-[85dvh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-2.5 border-b border-gray-100">
           <h2 className="text-base font-semibold text-gray-900">Filters</h2>
@@ -54,7 +54,7 @@ export function FilterBottomSheet({
               <button
                 type="button"
                 onClick={onClearAll}
-                className="text-sm text-indigo-600 hover:text-indigo-800 font-medium"
+                className="text-sm text-indigo-ink hover:text-indigo-ink font-medium"
               >
                 Clear all
               </button>

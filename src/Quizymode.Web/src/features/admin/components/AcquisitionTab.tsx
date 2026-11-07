@@ -33,7 +33,7 @@ const ChannelRow = ({ row }: { row: AcquisitionChannelRow }) => {
             type="button"
             onClick={() => setExpanded((value) => !value)}
             aria-expanded={expanded}
-            className="inline-flex items-center gap-2 rounded text-left hover:text-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+            className="inline-flex items-center gap-2 rounded text-left hover:text-indigo-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
           >
             <span aria-hidden="true">{expanded ? "▾" : "▸"}</span>
             {row.channel}
@@ -94,7 +94,7 @@ const AcquisitionTab = ({ days, includeBots, includeInternal = false }: Acquisit
           <select
             value={deviceClass}
             onChange={(event) => setDeviceClass(event.target.value)}
-            className="mt-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+            className="mt-1 rounded-lg border border-slate-300 bg-surface px-3 py-2 text-sm"
           >
             {DEVICE_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
@@ -110,7 +110,7 @@ const AcquisitionTab = ({ days, includeBots, includeInternal = false }: Acquisit
           <select
             value={country}
             onChange={(event) => setCountry(event.target.value)}
-            className="mt-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+            className="mt-1 rounded-lg border border-slate-300 bg-surface px-3 py-2 text-sm"
           >
             <option value="">All countries</option>
             {(data?.countryBreakdown ?? [])
@@ -134,7 +134,7 @@ const AcquisitionTab = ({ days, includeBots, includeInternal = false }: Acquisit
 
       {data && (
         <>
-          <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <section className="rounded-2xl border border-slate-200 bg-surface shadow-sm">
             <div className="border-b border-slate-200 px-5 py-4">
               <h2 className="text-lg font-semibold text-gray-900">Acquisition by Channel</h2>
               <p className="mt-1 text-sm text-gray-600">
@@ -172,7 +172,7 @@ const AcquisitionTab = ({ days, includeBots, includeInternal = false }: Acquisit
                       <th className={headerCell}>Conversion</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-200 bg-white">
+                  <tbody className="divide-y divide-slate-200 bg-surface">
                     {data.channels.map((row) => (
                       <ChannelRow key={row.channel} row={row} />
                     ))}
@@ -183,7 +183,7 @@ const AcquisitionTab = ({ days, includeBots, includeInternal = false }: Acquisit
           </section>
 
           <section className="grid gap-6 md:grid-cols-2">
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="rounded-2xl border border-slate-200 bg-surface p-5 shadow-sm">
               <h2 className="text-lg font-semibold text-gray-900">By Device</h2>
               <ul className="mt-3 divide-y divide-slate-200">
                 {data.deviceBreakdown.map((row) => (
@@ -194,7 +194,7 @@ const AcquisitionTab = ({ days, includeBots, includeInternal = false }: Acquisit
                 ))}
               </ul>
             </div>
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="rounded-2xl border border-slate-200 bg-surface p-5 shadow-sm">
               <h2 className="text-lg font-semibold text-gray-900">By Country</h2>
               <ul className="mt-3 divide-y divide-slate-200">
                 {data.countryBreakdown.map((row) => (

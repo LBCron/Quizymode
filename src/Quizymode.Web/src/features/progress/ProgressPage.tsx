@@ -16,7 +16,7 @@ import { HEATMAP_DAYS, aggregateGuestActivity } from "./activityCalendar";
 
 function StatCard({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-4">
+    <div className="rounded-lg border border-gray-200 bg-surface p-4">
       <dt className="text-xs font-semibold uppercase tracking-wide text-gray-500">{label}</dt>
       <dd className="mt-1 text-2xl font-bold text-gray-900">{value}</dd>
       {hint && <p className="mt-1 text-xs text-gray-500">{hint}</p>}
@@ -80,7 +80,7 @@ function GuestProgress() {
         <StatCard label="Longest streak" value={days(guest.longestStreak)} />
         <StatCard label="Quizzes in this browser" value={String(guest.totalSessions)} />
       </dl>
-      <section aria-labelledby="progress-activity-heading" className="rounded-lg border border-gray-200 bg-white p-4">
+      <section aria-labelledby="progress-activity-heading" className="rounded-lg border border-gray-200 bg-surface p-4">
         <h2 id="progress-activity-heading" className="mb-2 text-lg font-semibold text-gray-900">
           Activity, this browser only
         </h2>
@@ -148,7 +148,7 @@ function SignedInProgress() {
       )}
 
       {activity && (
-        <section aria-labelledby="progress-activity-heading" className="rounded-lg border border-gray-200 bg-white p-4">
+        <section aria-labelledby="progress-activity-heading" className="rounded-lg border border-gray-200 bg-surface p-4">
           <h2 id="progress-activity-heading" className="mb-2 text-lg font-semibold text-gray-900">
             Activity
           </h2>

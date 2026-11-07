@@ -117,7 +117,7 @@ const DailyQuizPage = () => {
           )}
           {!isAuthenticated && !isAuthLoading && (
             <p className="mt-2 text-xs text-gray-500">
-              Your streak is saved in this browser only. <Link to="/signup" className="font-semibold text-indigo-700 underline">Sign up</Link> to keep it on every device.
+              Your streak is saved in this browser only. <Link to="/signup" className="font-semibold text-indigo-ink underline">Sign up</Link> to keep it on every device.
             </p>
           )}
         </header>
@@ -134,8 +134,8 @@ const DailyQuizPage = () => {
         )}
 
         {data && data.items.length === 0 && (
-          <div className="rounded-lg border border-gray-200 bg-white p-4 text-sm text-gray-700">
-            There is no daily quiz today. <Link to="/categories" className="font-semibold text-indigo-700 underline">Browse categories</Link> instead.
+          <div className="rounded-lg border border-gray-200 bg-surface p-4 text-sm text-gray-700">
+            There is no daily quiz today. <Link to="/categories" className="font-semibold text-indigo-ink underline">Browse categories</Link> instead.
           </div>
         )}
 

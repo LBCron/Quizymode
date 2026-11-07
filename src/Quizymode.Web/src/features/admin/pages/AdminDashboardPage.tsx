@@ -26,35 +26,35 @@ const AdminDashboardPage = () => {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Link
           to="/admin/review-board"
-          className="bg-white shadow rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
+          className="bg-surface shadow rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
         >
           <h3 className="text-lg font-medium text-gray-900 mb-2">Review Board</h3>
           <p className="text-sm text-gray-500">Review items pending approval</p>
         </Link>
         <Link
           to="/admin/database-size"
-          className="bg-white shadow rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
+          className="bg-surface shadow rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
         >
           <h3 className="text-lg font-medium text-gray-900 mb-2">Database Size</h3>
           <p className="text-sm text-gray-500">Monitor database size and usage</p>
         </Link>
         <Link
           to="/admin/audit-logs"
-          className="bg-white shadow rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
+          className="bg-surface shadow rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
         >
           <h3 className="text-lg font-medium text-gray-900 mb-2">Audit Logs</h3>
           <p className="text-sm text-gray-500">View system audit logs with filters</p>
         </Link>
         <Link
           to="/admin/keywords"
-          className="bg-white shadow rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
+          className="bg-surface shadow rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
         >
           <h3 className="text-lg font-medium text-gray-900 mb-2">Manage Keywords</h3>
           <p className="text-sm text-gray-500">Assign keywords to parents and set rank</p>
         </Link>
         <Link
           to="/admin/keyword-review"
-          className="bg-white shadow rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
+          className="bg-surface shadow rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
         >
           <h3 className="text-lg font-medium text-gray-900 mb-2">
             Review Private Keywords
@@ -65,14 +65,14 @@ const AdminDashboardPage = () => {
         </Link>
         <Link
           to="/admin/categories"
-          className="bg-white shadow rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
+          className="bg-surface shadow rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
         >
           <h3 className="text-lg font-medium text-gray-900 mb-2">Manage Categories</h3>
           <p className="text-sm text-gray-500">Rename categories</p>
         </Link>
         <Link
           to="/admin/user-settings"
-          className="bg-white shadow rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
+          className="bg-surface shadow rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
         >
           <h3 className="text-lg font-medium text-gray-900 mb-2">Users &amp; Activity</h3>
           <p className="text-sm text-gray-500">
@@ -81,7 +81,7 @@ const AdminDashboardPage = () => {
         </Link>
         <Link
           to="/admin/daily-quiz"
-          className="bg-white shadow rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
+          className="bg-surface shadow rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
         >
           <h3 className="text-lg font-medium text-gray-900 mb-2">Daily Quiz</h3>
           <p className="text-sm text-gray-500">
@@ -90,7 +90,7 @@ const AdminDashboardPage = () => {
         </Link>
         <Link
           to="/admin/ai-providers"
-          className="bg-white shadow rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
+          className="bg-surface shadow rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
         >
           <h3 className="text-lg font-medium text-gray-900 mb-2">AI Providers</h3>
           <p className="text-sm text-gray-500">
@@ -99,7 +99,7 @@ const AdminDashboardPage = () => {
         </Link>
         <Link
           to="/admin/import"
-          className="bg-white shadow rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
+          className="bg-surface shadow rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
         >
           <h3 className="text-lg font-medium text-gray-900 mb-2">Import</h3>
           <p className="text-sm text-gray-500">
@@ -108,14 +108,14 @@ const AdminDashboardPage = () => {
         </Link>
         <Link
           to="/admin/featured"
-          className="bg-white shadow rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
+          className="bg-surface shadow rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
         >
           <h3 className="text-lg font-medium text-gray-900 mb-2">Featured</h3>
           <p className="text-sm text-gray-500">Curate featured sets and collections on the public page</p>
         </Link>
         <Link
           to="/admin/seed-sync"
-          className="bg-white shadow rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
+          className="bg-surface shadow rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
         >
           <h3 className="text-lg font-medium text-gray-900 mb-2">Seed Sync</h3>
           <p className="text-sm text-gray-500">
@@ -124,7 +124,7 @@ const AdminDashboardPage = () => {
         </Link>
         <Link
           to="/admin/page-views"
-          className="bg-white shadow rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
+          className="bg-surface shadow rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
         >
           <h3 className="text-lg font-medium text-gray-900 mb-2">Usage Analytics</h3>
           <p className="text-sm text-gray-500">
@@ -133,7 +133,7 @@ const AdminDashboardPage = () => {
         </Link>
         <Link
           to="/admin/client-errors"
-          className="bg-white shadow rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
+          className="bg-surface shadow rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
         >
           <h3 className="text-lg font-medium text-gray-900 mb-2">Client Errors</h3>
           <p className="text-sm text-gray-500">
@@ -142,7 +142,7 @@ const AdminDashboardPage = () => {
         </Link>
         <Link
           to="/admin/feedback"
-          className="bg-white shadow rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
+          className="bg-surface shadow rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
         >
           <h3 className="text-lg font-medium text-gray-900 mb-2">
             Feedback
@@ -159,7 +159,7 @@ const AdminDashboardPage = () => {
         </Link>
         <Link
           to="/admin/ideas"
-          className="bg-white shadow rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
+          className="bg-surface shadow rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
         >
           <h3 className="text-lg font-medium text-gray-900 mb-2">Ideas Moderation</h3>
           <p className="text-sm text-gray-500">

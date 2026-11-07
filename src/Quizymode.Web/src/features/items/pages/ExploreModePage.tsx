@@ -695,7 +695,7 @@ const ExploreModePage = () => {
           <p className="text-gray-500 mb-4">No items found.</p>
           <Link
             to="/categories"
-            className="text-indigo-600 hover:text-indigo-700"
+            className="text-indigo-ink hover:text-indigo-ink"
           >
             Go back to categories
           </Link>
@@ -737,7 +737,7 @@ const ExploreModePage = () => {
   const backFooter = collectionId ? (
     <button
       onClick={() => collectionListPath && navigate(collectionListPath)}
-      className="text-indigo-600 hover:text-indigo-700"
+      className="text-indigo-ink hover:text-indigo-ink"
       type="button"
     >
       ← Back to collection
@@ -745,13 +745,13 @@ const ExploreModePage = () => {
   ) : returnUrl ? (
     <button
       onClick={() => navigate(returnUrl)}
-      className="text-indigo-600 hover:text-indigo-700"
+      className="text-indigo-ink hover:text-indigo-ink"
       type="button"
     >
       ← Back
     </button>
   ) : (
-    <Link to="/categories" className="text-indigo-600 hover:text-indigo-700">
+    <Link to="/categories" className="text-indigo-ink hover:text-indigo-ink">
       ← Categories
     </Link>
   );
@@ -858,7 +858,7 @@ const ExploreModePage = () => {
             <button
               type="button"
               onClick={() => setShowDetails(true)}
-              className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 bg-surface border border-gray-300 rounded-md hover:bg-gray-50"
             >
               Details
             </button>
@@ -883,14 +883,14 @@ const ExploreModePage = () => {
       )}
       {showDetails && collectionId && collectionInfo && (
         <div
-          className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-40"
+          className="fixed inset-0 bg-black/50 overflow-y-auto h-full w-full z-40"
           onClick={() => setShowDetails(false)}
         >
           <div
             role="dialog"
             aria-modal="true"
             aria-labelledby="collection-details-title"
-            className="relative top-24 mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white"
+            className="relative top-24 mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-surface"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-4">
@@ -957,7 +957,7 @@ const ExploreModePage = () => {
                 className={`relative inline-block h-5 w-9 rounded-full transition-colors ${shuffleOn ? "bg-indigo-600" : "bg-gray-300"}`}
               >
                 <span
-                  className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all ${shuffleOn ? "left-4.5" : "left-0.5"}`}
+                  className={`absolute top-0.5 h-4 w-4 rounded-full bg-surface shadow transition-all ${shuffleOn ? "left-4.5" : "left-0.5"}`}
                 />
               </span>
               Shuffle
@@ -971,7 +971,7 @@ const ExploreModePage = () => {
                 <nav className="flex items-center gap-1 text-sm text-gray-600">
                   <button
                     onClick={() => navigate(returnUrl)}
-                    className="text-indigo-600 hover:text-indigo-800"
+                    className="text-indigo-ink hover:text-indigo-ink"
                     type="button"
                   >
                     ← Back
@@ -1044,7 +1044,7 @@ const ExploreModePage = () => {
                           clearEnqueueStatus();
                           startEnqueue(currentItem.id, true);
                         }}
-                        className="font-medium text-indigo-600 underline hover:text-indigo-800"
+                        className="font-medium text-indigo-ink underline hover:text-indigo-ink"
                       >
                         Retry
                       </button>

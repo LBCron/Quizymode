@@ -83,7 +83,7 @@ const ItemsPage = () => {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <button
               onClick={() => setMode("explore")}
-              className="bg-white overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow p-6 text-left"
+              className="bg-surface overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow p-6 text-left"
             >
               <h3 className="text-lg font-medium text-gray-900 mb-2">
                 Flashcards Mode
@@ -94,7 +94,7 @@ const ItemsPage = () => {
             </button>
             <button
               onClick={() => setMode("quiz")}
-              className="bg-white overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow p-6 text-left"
+              className="bg-surface overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow p-6 text-left"
             >
               <h3 className="text-lg font-medium text-gray-900 mb-2">
                 Quiz Mode
@@ -135,7 +135,7 @@ const ItemsPage = () => {
               .map((item) => (
                 <div
                   key={item.id}
-                  className="bg-white shadow rounded-lg p-6 cursor-pointer hover:shadow-lg transition-shadow"
+                  className="bg-surface shadow rounded-lg p-6 cursor-pointer hover:shadow-lg transition-shadow"
                   onClick={() => handleItemClick(item.id)}
                 >
                   <div className="flex items-start gap-3">

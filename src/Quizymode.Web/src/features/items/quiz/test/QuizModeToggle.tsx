@@ -45,7 +45,7 @@ export function QuizModeToggle({ mode, onChange }: QuizModeToggleProps) {
             onClick={() => !selected && onChange(option.mode)}
             onKeyDown={onKeyDown}
             className={`flex-1 rounded px-3 py-2 font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 sm:flex-none ${
-              selected ? "bg-gray-800 text-white" : "text-gray-700 hover:bg-gray-100"
+              selected ? "bg-panel-raised text-on-panel" : "text-gray-700 hover:bg-gray-100"
             }`}
           >
             {option.label}

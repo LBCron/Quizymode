@@ -21,7 +21,7 @@ export function ImageReviewStatus({ itemId, imageReview }: ImageReviewStatusProp
       return (
         <div className="mt-1 text-xs">
           <p className="text-red-700">Pictures: Failed</p>
-          <Link to={`/items/${itemId}/edit`} className="mt-1 block text-indigo-700 underline">
+          <Link to={`/items/${itemId}/edit`} className="mt-1 block text-indigo-ink underline">
             Edit to resubmit
           </Link>
         </div>
@@ -35,7 +35,7 @@ export function ImageReviewStatus({ itemId, imageReview }: ImageReviewStatusProp
           <p className="break-words text-red-700">
             {reason ? `Pictures: Rejected — ${reason}` : "Pictures: Rejected"}
           </p>
-          <Link to={`/items/${itemId}/edit`} className="mt-1 block text-indigo-700 underline">
+          <Link to={`/items/${itemId}/edit`} className="mt-1 block text-indigo-ink underline">
             Edit to resubmit
           </Link>
         </div>

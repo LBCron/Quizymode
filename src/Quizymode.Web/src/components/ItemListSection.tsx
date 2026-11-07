@@ -67,7 +67,7 @@ const ItemListSection = ({
       </div>
 
       {totalPages > 1 && (
-        <div className="mb-6 rounded-lg bg-white p-4 shadow">
+        <div className="mb-6 rounded-lg bg-surface p-4 shadow">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <button
               type="button"

@@ -44,12 +44,12 @@ export function SubmitTestDialog({
       {(unanswered > 0 || flagged > 0) && (
         <div className="mt-3 flex flex-wrap gap-4 text-sm">
           {unanswered > 0 && (
-            <button type="button" onClick={onShowUnanswered} className="font-medium text-indigo-700 underline hover:text-indigo-900">
+            <button type="button" onClick={onShowUnanswered} className="font-medium text-indigo-ink underline hover:text-indigo-ink">
               Show unanswered
             </button>
           )}
           {flagged > 0 && (
-            <button type="button" onClick={onShowFlagged} className="font-medium text-indigo-700 underline hover:text-indigo-900">
+            <button type="button" onClick={onShowFlagged} className="font-medium text-indigo-ink underline hover:text-indigo-ink">
               Show flagged
             </button>
           )}

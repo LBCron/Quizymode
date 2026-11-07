@@ -28,7 +28,7 @@ const LegalMarkdownDocument = ({
   return (
     <>
       <SEO title={title} description={description} canonical={canonical} />
-      <div className="mx-auto max-w-4xl rounded-lg bg-white px-4 py-8 shadow-sm sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-4xl rounded-lg bg-surface px-4 py-8 shadow-sm sm:px-6 lg:px-8">
         <article className="space-y-6">
           {blocks.map((block, index) => {
             if (block.type === "h1") {
@@ -218,7 +218,7 @@ function renderInline(text: string): ReactNode[] {
 }
 
 function renderLink(label: string, href: string, key: number): ReactNode {
-  const className = "font-medium text-indigo-700 hover:text-indigo-800 underline";
+  const className = "font-medium text-indigo-ink hover:text-indigo-ink underline";
 
   if (href.startsWith("/")) {
     return (

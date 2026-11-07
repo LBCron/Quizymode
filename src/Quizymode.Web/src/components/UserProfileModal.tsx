@@ -11,6 +11,7 @@ import { useInterests } from "@/features/interests/useInterests";
 import { useTopicEditor } from "@/features/interests/topicEditorContext";
 import { usePageSize, PAGE_SIZE_OPTIONS } from "@/hooks/usePageSize";
 import type { UserResponse } from "@/types/api";
+import { ThemePicker } from "@/theme/ThemePicker";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 
 interface UserProfileModalProps {
@@ -149,14 +150,14 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
   if (!isAuthenticated) {
     return (
       <div
-        className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
+        className="fixed inset-0 bg-black/50 overflow-y-auto h-full w-full z-50"
         onClick={onClose}
       >
         <div
           role="dialog"
           aria-modal="true"
           aria-label="User Profile"
-          className="relative top-20 mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-white"
+          className="relative top-20 mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-surface"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex justify-between items-center mb-4">
@@ -173,7 +174,7 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
           </div>
           <button
             onClick={onClose}
-            className="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+            className="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-surface border border-gray-300 rounded-md hover:bg-gray-50"
           >
             Close
           </button>
@@ -188,14 +189,14 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
 
     return (
       <div
-        className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
+        className="fixed inset-0 bg-black/50 overflow-y-auto h-full w-full z-50"
         onClick={onClose}
       >
         <div
           role="dialog"
           aria-modal="true"
           aria-label="User Profile"
-          className="relative top-20 mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-white"
+          className="relative top-20 mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-surface"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex justify-between items-center mb-4">
@@ -231,7 +232,7 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
                     <button
                       onClick={handleCancel}
                       disabled={updateNameMutation.isPending}
-                      className="px-3 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                      className="px-3 py-1 text-xs font-medium text-gray-700 bg-surface border border-gray-300 rounded-md hover:bg-gray-50"
                     >
                       Cancel
                     </button>
@@ -254,7 +255,7 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
                       setName(displayUser.name || "");
                       setIsEditing(true);
                     }}
-                    className="ml-2 px-3 py-1 text-xs font-medium text-indigo-600 bg-white border border-indigo-600 rounded-md hover:bg-indigo-50"
+                    className="ml-2 px-3 py-1 text-xs font-medium text-indigo-ink bg-surface border border-indigo-600 rounded-md hover:bg-indigo-50"
                   >
                     Change
                   </button>
@@ -318,7 +319,7 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
                     onClose();
                     topicEditor.open();
                   }}
-                  className="ml-2 min-h-[44px] px-3 py-1 text-xs font-medium text-indigo-600 bg-white border border-indigo-600 rounded-md hover:bg-indigo-50"
+                  className="ml-2 min-h-[44px] px-3 py-1 text-xs font-medium text-indigo-ink bg-surface border border-indigo-600 rounded-md hover:bg-indigo-50"
                 >
                   Change topics
                 </button>
@@ -356,7 +357,7 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
               <Link
                 to="/progress"
                 onClick={onClose}
-                className="mt-1 inline-block text-xs font-medium text-indigo-600 hover:text-indigo-800 underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                className="mt-1 inline-block text-xs font-medium text-indigo-ink hover:text-indigo-ink underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
               >
                 View my progress
               </Link>
@@ -373,13 +374,15 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
                 value={pageSize}
                 onChange={(e) => updatePageSize(parseInt(e.target.value, 10))}
                 disabled={isUpdating}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 bg-white disabled:opacity-50"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 bg-surface disabled:opacity-50"
               >
                 {PAGE_SIZE_OPTIONS.map((n) => (
                   <option key={n} value={n}>{n} items per page</option>
                 ))}
               </select>
             </div>
+
+            <ThemePicker />
 
 
             {updateNameMutation.isError && (
@@ -397,14 +400,14 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
   if (isError) {
     return (
       <div
-        className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
+        className="fixed inset-0 bg-black/50 overflow-y-auto h-full w-full z-50"
         onClick={onClose}
       >
         <div
           role="dialog"
           aria-modal="true"
           aria-label="Error"
-          className="relative top-20 mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-white"
+          className="relative top-20 mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-surface"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex justify-between items-center mb-4">
@@ -423,7 +426,7 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
           </div>
           <button
             onClick={onClose}
-            className="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+            className="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-surface border border-gray-300 rounded-md hover:bg-gray-50"
           >
             Close
           </button>
@@ -436,8 +439,8 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
   // Check status === 'pending' instead of isLoading to avoid showing loading when we have cached data
   if (!displayUser && (isLoading || status === "pending")) {
     return (
-      <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-        <div role="dialog" aria-modal="true" aria-label="User Profile" className="relative top-20 mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-white">
+      <div className="fixed inset-0 bg-black/50 overflow-y-auto h-full w-full z-50">
+        <div role="dialog" aria-modal="true" aria-label="User Profile" className="relative top-20 mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-surface">
           <div className="text-center">Loading...</div>
         </div>
       </div>
@@ -447,14 +450,14 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
   // Fallback: no user data available
   return (
     <div
-      className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
+      className="fixed inset-0 bg-black/50 overflow-y-auto h-full w-full z-50"
       onClick={onClose}
     >
       <div
         role="dialog"
         aria-modal="true"
         aria-label="User Profile"
-        className="relative top-20 mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-white"
+        className="relative top-20 mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-surface"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-4">
@@ -471,7 +474,7 @@ const UserProfileModal = ({ isOpen, onClose }: UserProfileModalProps) => {
         </div>
         <button
           onClick={onClose}
-          className="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+          className="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-surface border border-gray-300 rounded-md hover:bg-gray-50"
         >
           Close
         </button>

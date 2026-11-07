@@ -65,14 +65,14 @@ function CatalogLanes({ countsByCategory, featuredSets, publicCollections }: Cat
   return (
     <>
       {/* ── Categories lane ── */}
-      <section className="rounded-[24px] border border-white/10 bg-slate-950/70 p-2 sm:p-3 shadow-xl shadow-slate-950/25">
+      <section className="rounded-[24px] border border-white/10 bg-panel-deep/70 p-2 sm:p-3 shadow-xl shadow-slate-950/25">
         <div className="mb-1.5 flex items-center justify-between gap-3">
-          <div className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-300">
+          <div className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-ink">
             Categories
           </div>
           <Link
             to="/categories"
-            className="flex items-center gap-1 text-xs font-semibold text-sky-400 transition hover:text-sky-200"
+            className="flex items-center gap-1 text-xs font-semibold text-sky-400 transition hover:text-sky-ink"
           >
             Show all
             <ArrowRightIcon className="h-3 w-3" />
@@ -88,7 +88,7 @@ function CatalogLanes({ countsByCategory, featuredSets, publicCollections }: Cat
               <Link
                 key={category.slug}
                 to={`/categories/${category.slug}`}
-                className="group relative min-w-0 shrink-0 overflow-hidden rounded-[18px] border border-white/10 bg-slate-900/90 transition duration-200 hover:-translate-y-0.5 hover:border-sky-300/50
+                className="group relative min-w-0 shrink-0 overflow-hidden rounded-[18px] border border-white/10 bg-panel/90 transition duration-200 hover:-translate-y-0.5 hover:border-sky-300/50
                   basis-[calc(50%-0.3125rem)] md:basis-[calc((100%-0.833rem)/3)] xl:basis-[calc((100%-1.875rem)/4)]"
               >
                 <img
@@ -107,7 +107,7 @@ function CatalogLanes({ countsByCategory, featuredSets, publicCollections }: Cat
                   </div>
                   <div className="flex items-center justify-between gap-2">
                     <h3 className="text-sm font-semibold text-white">{category.name}</h3>
-                    <ArrowRightIcon className="h-4 w-4 shrink-0 text-sky-200 transition group-hover:translate-x-1" />
+                    <ArrowRightIcon className="h-4 w-4 shrink-0 text-sky-300 transition group-hover:translate-x-1" />
                   </div>
                 </div>
               </Link>
@@ -118,14 +118,14 @@ function CatalogLanes({ countsByCategory, featuredSets, publicCollections }: Cat
 
       {/* ── Featured Sets lane ── */}
       {featuredSets.length > 0 && (
-        <section className="rounded-[24px] border border-white/10 bg-slate-950/70 p-2 sm:p-3 shadow-xl shadow-slate-950/25">
+        <section className="rounded-[24px] border border-white/10 bg-panel-deep/70 p-2 sm:p-3 shadow-xl shadow-slate-950/25">
           <div className="mb-1.5 flex items-center justify-between gap-3">
-            <div className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-300">
+            <div className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-ink">
               Featured Sets
             </div>
             <Link
               to="/featured"
-              className="flex items-center gap-1 text-xs font-semibold text-sky-400 transition hover:text-sky-200"
+              className="flex items-center gap-1 text-xs font-semibold text-sky-400 transition hover:text-sky-ink"
             >
               Show all
               <ArrowRightIcon className="h-3 w-3" />
@@ -142,7 +142,7 @@ function CatalogLanes({ countsByCategory, featuredSets, publicCollections }: Cat
                 <Link
                   key={set.id}
                   to={path}
-                  className="group relative min-w-0 shrink-0 basis-[calc(50%-0.3125rem)] overflow-hidden rounded-[18px] border border-white/10 bg-slate-900/90 transition duration-200 hover:-translate-y-0.5 hover:border-sky-300/50 md:basis-[calc((100%-0.833rem)/3)] xl:basis-[calc((100%-1.875rem)/4)]"
+                  className="group relative min-w-0 shrink-0 basis-[calc(50%-0.3125rem)] overflow-hidden rounded-[18px] border border-white/10 bg-panel/90 transition duration-200 hover:-translate-y-0.5 hover:border-sky-300/50 md:basis-[calc((100%-0.833rem)/3)] xl:basis-[calc((100%-1.875rem)/4)]"
                 >
                   <img
                     src={image}
@@ -158,7 +158,7 @@ function CatalogLanes({ countsByCategory, featuredSets, publicCollections }: Cat
                     </div>
                     <div className="flex items-center justify-between gap-2">
                       <h3 className="text-sm font-semibold text-white">{set.displayName}</h3>
-                      <ArrowRightIcon className="h-4 w-4 shrink-0 text-sky-200 transition group-hover:translate-x-1" />
+                      <ArrowRightIcon className="h-4 w-4 shrink-0 text-sky-300 transition group-hover:translate-x-1" />
                     </div>
                   </div>
                 </Link>
@@ -170,14 +170,14 @@ function CatalogLanes({ countsByCategory, featuredSets, publicCollections }: Cat
 
       {/* ── Recently Added Collections lane ── */}
       {publicCollections.length > 0 && (
-        <section className="rounded-[24px] border border-white/10 bg-slate-950/70 p-2 sm:p-3 shadow-xl shadow-slate-950/25">
+        <section className="rounded-[24px] border border-white/10 bg-panel-deep/70 p-2 sm:p-3 shadow-xl shadow-slate-950/25">
           <div className="mb-1.5 flex items-center justify-between gap-3">
-            <div className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-300">
+            <div className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-ink">
               Recently Added Collections
             </div>
             <Link
               to="/collections?tab=discover"
-              className="flex items-center gap-1 text-xs font-semibold text-sky-400 transition hover:text-sky-200"
+              className="flex items-center gap-1 text-xs font-semibold text-sky-400 transition hover:text-sky-ink"
             >
               Show all
               <ArrowRightIcon className="h-3 w-3" />
@@ -189,7 +189,7 @@ function CatalogLanes({ countsByCategory, featuredSets, publicCollections }: Cat
               <Link
                 key={collection.id}
                 to={buildCollectionPath(collection.id, collection.name)}
-                className="group relative min-w-0 shrink-0 basis-[calc(50%-0.3125rem)] overflow-hidden rounded-[18px] border border-white/10 bg-slate-900/90 transition duration-200 hover:-translate-y-0.5 hover:border-sky-300/50 md:basis-[calc((100%-0.833rem)/3)] xl:basis-[calc((100%-1.875rem)/4)]"
+                className="group relative min-w-0 shrink-0 basis-[calc(50%-0.3125rem)] overflow-hidden rounded-[18px] border border-white/10 bg-panel/90 transition duration-200 hover:-translate-y-0.5 hover:border-sky-300/50 md:basis-[calc((100%-0.833rem)/3)] xl:basis-[calc((100%-1.875rem)/4)]"
               >
                 <img
                   src={publicCollectionCardImage(index)}
@@ -206,10 +206,10 @@ function CatalogLanes({ countsByCategory, featuredSets, publicCollections }: Cat
                   <div>
                     <div className="flex items-center justify-between gap-2">
                       <h3 className="text-sm font-semibold text-white">{collection.name}</h3>
-                      <ArrowRightIcon className="h-4 w-4 shrink-0 text-sky-200 transition group-hover:translate-x-1" />
+                      <ArrowRightIcon className="h-4 w-4 shrink-0 text-sky-300 transition group-hover:translate-x-1" />
                     </div>
                     {collection.description && (
-                      <p className="mt-0.5 text-xs text-slate-300 line-clamp-2">
+                      <p className="mt-0.5 text-xs text-[#cbd5e1] line-clamp-2">
                         {collection.description}
                       </p>
                     )}
@@ -224,7 +224,7 @@ function CatalogLanes({ countsByCategory, featuredSets, publicCollections }: Cat
   );
 }
 
-const laneClass = "rounded-[24px] border border-white/10 bg-slate-950/70 p-2 sm:p-3 shadow-xl shadow-slate-950/25";
+const laneClass = "rounded-[24px] border border-white/10 bg-panel-deep/70 p-2 sm:p-3 shadow-xl shadow-slate-950/25";
 const categoryNames = new Map(homeCategoryCards.map((card) => [card.slug, card.name]));
 
 const HomePage = () => {
@@ -296,15 +296,15 @@ const HomePage = () => {
         }}
       />
 
-      <div className="bg-slate-950 text-white">
-        <section className="relative bg-[radial-gradient(circle_at_top,#1e3a8a_0%,#0f172a_42%,#020617_100%)]">
+      <div className="bg-panel-deep text-on-panel">
+        <section className="relative bg-[radial-gradient(circle_at_top,var(--qm-shell-a)_0%,var(--qm-shell-b)_42%,var(--qm-shell-c)_100%)]">
           {/* Decorative shapes are rotated/skewed past the section edges; clip them so narrow or zoomed viewports never scroll sideways (#151). */}
           <div
             aria-hidden="true"
             data-testid="home-hero-decor"
             className="absolute inset-0 overflow-hidden pointer-events-none opacity-30"
           >
-            <div className="absolute inset-y-0 left-[-8%] w-1/3 skew-x-[-24deg] bg-white/5" />
+            <div className="absolute inset-y-0 left-[-8%] w-1/3 skew-x-[-24deg] bg-on-panel/5" />
             <div className="absolute inset-y-0 left-[24%] w-24 rotate-12 bg-sky-400/20 blur-3xl" />
             <div className="absolute inset-y-0 right-[18%] w-20 -rotate-12 bg-indigo-300/20 blur-3xl" />
           </div>
@@ -312,18 +312,18 @@ const HomePage = () => {
           <div className="relative mx-auto max-w-7xl px-1.5 py-2 sm:px-6 lg:px-8 flex flex-col gap-2">
 
             {/* ── Hero card ── */}
-            <section className="rounded-[24px] border border-white/12 bg-white/8 p-2 shadow-2xl shadow-slate-950/30 backdrop-blur sm:flex sm:items-center sm:justify-between sm:gap-6 sm:px-5 sm:py-3">
+            <section className="rounded-[24px] border border-on-panel/12 bg-on-panel/8 p-2 shadow-2xl shadow-slate-950/30 backdrop-blur sm:flex sm:items-center sm:justify-between sm:gap-6 sm:px-5 sm:py-3">
               <div className="max-w-3xl">
-                <h1 className="text-xl font-semibold tracking-tight text-white sm:text-2xl lg:text-[1.65rem] lg:leading-snug">
+                <h1 className="text-xl font-semibold tracking-tight text-on-panel sm:text-2xl lg:text-[1.65rem] lg:leading-snug">
                   Learn something new in five questions.
                 </h1>
-                <p className="mt-1 text-xs font-semibold text-sky-200">Learn, Test and Review are free.</p>
+                <p className="mt-1 text-xs font-semibold text-sky-ink">Learn, Test and Review are free.</p>
                 {!focused && (
-                  <p className="mt-1.5 max-w-2xl text-xs leading-5 text-slate-200 lg:text-sm">
+                  <p className="mt-1.5 max-w-2xl text-xs leading-5 text-on-panel-muted lg:text-sm">
                     Five quick questions, from flags to space to AI. Then pick what to explore next.
                   </p>
                 )}
-                {(!focused || !isAuthenticated) && <p className="mt-1 text-xs font-semibold text-sky-200">No account needed.</p>}
+                {(!focused || !isAuthenticated) && <p className="mt-1 text-xs font-semibold text-sky-ink">No account needed.</p>}
               </div>
               <div className="mt-3 flex shrink-0 items-center sm:mt-0">
                 <Link
@@ -341,8 +341,8 @@ const HomePage = () => {
             {layout === "pending" && (
               <div role="status" className="flex flex-col gap-2">
                 <span className="sr-only">Loading your home</span>
-                <div aria-hidden="true" className={`${laneClass} h-24 animate-pulse bg-white/10`} />
-                <div aria-hidden="true" className={`${laneClass} h-24 animate-pulse bg-white/10`} />
+                <div aria-hidden="true" className={`${laneClass} h-24 animate-pulse bg-on-panel/10`} />
+                <div aria-hidden="true" className={`${laneClass} h-24 animate-pulse bg-on-panel/10`} />
               </div>
             )}
 
@@ -365,7 +365,7 @@ const HomePage = () => {
                   <div>
                     <Link
                       to={buildGamePath({ kind: "category", category: topicParts(firstTopic).category, navigationKeywords: topicParts(firstTopic).navigationKeywords, filterKeywords: [], search: topicNavigationSearch(firstTopic) })}
-                      className="inline-flex min-h-[44px] items-center gap-1 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200"
+                      className="inline-flex min-h-[44px] items-center gap-1 rounded-full border border-on-panel/15 bg-on-panel/5 px-3 py-1.5 text-xs font-semibold text-on-panel hover:bg-on-panel/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200"
                     >
                       Play a game in {topicLabel(firstTopic, categoryNames)}
                       <ArrowRightIcon className="h-3 w-3" aria-hidden="true" />
@@ -376,8 +376,8 @@ const HomePage = () => {
                   <summary
                     className={`${laneClass} flex min-h-[44px] cursor-pointer list-none items-center [&::-webkit-details-marker]:hidden justify-between gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200`}
                   >
-                    <span className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-300">Explore all topics</span>
-                    <ChevronDownIcon className="h-4 w-4 text-sky-300 transition group-open:rotate-180" aria-hidden="true" />
+                    <span className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-ink">Explore all topics</span>
+                    <ChevronDownIcon className="h-4 w-4 text-sky-ink transition group-open:rotate-180" aria-hidden="true" />
                   </summary>
                   <div className="mt-2 flex flex-col gap-2">
                     <CatalogLanes

@@ -150,4 +150,15 @@ describe("UserProfileModal study totals (issue #259)", () => {
     renderModal();
     expect(interestsApi.get).not.toHaveBeenCalled();
   });
+
+  it("#504: signed-in users get the Appearance picker; guests do not", async () => {
+    vi.mocked(studySessionsApi.getSummary).mockRejectedValue(new Error("boom"));
+    const view = renderModal();
+    expect(await screen.findByRole("group", { name: "Appearance" })).toBeInTheDocument();
+    view.unmount();
+
+    auth.isAuthenticated = false;
+    renderModal();
+    expect(screen.queryByRole("group", { name: "Appearance" })).not.toBeInTheDocument();
+  });
 });

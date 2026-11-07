@@ -46,7 +46,7 @@ export class LazyRouteBoundary extends Component<BoundaryProps, BoundaryState> {
     if (this.state.error) {
       if (!isChunkLoadError(this.state.error)) throw this.state.error;
       return (
-        <div role="alert" className="max-w-md mx-auto my-12 bg-white shadow rounded-lg p-6 text-center">
+        <div role="alert" className="max-w-md mx-auto my-12 bg-surface shadow rounded-lg p-6 text-center">
           <h1 className="text-xl font-semibold text-gray-900 mb-2">This page failed to load</h1>
           <p className="text-gray-600 mb-4">Check your connection and try again.</p>
           <button

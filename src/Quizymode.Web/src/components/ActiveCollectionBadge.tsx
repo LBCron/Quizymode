@@ -29,7 +29,7 @@ export function ActiveCollectionBadge() {
 
   return (
     <>
-      <div className="inline-flex items-center gap-2 px-2.5 py-1 text-xs font-medium bg-indigo-50 text-indigo-800 rounded-md border border-indigo-100">
+      <div className="inline-flex items-center gap-2 px-2.5 py-1 text-xs font-medium bg-indigo-50 text-indigo-ink rounded-md border border-indigo-100">
         <span className="font-medium">Active:</span>
         <span className="truncate max-w-[120px] sm:max-w-[180px]" title={activeCollection.name}>
           {activeCollection.name}
@@ -38,7 +38,7 @@ export function ActiveCollectionBadge() {
           <button
             type="button"
             onClick={() => setShowModal(true)}
-            className="p-0.5 rounded hover:bg-indigo-100 text-indigo-600"
+            className="p-0.5 rounded hover:bg-indigo-100 text-indigo-ink"
             title="Switch active collection"
           >
             <Cog6ToothIcon className="h-4 w-4" />
@@ -46,14 +46,14 @@ export function ActiveCollectionBadge() {
           <button
             type="button"
             onClick={() => setActiveCollectionId(null)}
-            className="p-0.5 rounded hover:bg-indigo-100 text-indigo-600"
+            className="p-0.5 rounded hover:bg-indigo-100 text-indigo-ink"
             title="Clear active collection"
           >
             <XMarkIcon className="h-4 w-4" />
           </button>
           <Link
             to="/collections"
-            className="p-0.5 rounded hover:bg-indigo-100 text-indigo-600"
+            className="p-0.5 rounded hover:bg-indigo-100 text-indigo-ink"
             title="Manage collections"
           >
             <FolderIcon className="h-4 w-4" />

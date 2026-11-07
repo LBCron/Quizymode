@@ -15,8 +15,8 @@ const BASE_CLASS =
   "motion-safe:transition-colors motion-safe:duration-150";
 
 const STATE_CLASS: Record<MatchTileState, string> = {
-  idle: "bg-white border-gray-300 hover:bg-gray-50",
-  selected: "bg-indigo-50 border-indigo-600 font-semibold text-indigo-700 border-l-8",
+  idle: "bg-surface border-gray-300 hover:bg-gray-50",
+  selected: "bg-indigo-50 border-indigo-600 font-semibold text-indigo-ink border-l-8",
   wrong: "bg-red-100 border-red-500 pr-7 motion-safe:animate-wrong-shake",
   matched: "bg-green-100 border-green-500 text-green-900 cursor-default pr-7",
 };

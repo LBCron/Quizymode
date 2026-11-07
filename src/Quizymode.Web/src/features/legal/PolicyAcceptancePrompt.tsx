@@ -93,7 +93,7 @@ export function PolicyAcceptancePrompt() {
   };
 
   return (
-    <div className="fixed inset-0 z-[60] overflow-y-auto bg-slate-950/80 px-4 py-10 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[60] overflow-y-auto bg-panel-deep/80 px-4 py-10 backdrop-blur-sm">
       <div
         ref={dialogRef}
         role="dialog"
@@ -101,7 +101,7 @@ export function PolicyAcceptancePrompt() {
         aria-labelledby="policy-acceptance-title"
         aria-describedby="policy-acceptance-description"
         onKeyDown={trapFocus}
-        className="mx-auto w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-6 text-slate-700 shadow-2xl"
+        className="mx-auto w-full max-w-lg rounded-3xl border border-slate-200 bg-surface p-6 text-slate-700 shadow-2xl"
       >
         <h2
           id="policy-acceptance-title"

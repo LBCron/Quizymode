@@ -30,7 +30,7 @@ export function StudyGuideSectionPicker({
   const sorted = [...sections].sort((a, b) => a.index - b.index);
 
   return (
-    <section aria-labelledby="study-guide-picker-heading" className="rounded-lg bg-white p-4 shadow space-y-4">
+    <section aria-labelledby="study-guide-picker-heading" className="rounded-lg bg-surface p-4 shadow space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 id="study-guide-picker-heading" className="text-lg font-semibold text-gray-900">

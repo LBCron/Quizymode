@@ -150,7 +150,7 @@ const PageViewAnalyticsPage = () => {
         <div>
           <Link
             to="/admin"
-            className="text-sm font-medium text-indigo-600 hover:text-indigo-800"
+            className="text-sm font-medium text-indigo-ink hover:text-indigo-ink"
           >
             ← Admin Dashboard
           </Link>
@@ -167,7 +167,7 @@ const PageViewAnalyticsPage = () => {
         </div>
         <div className="flex flex-col gap-3">
           {summary && (
-            <div className="rounded-2xl border border-indigo-100 bg-indigo-50 px-4 py-3 text-sm text-indigo-900">
+            <div className="rounded-2xl border border-indigo-100 bg-indigo-50 px-4 py-3 text-sm text-indigo-ink">
               Window: {formatDateTime(summary.windowStartUtc)} to{" "}
               {formatDateTime(summary.windowEndUtc)}
             </div>
@@ -176,7 +176,7 @@ const PageViewAnalyticsPage = () => {
         </div>
       </div>
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <section className="rounded-2xl border border-slate-200 bg-surface p-5 shadow-sm">
         <div className="flex flex-wrap gap-2 border-b border-slate-200 pb-4">
           {TAB_OPTIONS.map((option) => (
             <button
@@ -193,7 +193,7 @@ const PageViewAnalyticsPage = () => {
               <div className="text-sm font-semibold">{option.label}</div>
               <div
                 className={`text-xs ${
-                  tab === option.value ? "text-indigo-100" : "text-slate-500"
+                  tab === option.value ? "text-on-panel-muted" : "text-slate-500"
                 }`}
               >
                 {option.hint}
@@ -302,7 +302,7 @@ const PageViewAnalyticsPage = () => {
 
       {tab === "pages" && !isLoading && !error && (
         <div className="space-y-6">
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <section className="rounded-2xl border border-slate-200 bg-surface p-5 shadow-sm">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <div className="text-sm font-medium text-gray-700">Visitor type</div>
@@ -317,7 +317,7 @@ const PageViewAnalyticsPage = () => {
                   }}
                   className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${
                     visitorType === option.value
-                      ? "bg-slate-900 text-white"
+                      ? "bg-panel text-on-panel"
                       : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                   }`}
                 >
@@ -404,7 +404,7 @@ const PageViewAnalyticsPage = () => {
       )}
 
       <section className="grid gap-6 xl:grid-cols-[1.15fr_1fr]">
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="rounded-2xl border border-slate-200 bg-surface p-5 shadow-sm">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <h2 className="text-lg font-semibold text-gray-900">
@@ -435,7 +435,7 @@ const PageViewAnalyticsPage = () => {
                   aria-pressed={groupBy === option.value}
                   className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
                     groupBy === option.value
-                      ? "bg-white text-slate-900 shadow-sm"
+                      ? "bg-surface text-slate-900 shadow-sm"
                       : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
@@ -478,7 +478,7 @@ const PageViewAnalyticsPage = () => {
           ))}
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="rounded-2xl border border-slate-200 bg-surface p-5 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900">Traffic Mix</h2>
           <p className="mt-1 text-sm text-gray-600">
             Compare signed-in and anonymous activity across the selected window.
@@ -505,7 +505,7 @@ const PageViewAnalyticsPage = () => {
                 <button
                   type="button"
                   onClick={() => setTab("sessions")}
-                  className="font-medium text-indigo-600 underline hover:text-indigo-800"
+                  className="font-medium text-indigo-ink underline hover:text-indigo-ink"
                 >
                   Sessions tab
                 </button>{" "}
@@ -520,7 +520,7 @@ const PageViewAnalyticsPage = () => {
         </div>
       </section>
 
-      <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <section className="rounded-2xl border border-slate-200 bg-surface shadow-sm">
         <div className="border-b border-slate-200 px-5 py-4">
           <h2 className="text-lg font-semibold text-gray-900">Recent URL Hits</h2>
           <p className="mt-1 text-sm text-gray-600">
@@ -548,7 +548,7 @@ const PageViewAnalyticsPage = () => {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200 bg-white">
+                <tbody className="divide-y divide-slate-200 bg-surface">
                   {data.recentPageViews.map((pageView) => (
                     <tr key={pageView.id} className="align-top hover:bg-slate-50">
                       <td className="px-5 py-4 text-sm text-slate-700">
@@ -581,14 +581,14 @@ const PageViewAnalyticsPage = () => {
                       <td className="px-5 py-4 text-sm text-slate-700">
                         <Link
                           to={sessionFilterHref(pageView.sessionId)}
-                          className="font-mono text-xs text-indigo-600 hover:text-indigo-800"
+                          className="font-mono text-xs text-indigo-ink hover:text-indigo-ink"
                         >
                           {pageView.sessionId}
                         </Link>
                         <div className="mt-2 font-mono text-xs text-slate-500">
                           {pageView.ipAddress}
                           {pageView.country && (
-                            <span className="ml-1.5 font-sans font-medium text-indigo-600 not-italic">
+                            <span className="ml-1.5 font-sans font-medium text-indigo-ink not-italic">
                               {pageView.country}
                             </span>
                           )}
@@ -649,7 +649,7 @@ interface MetricCardProps {
 
 const MetricCard = ({ label, value, detail, compact = false }: MetricCardProps) => {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="rounded-2xl border border-slate-200 bg-surface p-5 shadow-sm">
       <div className="text-sm font-medium text-slate-500">{label}</div>
       <div
         className={`mt-3 font-semibold text-slate-900 ${
@@ -715,7 +715,7 @@ const TopPageRow = ({
     <div className="rounded-2xl border border-slate-200 p-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-900 text-sm font-semibold text-white">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-panel text-sm font-semibold text-on-panel">
             {index + 1}
           </div>
           <div>

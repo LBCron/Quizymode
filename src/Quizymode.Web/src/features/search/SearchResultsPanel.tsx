@@ -33,7 +33,7 @@ interface SearchResultsPanelProps {
 function optionClass(active: boolean, overlay: boolean): string {
   const base = `flex ${overlay ? "min-h-[48px] py-3" : "min-h-[44px] py-2"} cursor-pointer items-start gap-3 border-l-2 px-3 text-sm`;
   return active
-    ? `${base} border-indigo-600 bg-indigo-50 text-indigo-900 forced-colors:outline forced-colors:outline-2`
+    ? `${base} border-indigo-600 bg-indigo-50 text-indigo-ink forced-colors:outline forced-colors:outline-2`
     : `${base} border-transparent text-slate-900`;
 }
 
@@ -117,7 +117,7 @@ const SearchResultsPanel = ({
         </div>
         <div id={LISTBOX_ID} role="listbox" aria-label="Search results">
           <div {...optionProps({ id: RETRY_OPTION_ID, kind: "retry" })}>
-            <span className="font-medium text-indigo-700">Try again</span>
+            <span className="font-medium text-indigo-ink">Try again</span>
           </div>
         </div>
       </>
@@ -132,7 +132,7 @@ const SearchResultsPanel = ({
           tabIndex={-1}
           onMouseDown={(event) => event.preventDefault()}
           onClick={onNavigate}
-          className="mt-2 inline-block font-medium text-indigo-700 hover:text-indigo-900"
+          className="mt-2 inline-block font-medium text-indigo-ink hover:text-indigo-ink"
         >
           Browse all categories
         </Link>
@@ -158,7 +158,7 @@ const SearchResultsPanel = ({
               ))}
               {group.seeAll && (
                 <div {...optionProps(group.seeAll)}>
-                  <span className="flex flex-1 items-center gap-1 font-medium text-indigo-700">
+                  <span className="flex flex-1 items-center gap-1 font-medium text-indigo-ink">
                     See all {GROUP_LABELS[group.view.id].toLowerCase()}
                     <ArrowRightIcon className="h-4 w-4" aria-hidden="true" />
                   </span>

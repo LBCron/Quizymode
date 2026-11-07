@@ -156,7 +156,7 @@ const ItemCommentsPage = () => {
         <div className="mb-6 flex justify-between items-center">
           <button
             onClick={handleNavigateBack}
-            className="text-indigo-600 hover:text-indigo-700 text-sm font-medium"
+            className="text-indigo-ink hover:text-indigo-ink text-sm font-medium"
           >
             ← Back to item
           </button>
@@ -189,7 +189,7 @@ const ItemCommentsPage = () => {
 
         {/* Add Comment Form */}
         {isAuthenticated && (
-          <div className="bg-white shadow rounded-lg p-6 mb-6">
+          <div className="bg-surface shadow rounded-lg p-6 mb-6">
             <h2 className="text-lg font-medium text-gray-900 mb-4">
               Add a Comment
             </h2>
@@ -226,7 +226,7 @@ const ItemCommentsPage = () => {
               return (
                 <div
                   key={comment.id}
-                  className="bg-white shadow rounded-lg p-6"
+                  className="bg-surface shadow rounded-lg p-6"
                 >
                   {isEditing ? (
                     <div className="space-y-4">
@@ -273,7 +273,7 @@ const ItemCommentsPage = () => {
                           <div className="flex space-x-2">
                             <button
                               onClick={() => handleEdit(comment)}
-                              className="p-1 text-indigo-600 hover:text-indigo-700"
+                              className="p-1 text-indigo-ink hover:text-indigo-ink"
                               title="Edit comment"
                             >
                               <PencilIcon className="h-4 w-4" />
@@ -304,7 +304,7 @@ const ItemCommentsPage = () => {
               );
             })
           ) : (
-            <div className="text-center py-12 bg-white shadow rounded-lg">
+            <div className="text-center py-12 bg-surface shadow rounded-lg">
               <p className="text-gray-500">
                 No comments yet. Be the first to comment!
               </p>

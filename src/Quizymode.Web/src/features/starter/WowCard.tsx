@@ -51,7 +51,7 @@ export function WowCard({ isCorrect, selectedAnswer, correctAnswer, wowLine, isL
       </p>
       {wowLine && (
         <div className="mt-2">
-          <p className="text-xs font-semibold uppercase tracking-wide text-indigo-700">Did you know?</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-indigo-ink">Did you know?</p>
           <p className="mt-0.5 break-words text-sm text-gray-800">{wowLine}</p>
         </div>
       )}

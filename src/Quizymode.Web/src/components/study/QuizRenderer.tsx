@@ -107,7 +107,7 @@ function TypedAnswerPanel({
             <button
               type="button"
               onClick={controls.onOverride}
-              className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="rounded-md border border-gray-300 bg-surface px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
               I was right
             </button>
@@ -234,13 +234,13 @@ export function QuizRenderer({
                   item.incorrectAnswerSpeech,
                   item.incorrectAnswers.findIndex((candidate) => candidate === option)
                 );
-            let bgColor = "bg-white hover:bg-gray-50";
+            let bgColor = "bg-surface hover:bg-gray-50";
             let motion = "";
             const showsCorrect = revealFeedback && showAnswer && isCorrect;
             const showsWrong = revealFeedback && showAnswer && isSelected && !isCorrect;
             const isNeutralSelected = !revealFeedback && isSelected;
             if (isNeutralSelected) {
-              bgColor = "bg-slate-100 border-slate-700 ring-1 ring-slate-700";
+              bgColor = "bg-slate-100 border-panel-raised ring-1 ring-slate-700";
             }
             if (showsCorrect) {
               bgColor = "bg-green-100 border-green-500";
@@ -330,7 +330,7 @@ export function QuizRenderer({
             key={`${item.id}-explanation`}
             itemId={item.id} image={item.explanationImage}
             slot="explanation"
-            className="mt-3 rounded-lg bg-white"
+            className="mt-3 rounded-lg bg-surface"
           />
         </div>
       )}

@@ -87,8 +87,8 @@ export function TopicOnboardingPrompt() {
       className="rounded-[24px] border border-sky-300/30 bg-sky-500/10 p-2 shadow-xl shadow-slate-950/25 sm:flex sm:items-center sm:justify-between sm:gap-4 sm:p-3"
     >
       <div>
-        <h2 id={headingId} className="text-sm font-semibold text-white">Make Home yours</h2>
-        <p className="mt-0.5 text-xs text-slate-200">
+        <h2 id={headingId} className="text-sm font-semibold text-on-panel">Make Home yours</h2>
+        <p className="mt-0.5 text-xs text-on-panel">
           Pick up to 10 topics and your Home puts them first. You can change them any time.
         </p>
       </div>
@@ -96,14 +96,14 @@ export function TopicOnboardingPrompt() {
         <button
           type="button"
           onClick={topicEditor.open}
-          className="inline-flex min-h-[44px] items-center justify-center rounded-full bg-sky-500 px-5 py-2 text-sm font-semibold text-slate-950 hover:bg-sky-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200"
+          className="inline-flex min-h-[44px] items-center justify-center rounded-full bg-sky-500 px-5 py-2 text-sm font-semibold text-[#020617] hover:bg-sky-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200"
         >
           Choose topics
         </button>
         <button
           type="button"
           onClick={dismiss}
-          className="inline-flex min-h-[44px] items-center justify-center rounded-full border border-white/20 px-5 py-2 text-sm font-semibold text-white hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200"
+          className="inline-flex min-h-[44px] items-center justify-center rounded-full border border-on-panel/20 px-5 py-2 text-sm font-semibold text-on-panel hover:bg-on-panel/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200"
         >
           Not now
         </button>

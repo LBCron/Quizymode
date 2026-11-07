@@ -15,7 +15,7 @@ export interface FlashcardsDeckSummaryProps {
 const PRIMARY_BUTTON =
   "rounded-md bg-indigo-600 px-4 py-2 font-semibold text-white hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2";
 const SECONDARY_BUTTON =
-  "rounded-md border border-indigo-600 px-4 py-2 font-semibold text-indigo-700 hover:bg-indigo-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2";
+  "rounded-md border border-indigo-600 px-4 py-2 font-semibold text-indigo-ink hover:bg-indigo-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2";
 
 /** End-of-deck summary for Flashcards (AC 3.14.8). Counts are per round; the heading takes focus on mount. */
 export function FlashcardsDeckSummary({ isLoopRound, counts, onStudyPile, onRestart, backContent }: FlashcardsDeckSummaryProps) {
@@ -27,7 +27,7 @@ export function FlashcardsDeckSummary({ isLoopRound, counts, onStudyPile, onRest
   const { gotIt, stillLearning, notGraded } = counts;
   return (
     <div className="mx-auto max-w-4xl">
-      <section className="mx-auto max-w-2xl rounded-lg bg-white p-4 text-center shadow sm:p-6" data-testid="flashcards-summary">
+      <section className="mx-auto max-w-2xl rounded-lg bg-surface p-4 text-center shadow sm:p-6" data-testid="flashcards-summary">
         <h2 ref={headingRef} tabIndex={-1} className="text-2xl font-bold text-gray-900 focus:outline-none">
           {isLoopRound ? "Round complete" : "Deck complete"}
         </h2>

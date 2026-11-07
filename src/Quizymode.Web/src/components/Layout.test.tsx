@@ -105,13 +105,13 @@ describe("Layout", () => {
   ])("highlights Create on %s", (path) => {
     authState.isAuthenticated = true;
     renderLayout([path]);
-    expect(screen.getAllByRole("link", { name: "Create" })[0]).toHaveClass("text-indigo-600");
+    expect(screen.getAllByRole("link", { name: "Create" })[0]).toHaveClass("text-indigo-ink");
   });
 
   it.each(["/items", "/items/123", "/progress"])("does not highlight Create on %s", (path) => {
     authState.isAuthenticated = true;
     renderLayout([path]);
-    expect(screen.getAllByRole("link", { name: "Create" })[0]).not.toHaveClass("text-indigo-600");
+    expect(screen.getAllByRole("link", { name: "Create" })[0]).not.toHaveClass("text-indigo-ink");
   });
 
   afterEach(() => {

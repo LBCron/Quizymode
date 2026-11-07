@@ -155,7 +155,7 @@ const AuditLogsPage = () => {
       </p>
 
       {/* Filters */}
-      <div className="bg-white shadow rounded-lg p-6 mb-6">
+      <div className="bg-surface shadow rounded-lg p-6 mb-6">
         <h2 className="text-lg font-medium text-gray-900 mb-4">Filters</h2>
         <div className="space-y-4">
           <div>
@@ -180,7 +180,7 @@ const AuditLogsPage = () => {
               {userEmailFilter && (
                 <button
                   onClick={clearUserEmailFilter}
-                  className="text-sm text-indigo-600 hover:text-indigo-800 underline"
+                  className="text-sm text-indigo-ink hover:text-indigo-ink underline"
                 >
                   Clear
                 </button>
@@ -222,7 +222,7 @@ const AuditLogsPage = () => {
                       type="checkbox"
                       checked={selectedActions.includes(action)}
                       onChange={() => handleActionToggle(action)}
-                      className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                      className="rounded border-gray-300 text-indigo-ink focus:ring-indigo-500"
                     />
                     <span className="text-sm text-gray-700">{action}</span>
                   </label>
@@ -238,7 +238,7 @@ const AuditLogsPage = () => {
             <div className="flex items-center space-x-2">
               <button
                 onClick={clearFilters}
-                className="text-sm text-indigo-600 hover:text-indigo-800 underline"
+                className="text-sm text-indigo-ink hover:text-indigo-ink underline"
               >
                 Reset to all filters
               </button>
@@ -248,7 +248,7 @@ const AuditLogsPage = () => {
       </div>
 
       {/* Results */}
-      <div className="bg-white shadow rounded-lg overflow-hidden">
+      <div className="bg-surface shadow rounded-lg overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200">
           <div className="flex justify-between items-center">
             <h2 className="text-lg font-medium text-gray-900">
@@ -285,7 +285,7 @@ const AuditLogsPage = () => {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-surface divide-y divide-gray-200">
                   {data.logs.map((log) => (
                     <tr key={log.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -295,14 +295,14 @@ const AuditLogsPage = () => {
                         {log.userEmail || <span className="text-gray-400">N/A</span>}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-indigo-100 text-indigo-800">
+                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-indigo-100 text-indigo-ink">
                           {getActionText(log.action)}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         <div>{log.ipAddress}</div>
                         {log.country && (
-                          <div className="text-xs font-medium text-indigo-600">{log.country}</div>
+                          <div className="text-xs font-medium text-indigo-ink">{log.country}</div>
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">
@@ -324,14 +324,14 @@ const AuditLogsPage = () => {
                   <button
                     onClick={() => setPage(p => Math.max(1, p - 1))}
                     disabled={data.page <= 1}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-surface border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Previous
                   </button>
                   <button
                     onClick={() => setPage(p => Math.min(data.totalPages, p + 1))}
                     disabled={data.page >= data.totalPages}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-surface border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Next
                   </button>

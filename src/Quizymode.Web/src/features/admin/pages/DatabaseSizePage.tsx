@@ -55,24 +55,24 @@ const DatabaseSizePage = () => {
       </p>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4 mb-6">
-        <div className="bg-white shadow rounded-lg p-5">
+        <div className="bg-surface shadow rounded-lg p-5">
           <p className="text-sm font-medium text-gray-500">Database Size</p>
           <p className="mt-2 text-2xl font-semibold text-gray-900">{formatBytes(data.sizeBytes)}</p>
           <p className="mt-1 text-sm text-gray-500">{data.sizeMegabytes.toFixed(2)} MB total</p>
         </div>
-        <div className="bg-white shadow rounded-lg p-5">
+        <div className="bg-surface shadow rounded-lg p-5">
           <p className="text-sm font-medium text-gray-500">Usage</p>
           <p className={`mt-2 text-2xl font-semibold ${getUsageColor(data.usagePercentage)}`}>
             {data.usagePercentage.toFixed(2)}%
           </p>
           <p className="mt-1 text-sm text-gray-500">{remainingMegabytes.toFixed(2)} MB remaining</p>
         </div>
-        <div className="bg-white shadow rounded-lg p-5">
+        <div className="bg-surface shadow rounded-lg p-5">
           <p className="text-sm font-medium text-gray-500">Items</p>
           <p className="mt-2 text-2xl font-semibold text-gray-900">{data.itemCount.toLocaleString()}</p>
           <p className="mt-1 text-sm text-gray-500">Total records in Items</p>
         </div>
-        <div className="bg-white shadow rounded-lg p-5">
+        <div className="bg-surface shadow rounded-lg p-5">
           <p className="text-sm font-medium text-gray-500">Keywords</p>
           <p className="mt-2 text-2xl font-semibold text-gray-900">{data.keywordCount.toLocaleString()}</p>
           <p className="mt-1 text-sm text-gray-500">Total records in Keywords</p>
@@ -80,7 +80,7 @@ const DatabaseSizePage = () => {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
-        <div className="bg-white shadow rounded-lg p-6">
+        <div className="bg-surface shadow rounded-lg p-6">
           <div className="space-y-6">
             <div>
               <h2 className="text-lg font-medium text-gray-900 mb-4">Current Usage</h2>
@@ -167,7 +167,7 @@ const DatabaseSizePage = () => {
           )}
         </div>
 
-        <div className="bg-white shadow rounded-lg p-6">
+        <div className="bg-surface shadow rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-lg font-medium text-gray-900">Top 5 Largest Tables</h2>
@@ -187,7 +187,7 @@ const DatabaseSizePage = () => {
                     <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wide text-gray-500">Share</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200 bg-white">
+                <tbody className="divide-y divide-gray-200 bg-surface">
                   {data.topTables.map((table) => {
                     const sharePercentage = data.sizeBytes > 0
                       ? (table.sizeBytes / data.sizeBytes) * 100

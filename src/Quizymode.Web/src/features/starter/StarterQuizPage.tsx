@@ -142,7 +142,7 @@ const StarterQuizPage = () => {
         ) : (
           <div role="status" className="mx-auto max-w-2xl">
             <span className="sr-only">Loading your quiz</span>
-            <div aria-hidden="true" className="h-64 animate-pulse rounded-lg bg-white p-4 shadow" />
+            <div aria-hidden="true" className="h-64 animate-pulse rounded-lg bg-surface p-4 shadow" />
             <p className="mt-3 text-center text-sm text-gray-600">Getting your five questions ready...</p>
             {stillLoading && <p className="mt-1 text-center text-sm text-gray-600">Still loading. One moment.</p>}
           </div>

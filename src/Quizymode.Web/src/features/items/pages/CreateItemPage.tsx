@@ -371,7 +371,7 @@ const CreateItemPage = () => {
         <div className="mb-4">
           <Link
             to={addItemsBackTo}
-            className="inline-flex items-center gap-2 text-sm font-medium text-indigo-700 hover:text-indigo-900"
+            className="inline-flex items-center gap-2 text-sm font-medium text-indigo-ink hover:text-indigo-ink"
           >
             <ArrowLeftIcon className="h-4 w-4 shrink-0" aria-hidden />
             Back to Create

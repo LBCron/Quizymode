@@ -90,7 +90,7 @@ function SummaryCard({
       ? "border-green-200 bg-green-50 text-green-900"
       : tone === "warning"
         ? "border-amber-200 bg-amber-50 text-amber-900"
-        : "border-gray-200 bg-white text-gray-900";
+        : "border-gray-200 bg-surface text-gray-900";
 
   return (
     <div className={`rounded-lg border p-4 ${toneClass}`}>
@@ -140,7 +140,7 @@ function ChangeTable({
             </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-200 bg-white">
+        <tbody className="divide-y divide-gray-200 bg-surface">
           {changes.map((change) => (
             <tr key={change.itemId}>
               <td className="px-4 py-3 text-sm font-medium text-gray-900">
@@ -223,7 +223,7 @@ function ResultsPanel({
     Boolean(response.historyRecordedUtc);
 
   return (
-    <div className="bg-white shadow rounded-lg p-6">
+    <div className="bg-surface shadow rounded-lg p-6">
       <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <h2 className="text-lg font-medium text-gray-900">{title}</h2>
@@ -315,7 +315,7 @@ function ResultsPanel({
 
 function HistoryPanel({ history }: { history: SeedSyncHistoryResponse }) {
   return (
-    <div className="bg-white shadow rounded-lg p-6">
+    <div className="bg-surface shadow rounded-lg p-6">
       <div>
         <h2 className="text-lg font-medium text-gray-900">Recent sync history</h2>
         <p className="text-sm text-gray-500">
@@ -640,7 +640,7 @@ const AdminSeedSyncPage = () => {
       <div className="mb-6 flex items-center gap-4">
         <Link
           to="/admin"
-          className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+          className="text-indigo-ink hover:text-indigo-ink text-sm font-medium"
         >
           {"<-"} Admin Dashboard
         </Link>
@@ -660,7 +660,7 @@ const AdminSeedSyncPage = () => {
           className={`rounded-md px-4 py-2 text-sm font-medium border ${
             syncSource === "github"
               ? "bg-indigo-600 text-white border-indigo-600"
-              : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+              : "bg-surface text-gray-700 border-gray-300 hover:bg-gray-50"
           }`}
         >
           GitHub
@@ -671,7 +671,7 @@ const AdminSeedSyncPage = () => {
           className={`rounded-md px-4 py-2 text-sm font-medium border ${
             syncSource === "local"
               ? "bg-indigo-600 text-white border-indigo-600"
-              : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+              : "bg-surface text-gray-700 border-gray-300 hover:bg-gray-50"
           }`}
         >
           Local filesystem
@@ -687,13 +687,13 @@ const AdminSeedSyncPage = () => {
       )}
 
       {syncSource === "github" && (
-        <div className="mb-6 rounded-lg border border-gray-200 bg-white px-4 py-3">
+        <div className="mb-6 rounded-lg border border-gray-200 bg-surface px-4 py-3">
           <label className="flex cursor-pointer items-start gap-3">
             <input
               type="checkbox"
               checked={useIncrementalSync}
               onChange={(e) => { setUseIncrementalSync(e.target.checked); resetResults(); }}
-              className="mt-0.5 h-4 w-4 rounded border-gray-300 text-indigo-600"
+              className="mt-0.5 h-4 w-4 rounded border-gray-300 text-indigo-ink"
             />
             <span className="text-sm">
               <span className="font-medium text-gray-900">Incremental sync</span>
@@ -726,7 +726,7 @@ const AdminSeedSyncPage = () => {
         </div>
       )}
 
-      <div className="bg-white shadow rounded-lg p-6">
+      <div className="bg-surface shadow rounded-lg p-6">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_240px]">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {syncSource === "github" && (
@@ -831,10 +831,10 @@ const AdminSeedSyncPage = () => {
         {fullSyncProgress && (
           <div className="mt-4 rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-3">
             <div className="mb-2 flex items-center justify-between text-sm">
-              <span className="font-medium text-indigo-900">
+              <span className="font-medium text-indigo-ink">
                 Full sync in progress — batch {Math.ceil(fullSyncProgress.processedFiles / FILE_BATCH_SIZE)} of {Math.ceil(fullSyncProgress.totalFiles / FILE_BATCH_SIZE)}
               </span>
-              <span className="text-indigo-700">
+              <span className="text-indigo-ink">
                 {fullSyncProgress.processedFiles.toLocaleString()} / {fullSyncProgress.totalFiles.toLocaleString()} files
                 {" · "}
                 {(fullSyncProgress.createdCount + fullSyncProgress.updatedCount).toLocaleString()} items synced

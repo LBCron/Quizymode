@@ -76,28 +76,28 @@ export function TopicPicker({ initial, status, saving, error, onSave, retrying, 
         role="dialog"
         aria-modal="true"
         aria-labelledby="topic-picker-title"
-        className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-slate-900 p-4 text-white shadow-2xl"
+        className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-panel p-4 text-on-panel shadow-2xl"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-baseline justify-between gap-3">
           <h2 id="topic-picker-title" className="text-lg font-semibold">My topics</h2>
           {selected !== null && (
-            <span aria-live="polite" aria-atomic="true" className="text-xs font-semibold text-slate-300">
+            <span aria-live="polite" aria-atomic="true" className="text-xs font-semibold text-on-panel-muted">
               {selected.length} of {MAX_INTERESTS}
             </span>
           )}
         </div>
-        <p className="mt-1 text-xs text-slate-300">Pick up to {MAX_INTERESTS}. Your picks come first on Home.</p>
+        <p className="mt-1 text-xs text-on-panel-muted">Pick up to {MAX_INTERESTS}. Your picks come first on Home.</p>
         {selected === null && status === "loading" && (
           <div role="status" className="mt-3 flex flex-wrap gap-2">
             <span className="sr-only">Loading your topics…</span>
             {[0, 1, 2, 3, 4, 5].map((i) => (
-              <span key={i} aria-hidden="true" className="h-11 w-24 animate-pulse rounded-full bg-white/10" />
+              <span key={i} aria-hidden="true" className="h-11 w-24 animate-pulse rounded-full bg-on-panel/10" />
             ))}
           </div>
         )}
         {selected === null && status === "error" && (
-          <div role="alert" className="mt-3 text-xs text-red-300">
+          <div role="alert" className="mt-3 text-xs text-red-ink">
             Your topics could not be loaded.{" "}
             <button
               type="button"
@@ -119,7 +119,7 @@ export function TopicPicker({ initial, status, saving, error, onSave, retrying, 
                 <label
                   key={card.slug}
                   className={`inline-flex min-h-[44px] items-center rounded-full border px-4 py-2 text-sm font-semibold has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-sky-200 ${
-                    checked ? "border-sky-300 bg-sky-500/30" : "border-white/20 bg-white/5"
+                    checked ? "border-sky-300 bg-sky-500/30" : "border-on-panel/20 bg-on-panel/5"
                   } ${blocked ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
                 >
                   <input
@@ -146,17 +146,17 @@ export function TopicPicker({ initial, status, saving, error, onSave, retrying, 
             <TopicRefinements selected={selected} onAdd={path => setSelected(current => current === null ? current : [...current.filter(value => !topicsOverlap(value, path)), path])} />
           </>
         )}
-        <p aria-live="polite" className="mt-2 text-xs text-slate-300 empty:hidden">
+        <p aria-live="polite" className="mt-2 text-xs text-on-panel-muted empty:hidden">
           {full ? `That's ${MAX_INTERESTS}, the most you can pick. Remove one to add another.` : ""}
         </p>
         {error && (
-          <p role="alert" className="mt-3 text-xs text-red-300">Your topics could not be saved. Try again.</p>
+          <p role="alert" className="mt-3 text-xs text-red-ink">Your topics could not be saved. Try again.</p>
         )}
         <div className="mt-4 flex gap-2 sm:justify-end">
           <button
             type="button"
             onClick={onClose}
-            className="min-h-[44px] flex-1 rounded-full border border-white/20 px-4 py-2 text-sm font-semibold hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200 sm:flex-none"
+            className="min-h-[44px] flex-1 rounded-full border border-on-panel/20 px-4 py-2 text-sm font-semibold hover:bg-on-panel/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200 sm:flex-none"
           >
             Cancel
           </button>
@@ -166,7 +166,7 @@ export function TopicPicker({ initial, status, saving, error, onSave, retrying, 
               if (selected !== null) onSave(selected);
             }}
             disabled={saving || selected === null}
-            className="min-h-[44px] flex-1 rounded-full bg-sky-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-sky-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200 disabled:opacity-60 sm:flex-none"
+            className="min-h-[44px] flex-1 rounded-full bg-sky-500 px-4 py-2 text-sm font-semibold text-[#020617] hover:bg-sky-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200 disabled:opacity-60 sm:flex-none"
           >
             {saving ? "Saving…" : "Save topics"}
           </button>

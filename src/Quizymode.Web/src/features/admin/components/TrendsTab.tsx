@@ -27,7 +27,7 @@ const TrendsTab = () => {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <section className="rounded-2xl border border-slate-200 bg-surface p-5 shadow-sm">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2 className="text-lg font-semibold text-gray-900">Long-range trends</h2>
@@ -77,7 +77,7 @@ const TrendsTab = () => {
             />
           </section>
 
-          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <section className="rounded-2xl border border-slate-200 bg-surface p-5 shadow-sm">
             <h3 className="text-base font-semibold text-gray-900">Daily sessions</h3>
             {data.daily.length === 0 ? (
               <p className="mt-3 text-sm text-slate-500">No rolled-up traffic in this range yet.</p>
@@ -87,7 +87,7 @@ const TrendsTab = () => {
           </section>
 
           <section className="grid gap-6 xl:grid-cols-2">
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="rounded-2xl border border-slate-200 bg-surface p-5 shadow-sm">
               <h3 className="text-base font-semibold text-gray-900">By feature area</h3>
               <div className="mt-3 overflow-x-auto">
                 <table className="min-w-full divide-y divide-slate-200">
@@ -127,7 +127,7 @@ const TrendsTab = () => {
 };
 
 const Card = ({ label, value, detail }: { label: string; value: number | string; detail: string }) => (
-  <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+  <div className="rounded-2xl border border-slate-200 bg-surface p-5 shadow-sm">
     <div className="text-sm font-medium text-slate-500">{label}</div>
     <div className="mt-3 break-words text-2xl font-semibold text-slate-900">{value}</div>
     <div className="mt-2 text-sm text-slate-600">{detail}</div>
@@ -158,7 +158,7 @@ const DailyBars = ({ daily }: { daily: Array<{ day: string; sessions: number }> 
 };
 
 const DimensionList = ({ title, rows }: { title: string; rows: PageViewRollupDimensionRow[] }) => (
-  <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+  <div className="rounded-2xl border border-slate-200 bg-surface p-5 shadow-sm">
     <h3 className="text-base font-semibold text-gray-900">{title}</h3>
     {rows.length === 0 ? (
       <p className="mt-2 text-sm text-slate-500">No data.</p>

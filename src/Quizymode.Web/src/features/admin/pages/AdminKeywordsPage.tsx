@@ -97,7 +97,7 @@ function KeywordCombobox({
         className="rounded border border-gray-300 text-sm px-2 py-1 w-52"
       />
       {open && (filtered.length > 0 || canCreateNew) && (
-        <ul className="absolute z-20 top-full left-0 mt-1 w-60 bg-white border border-gray-200 rounded shadow-lg max-h-52 overflow-auto text-sm">
+        <ul className="absolute z-20 top-full left-0 mt-1 w-60 bg-surface border border-gray-200 rounded shadow-lg max-h-52 overflow-auto text-sm">
           {filtered.map((o) => (
             <li
               key={o.id}
@@ -308,7 +308,7 @@ const AdminKeywordsPage = () => {
   return (
     <div className="px-4 py-6 sm:px-0">
       <div className="mb-6 flex items-center gap-4">
-        <Link to="/admin" className="text-indigo-600 hover:text-indigo-800 text-sm font-medium">
+        <Link to="/admin" className="text-indigo-ink hover:text-indigo-ink text-sm font-medium">
           ← Admin Dashboard
         </Link>
       </div>
@@ -356,7 +356,7 @@ const AdminKeywordsPage = () => {
             {l1Keywords.length === 0 ? (
               <p className="text-gray-400 text-sm mb-4">No L1 keywords yet.</p>
             ) : (
-              <div className="bg-white shadow rounded-lg overflow-hidden mb-4">
+              <div className="bg-surface shadow rounded-lg overflow-hidden mb-4">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
@@ -374,7 +374,7 @@ const AdminKeywordsPage = () => {
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-surface divide-y divide-gray-200">
                     {l1Keywords.map((kw) => (
                       <KeywordRow
                         key={kw.id}
@@ -465,7 +465,7 @@ const AdminKeywordsPage = () => {
             <div>
               <div className="flex items-center gap-3 mb-3">
                 <h2 className="text-lg font-semibold text-gray-800">L2 Keywords under</h2>
-                <span className="rounded bg-indigo-100 px-2 py-0.5 text-sm font-medium text-indigo-800">
+                <span className="rounded bg-indigo-100 px-2 py-0.5 text-sm font-medium text-indigo-ink">
                   {selectedL1.keywordName}
                 </span>
                 <button
@@ -483,7 +483,7 @@ const AdminKeywordsPage = () => {
                   No L2 keywords under {selectedL1.keywordName} yet.
                 </p>
               ) : (
-                <div className="bg-white shadow rounded-lg overflow-hidden mb-4">
+                <div className="bg-surface shadow rounded-lg overflow-hidden mb-4">
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
@@ -501,7 +501,7 @@ const AdminKeywordsPage = () => {
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="bg-surface divide-y divide-gray-200">
                       {l2Keywords.map((kw) => (
                         <KeywordRow
                           key={kw.id}
@@ -665,7 +665,7 @@ function KeywordRow({
               type="button"
               onClick={handleRenameConfirm}
               disabled={isRenaming}
-              className="text-xs text-indigo-600 hover:text-indigo-800 font-medium disabled:opacity-50"
+              className="text-xs text-indigo-ink hover:text-indigo-ink font-medium disabled:opacity-50"
             >
               OK
             </button>
@@ -683,7 +683,7 @@ function KeywordRow({
             <button
               type="button"
               onClick={() => setRenaming(true)}
-              className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-indigo-600 text-xs transition-opacity"
+              className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-indigo-ink text-xs transition-opacity"
               title="Rename keyword"
             >
               ✎
@@ -718,7 +718,7 @@ function KeywordRow({
             type="button"
             onClick={handleSave}
             disabled={isSaving}
-            className="text-sm font-medium text-indigo-600 hover:text-indigo-800 disabled:opacity-50"
+            className="text-sm font-medium text-indigo-ink hover:text-indigo-ink disabled:opacity-50"
           >
             {isSaving ? "Saving…" : "Save"}
           </button>
@@ -729,8 +729,8 @@ function KeywordRow({
             onClick={onSelect}
             className={`text-sm font-medium ${
               isSelected
-                ? "text-indigo-800 font-semibold"
-                : "text-indigo-500 hover:text-indigo-700"
+                ? "text-indigo-ink font-semibold"
+                : "text-indigo-500 hover:text-indigo-ink"
             }`}
           >
             {isSelected ? "Selected" : "Select"}

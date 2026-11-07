@@ -23,8 +23,8 @@ function PaletteGrid({ palette, onSelect }: PaletteGridProps) {
               entry.notScored
                 ? "border-dashed border-amber-500 bg-amber-50 text-amber-900"
                 : entry.answered
-                  ? "border-slate-700 bg-slate-700 text-white"
-                  : "border-gray-300 bg-white text-gray-800"
+                  ? "border-panel-raised bg-panel-raised text-white"
+                  : "border-gray-300 bg-surface text-gray-800"
             } ${entry.current ? "ring-2 ring-indigo-500 ring-offset-2" : ""}`}
           >
             <span aria-hidden="true">{entry.position}</span>
@@ -91,7 +91,7 @@ export function TestPalettePanel({ palette, currentIndex, onSelect }: TestPalett
         <span>
           Questions {currentIndex + 1} of {palette.entries.length} · {palette.answered} answered · {palette.flagged} flagged
         </span>
-        <span className="font-semibold text-indigo-700">Show</span>
+        <span className="font-semibold text-indigo-ink">Show</span>
       </button>
 
       <section aria-label="Question palette" className="hidden rounded-lg border border-gray-200 p-3 sm:block">

@@ -321,7 +321,7 @@ const UploadToCollectionPage = ({
     return (
       <div className="px-4 py-6 sm:px-0 max-w-2xl mx-auto">
         <p className="text-gray-600 mb-4">Sign in to upload items to a new collection.</p>
-        <Link to="/login" className="text-indigo-600 hover:text-indigo-800">
+        <Link to="/login" className="text-indigo-ink hover:text-indigo-ink">
           Log in
         </Link>
       </div>
@@ -354,7 +354,7 @@ const UploadToCollectionPage = ({
             onKeyDown={handleTabKeyDown}
             className={`-mb-px border-b-2 px-3 py-2 text-sm font-medium ${
               effectiveTab === tab
-                ? "border-indigo-600 text-indigo-600"
+                ? "border-indigo-600 text-indigo-ink"
                 : "border-transparent text-gray-600 hover:text-gray-900"
             }`}
           >
@@ -435,7 +435,7 @@ const UploadToCollectionPage = ({
             <button
               type="button"
               onClick={copyPrompt}
-              className="absolute top-2 right-2 inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50"
+              className="absolute top-2 right-2 inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-gray-700 bg-surface border border-gray-300 hover:bg-gray-50"
             >
               <ClipboardDocumentIcon className="h-4 w-4" />
               {copiedPrompt ? "Copied" : "Copy"}
@@ -476,7 +476,7 @@ const UploadToCollectionPage = ({
           />
           <label
             htmlFor="file-upload"
-            className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-pointer"
+            className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-surface hover:bg-gray-50 cursor-pointer"
           >
             <DocumentArrowUpIcon className="h-5 w-5" />
             Choose JSON file

@@ -16,10 +16,10 @@ export interface SectionChip {
 }
 
 const CHIP_STYLES: Record<SectionChipKind, string> = {
-  new: "border-slate-300 bg-white text-slate-700",
+  new: "border-slate-300 bg-surface text-slate-700",
   free: "border-emerald-300 bg-emerald-50 text-emerald-800",
   queued: "border-amber-300 bg-amber-50 text-amber-800",
-  generating: "border-indigo-300 bg-indigo-50 text-indigo-800",
+  generating: "border-indigo-300 bg-indigo-50 text-indigo-ink",
   done: "border-green-300 bg-green-50 text-green-800",
   failed: "border-red-300 bg-red-50 text-red-800",
   expired: "border-gray-300 bg-gray-100 text-gray-600",

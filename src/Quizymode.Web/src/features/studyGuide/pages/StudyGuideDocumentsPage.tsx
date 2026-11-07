@@ -60,7 +60,7 @@ const StudyGuideDocumentsPage = () => {
       ) : documents.length === 0 ? (
         <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-8 text-center text-sm text-gray-600">
           You have not uploaded any study guides yet.{" "}
-          <Link to="/create/notes" className="font-medium text-indigo-600 hover:text-indigo-800">
+          <Link to="/create/notes" className="font-medium text-indigo-ink hover:text-indigo-ink">
             Upload one
           </Link>{" "}
           to generate quiz questions.
@@ -70,13 +70,13 @@ const StudyGuideDocumentsPage = () => {
           {documents.map((document) => (
             <li
               key={document.id}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
+              className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-gray-200 bg-surface p-4 shadow-sm"
             >
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold text-gray-900">
                   {document.title}
                   {document.isPrimarySource && (
-                    <span className="ml-2 rounded bg-indigo-50 px-1.5 py-0.5 text-xs font-medium text-indigo-700">
+                    <span className="ml-2 rounded bg-indigo-50 px-1.5 py-0.5 text-xs font-medium text-indigo-ink">
                       Primary source
                     </span>
                   )}
@@ -94,14 +94,14 @@ const StudyGuideDocumentsPage = () => {
                 {document.collectionId && (
                   <Link
                     to={buildCollectionStudyPath("explore", document.collectionId)}
-                    className="text-sm font-medium text-indigo-600 hover:text-indigo-800"
+                    className="text-sm font-medium text-indigo-ink hover:text-indigo-ink"
                   >
                     Collection
                   </Link>
                 )}
                 <Link
                   to={`/study-guides/documents/${encodeURIComponent(document.id)}`}
-                  className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  className="rounded-md border border-gray-300 bg-surface px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
                   aria-label={`Continue ${document.title}`}
                 >
                   Continue

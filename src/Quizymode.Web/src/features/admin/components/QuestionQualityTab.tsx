@@ -24,7 +24,7 @@ const QuestionQualityTab = ({ days, includeBots, includeInternal = false }: Ques
   });
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <section className="rounded-2xl border border-slate-200 bg-surface shadow-sm">
       <div className="border-b border-slate-200 px-5 py-4">
         <h2 className="text-lg font-semibold text-gray-900">Question quality</h2>
         <p className="mt-1 text-sm text-gray-600">
@@ -87,7 +87,7 @@ const QuestionQualityTab = ({ days, includeBots, includeInternal = false }: Ques
                 <th className={TH}>Review</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200 bg-white">
+            <tbody className="divide-y divide-slate-200 bg-surface">
               {data.items.map((item) => (
                 <tr key={item.itemId}>
                   <td className="max-w-xs px-4 py-3 text-sm font-medium text-slate-900">
@@ -114,7 +114,7 @@ const QuestionQualityTab = ({ days, includeBots, includeInternal = false }: Ques
                   <td className={TD}>
                     <Link
                       to={`/items/${item.itemId}/edit`}
-                      className="font-medium text-indigo-600 hover:text-indigo-800"
+                      className="font-medium text-indigo-ink hover:text-indigo-ink"
                     >
                       Edit
                     </Link>

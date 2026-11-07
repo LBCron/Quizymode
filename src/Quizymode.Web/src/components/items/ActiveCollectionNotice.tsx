@@ -14,13 +14,13 @@ export function ActiveCollectionNotice() {
   const isPublic = activeCollection.isPublic === true;
 
   return (
-    <div className="mb-6 flex gap-3 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-900">
+    <div className="mb-6 flex gap-3 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-ink">
       <FolderOpenIcon className="mt-0.5 h-4 w-4 shrink-0 text-indigo-500" aria-hidden />
       <p>
         New items will be added to your active collection{" "}
         <Link
           to="/collections"
-          className="font-semibold underline underline-offset-2 hover:text-indigo-700"
+          className="font-semibold underline underline-offset-2 hover:text-indigo-ink"
         >
           {activeCollection.name}
         </Link>

@@ -34,7 +34,7 @@ const LifecycleTab = () => {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <section className="rounded-2xl border border-slate-200 bg-surface shadow-sm">
         <div className="border-b border-slate-200 px-5 py-4">
           <h2 className="text-lg font-semibold text-gray-900">Signup cohorts</h2>
           <p className="mt-1 text-sm text-gray-600">
@@ -50,7 +50,7 @@ const LifecycleTab = () => {
                 onClick={() => setWeeks(option)}
                 className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${
                   weeks === option
-                    ? "bg-slate-900 text-white"
+                    ? "bg-panel text-on-panel"
                     : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                 }`}
               >
@@ -76,7 +76,7 @@ const LifecycleTab = () => {
                   <th className={TH}>Week 4</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200 bg-white">
+              <tbody className="divide-y divide-slate-200 bg-surface">
                 {data.cohorts.map((cohort) => (
                   <tr key={cohort.weekStartUtc}>
                     <td className="px-4 py-3 text-sm font-medium text-slate-900">
@@ -95,7 +95,7 @@ const LifecycleTab = () => {
         )}
       </section>
 
-      <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <section className="rounded-2xl border border-slate-200 bg-surface shadow-sm">
         <div className="border-b border-slate-200 px-5 py-4">
           <h2 className="text-lg font-semibold text-gray-900">Signup source</h2>
           <p className="mt-1 text-sm text-gray-600">
@@ -117,7 +117,7 @@ const LifecycleTab = () => {
                   <th className={TH}>Week 1</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200 bg-white">
+              <tbody className="divide-y divide-slate-200 bg-surface">
                 {data.sources.map((source) => (
                   <tr key={`${source.channel}:${source.campaign ?? ""}`}>
                     <td className="px-4 py-3 text-sm font-medium text-slate-900">{source.channel}</td>

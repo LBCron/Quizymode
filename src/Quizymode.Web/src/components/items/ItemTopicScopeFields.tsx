@@ -51,7 +51,7 @@ function matchIgnoreCase(options: string[], value: string): string | undefined {
   return options.find((option) => option.toLowerCase() === wanted);
 }
 
-const SELECT_CLASS = "w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white text-gray-900";
+const SELECT_CLASS = "w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-surface text-gray-900";
 
 export function ItemTopicScopeFields({
   idPrefix,
@@ -169,7 +169,7 @@ export function ItemTopicScopeFields({
       {state === "B" && (
         <div
           data-testid="topic-pill"
-          className="inline-flex max-w-full items-center gap-1 rounded-full border border-indigo-200 bg-indigo-50 py-1 pl-3 pr-1 text-sm font-medium text-indigo-900"
+          className="inline-flex max-w-full items-center gap-1 rounded-full border border-indigo-200 bg-indigo-50 py-1 pl-3 pr-1 text-sm font-medium text-indigo-ink"
         >
           <span className="min-w-0 break-words">
             <TopicBreadcrumb parts={pillParts} />
@@ -180,7 +180,7 @@ export function ItemTopicScopeFields({
             disabled={disabled}
             onClick={removeTopic}
             aria-label={`Remove topic ${pillParts.join(", ")}`}
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-indigo-700 hover:bg-indigo-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 sm:h-7 sm:w-7"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-indigo-ink hover:bg-indigo-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 sm:h-7 sm:w-7"
           >
             <XMarkIcon className="h-4 w-4" aria-hidden="true" />
           </button>
@@ -216,9 +216,9 @@ export function ItemTopicScopeFields({
         open={browseOpen || state === "P"}
         hidden={state === "B"}
         onToggle={(event) => setBrowseOpen(event.currentTarget.open)}
-        className="rounded-md border border-gray-200 bg-white"
+        className="rounded-md border border-gray-200 bg-surface"
       >
-        <summary className="min-h-11 cursor-pointer px-3 py-2.5 text-sm font-medium text-indigo-700 hover:text-indigo-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 sm:min-h-0">
+        <summary className="min-h-11 cursor-pointer px-3 py-2.5 text-sm font-medium text-indigo-ink hover:text-indigo-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 sm:min-h-0">
           Browse all topics
         </summary>
         <div className="space-y-4 border-t border-gray-200 p-3">

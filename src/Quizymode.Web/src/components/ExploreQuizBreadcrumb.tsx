@@ -39,7 +39,7 @@ export function ExploreQuizBreadcrumb({
 
   return (
     <nav className="flex items-center gap-1 text-xs text-gray-600 overflow-x-auto whitespace-nowrap">
-      <Link to="/categories" className="text-indigo-600 hover:text-indigo-800">
+      <Link to="/categories" className="text-indigo-ink hover:text-indigo-ink">
         Categories
       </Link>
       {segments.map((seg, i) => (
@@ -47,7 +47,7 @@ export function ExploreQuizBreadcrumb({
           <ChevronRightIcon className="h-4 w-4 text-gray-400 flex-shrink-0" />
           <button
             onClick={() => onNavigate(seg.path)}
-            className="text-indigo-600 hover:text-indigo-800"
+            className="text-indigo-ink hover:text-indigo-ink"
             type="button"
             title={seg.description ?? undefined}
           >

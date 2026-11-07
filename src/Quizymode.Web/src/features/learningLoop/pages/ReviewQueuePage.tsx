@@ -157,7 +157,7 @@ const ReviewQueuePage = () => {
         )}
 
         {data && data.items.length === 0 && (
-          <div className="rounded-lg border border-gray-200 bg-white p-4 text-sm text-gray-700">
+          <div className="rounded-lg border border-gray-200 bg-surface p-4 text-sm text-gray-700">
             <p className="font-semibold text-gray-900">Nothing to review right now.</p>
             {data.nextDueAt ? (
               <p className="mt-1">
@@ -201,12 +201,12 @@ const ReviewQueuePage = () => {
             ) : (
               <>
                 {data.dueCount >= BOSS_FIGHT_MIN_DUE && !answeredAny && (
-                  <div className="mb-3 flex flex-col gap-2 rounded-lg border border-gray-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="mb-3 flex flex-col gap-2 rounded-lg border border-gray-200 bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
                     <p className="text-sm text-gray-700">{data.dueCount} due. Ready for a boss fight?</p>
                     <button
                       type="button"
                       onClick={startBoss}
-                      className="min-h-[44px] w-full rounded-md border border-indigo-600 px-4 py-2 font-semibold text-indigo-700 hover:bg-indigo-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 sm:w-auto"
+                      className="min-h-[44px] w-full rounded-md border border-indigo-600 px-4 py-2 font-semibold text-indigo-ink hover:bg-indigo-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 sm:w-auto"
                     >
                       Boss fight
                     </button>

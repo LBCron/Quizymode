@@ -853,7 +853,7 @@ const CategoriesPage = () => {
           <p className="text-gray-600 mb-4">Category not found.</p>
           <Link
             to="/categories"
-            className="text-indigo-600 hover:text-indigo-800"
+            className="text-indigo-ink hover:text-indigo-ink"
           >
             ← Back to Categories
           </Link>
@@ -913,7 +913,7 @@ const CategoriesPage = () => {
           {fromFeatured && (
             <Link
               to="/featured"
-              className="inline-flex items-center gap-1 text-sm font-medium text-indigo-400 hover:text-indigo-300"
+              className="inline-flex items-center gap-1 text-sm font-medium text-indigo-400 hover:text-on-panel-muted"
             >
               <ChevronLeftIcon className="h-4 w-4" />
               Back to Featured
@@ -928,7 +928,7 @@ const CategoriesPage = () => {
             />
           ) : null}
 
-          <section className="rounded-[30px] border border-white/10 bg-white/95 p-3 shadow-2xl shadow-slate-950/20 backdrop-blur sm:p-5">
+          <section className="rounded-[30px] border border-on-panel/10 bg-surface/95 p-3 shadow-2xl shadow-slate-950/20 backdrop-blur sm:p-5">
             <ScopeSecondaryBar
               scopeType="category"
               activeMode="list"
@@ -949,7 +949,7 @@ const CategoriesPage = () => {
                       <button
                         onClick={handleExport}
                         disabled={isExporting}
-                        className="inline-flex shrink-0 items-center gap-1 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                        className="inline-flex shrink-0 items-center gap-1 rounded-md border border-slate-300 bg-surface px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
                         title="Export items as seed JSON"
                       >
                         <ArrowDownTrayIcon className="h-4 w-4" />
@@ -991,7 +991,7 @@ const CategoriesPage = () => {
                       <button
                         onClick={handleExport}
                         disabled={isExporting}
-                        className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                        className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-slate-300 bg-surface px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
                         title="Export items as seed JSON"
                       >
                         <ArrowDownTrayIcon className="h-4 w-4" />
@@ -1225,7 +1225,7 @@ const CategoriesPage = () => {
                   <>
                     <Link
                       to={`/items/${item.id}${itemDetailSearch}`}
-                      className="inline-flex rounded-md p-1.5 text-indigo-600 hover:bg-indigo-50 sm:p-2"
+                      className="inline-flex rounded-md p-1.5 text-indigo-ink hover:bg-indigo-50 sm:p-2"
                       title="View item details"
                     >
                       <EyeIcon className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -1269,13 +1269,13 @@ const CategoriesPage = () => {
           {fromFeatured && (
             <Link
               to="/featured"
-              className="inline-flex items-center gap-1 text-sm font-medium text-indigo-400 hover:text-indigo-300"
+              className="inline-flex items-center gap-1 text-sm font-medium text-indigo-400 hover:text-on-panel-muted"
             >
               <ChevronLeftIcon className="h-4 w-4" />
               Back to Featured
             </Link>
           )}
-          <section className="rounded-[30px] border border-white/10 bg-white/95 p-3 shadow-2xl shadow-slate-950/20 backdrop-blur sm:p-5">
+          <section className="rounded-[30px] border border-on-panel/10 bg-surface/95 p-3 shadow-2xl shadow-slate-950/20 backdrop-blur sm:p-5">
             <ScopeSecondaryBar
               scopeType="category"
               activeMode="sets"
@@ -1296,7 +1296,7 @@ const CategoriesPage = () => {
                       <button
                         onClick={handleExport}
                         disabled={isExporting}
-                        className="inline-flex shrink-0 items-center gap-1 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                        className="inline-flex shrink-0 items-center gap-1 rounded-md border border-slate-300 bg-surface px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
                         title="Export items as seed JSON"
                       >
                         <ArrowDownTrayIcon className="h-4 w-4" />
@@ -1334,7 +1334,7 @@ const CategoriesPage = () => {
                       <button
                         onClick={handleExport}
                         disabled={isExporting}
-                        className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                        className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-slate-300 bg-surface px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
                         title="Export items as seed JSON"
                       >
                         <ArrowDownTrayIcon className="h-4 w-4" />
@@ -1591,21 +1591,21 @@ const CategoriesPage = () => {
         description="Browse all categories on Quizymode. Find flashcards and quizzes organized by topic."
         canonical="https://www.quizymode.com/categories"
       />
-      <div className="bg-slate-950 text-white">
+      <div className="bg-panel-deep text-on-panel">
         <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8 flex flex-col gap-3">
-          <div className="rounded-[24px] border border-white/10 bg-slate-950/70 px-5 py-4 shadow-xl shadow-slate-950/25">
-            <h1 className="text-2xl font-semibold text-white">Categories</h1>
-            <p className="mt-1 text-sm leading-6 text-slate-300">
+          <div className="rounded-[24px] border border-on-panel/10 bg-panel-deep/70 px-5 py-4 shadow-xl shadow-slate-950/25">
+            <h1 className="text-2xl font-semibold text-on-panel">Categories</h1>
+            <p className="mt-1 text-sm leading-6 text-on-panel-muted">
               Browse the public question bank by category and jump into sets, flashcards, or quiz mode.
             </p>
           </div>
 
-          <section className="rounded-[24px] border border-white/10 bg-slate-950/70 p-4 shadow-xl shadow-slate-950/25">
+          <section className="rounded-[24px] border border-on-panel/10 bg-panel-deep/70 p-4 shadow-xl shadow-slate-950/25">
             <div className="flex justify-end pb-2">
               <button
                 type="button"
                 onClick={() => setShowMapModal(true)}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-white/20 bg-white/8 px-3 py-1.5 text-sm font-medium text-slate-200 transition hover:bg-white/14 hover:text-white"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-on-panel/20 bg-on-panel/8 px-3 py-1.5 text-sm font-medium text-on-panel transition hover:bg-on-panel/14 hover:text-on-panel"
               >
                 Map
               </button>
@@ -1659,7 +1659,7 @@ function CategoryPageHero({
   description: string;
 }) {
   return (
-    <section className="relative overflow-hidden rounded-[32px] border border-white/10 bg-slate-950 shadow-2xl shadow-slate-950/30">
+    <section className="relative overflow-hidden rounded-[32px] border border-on-panel/10 bg-panel-deep shadow-2xl shadow-slate-950/30">
       <img
         src={theme.image}
         alt=""
@@ -1678,10 +1678,10 @@ function CategoryPageHero({
         >
           {eyebrow}
         </div>
-        <h1 className="mt-4 max-w-3xl text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+        <h1 className="mt-4 max-w-3xl text-3xl font-semibold tracking-tight text-on-panel sm:text-4xl">
           {title}
         </h1>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-200 sm:text-base">
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-on-panel sm:text-base">
           {description}
         </p>
       </div>
@@ -1732,7 +1732,7 @@ function Breadcrumb({
           {i > 0 && <BreadcrumbChevron className="h-4 w-4 text-gray-400" />}
           <button
             onClick={() => onNavigate(seg.path)}
-            className="text-indigo-600 hover:text-indigo-800"
+            className="text-indigo-ink hover:text-indigo-ink"
             title={seg.description ?? undefined}
           >
             {seg.label}
@@ -1759,7 +1759,7 @@ function ActionButtons({
       {onListSets && (
         <button
           onClick={onListSets}
-          className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100"
+          className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-indigo-ink bg-indigo-50 rounded-md hover:bg-indigo-100"
         >
           <Squares2X2Icon className="h-4 w-4" />
           List sets
@@ -1774,7 +1774,7 @@ function ActionButtons({
       </button>
       <button
         onClick={onExplore}
-        className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100"
+        className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-indigo-ink bg-indigo-50 rounded-md hover:bg-indigo-100"
       >
         <MagnifyingGlassIcon className="h-4 w-4" />
         Flashcards mode
@@ -1800,33 +1800,33 @@ function Pagination({
   onPageChange: (page: number) => void;
 }) {
   return (
-    <div className="mt-6 flex items-center justify-between border-t border-white/10 px-1 pt-4">
+    <div className="mt-6 flex items-center justify-between border-t border-on-panel/10 px-1 pt-4">
       <div className="flex flex-1 justify-between sm:hidden">
         <button
           onClick={() => onPageChange(Math.max(1, currentPage - 1))}
           disabled={currentPage === 1}
-          className="inline-flex items-center rounded-md border border-white/20 bg-white/8 px-4 py-2 text-sm font-medium text-slate-300 hover:bg-white/12 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="inline-flex items-center rounded-md border border-on-panel/20 bg-on-panel/8 px-4 py-2 text-sm font-medium text-on-panel-muted hover:bg-on-panel/12 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           Previous
         </button>
         <button
           onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
           disabled={currentPage === totalPages}
-          className="ml-3 inline-flex items-center rounded-md border border-white/20 bg-white/8 px-4 py-2 text-sm font-medium text-slate-300 hover:bg-white/12 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="ml-3 inline-flex items-center rounded-md border border-on-panel/20 bg-on-panel/8 px-4 py-2 text-sm font-medium text-on-panel-muted hover:bg-on-panel/12 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           Next
         </button>
       </div>
       <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
         <p className="text-sm text-slate-400">
-          Page <span className="font-medium text-slate-200">{currentPage}</span> of{" "}
-          <span className="font-medium text-slate-200">{totalPages}</span>
+          Page <span className="font-medium text-on-panel">{currentPage}</span> of{" "}
+          <span className="font-medium text-on-panel">{totalPages}</span>
         </p>
         <nav className="isolate inline-flex -space-x-px rounded-md">
           <button
             onClick={() => onPageChange(Math.max(1, currentPage - 1))}
             disabled={currentPage === 1}
-            className="inline-flex items-center rounded-l-md px-2 py-2 text-slate-400 ring-1 ring-inset ring-white/20 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="inline-flex items-center rounded-l-md px-2 py-2 text-slate-400 ring-1 ring-inset ring-on-panel/20 hover:bg-on-panel/10 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <ChevronLeftIcon className="h-5 w-5" />
           </button>
@@ -1842,7 +1842,7 @@ function Pagination({
               return (
                 <div key={p} className="flex items-center">
                   {showEllipsis && (
-                    <span className="px-4 py-2 text-sm text-slate-500 ring-1 ring-inset ring-white/20">
+                    <span className="px-4 py-2 text-sm text-slate-500 ring-1 ring-inset ring-on-panel/20">
                       ...
                     </span>
                   )}
@@ -1851,7 +1851,7 @@ function Pagination({
                     className={`inline-flex items-center px-4 py-2 text-sm font-semibold ${
                       p === currentPage
                         ? "z-10 bg-indigo-600 text-white"
-                        : "text-slate-300 ring-1 ring-inset ring-white/20 hover:bg-white/10"
+                        : "text-on-panel-muted ring-1 ring-inset ring-on-panel/20 hover:bg-on-panel/10"
                     }`}
                   >
                     {p}
@@ -1862,7 +1862,7 @@ function Pagination({
           <button
             onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
             disabled={currentPage === totalPages}
-            className="inline-flex items-center rounded-r-md px-2 py-2 text-slate-400 ring-1 ring-inset ring-white/20 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="inline-flex items-center rounded-r-md px-2 py-2 text-slate-400 ring-1 ring-inset ring-on-panel/20 hover:bg-on-panel/10 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <ChevronRightIcon className="h-5 w-5" />
           </button>

@@ -217,7 +217,7 @@ export function FixedSetQuiz({
   if (!item) return null;
 
   return (
-    <section className="mx-auto max-w-2xl rounded-lg bg-white p-4 shadow sm:p-6" aria-label="Quiz">
+    <section className="mx-auto max-w-2xl rounded-lg bg-surface p-4 shadow sm:p-6" aria-label="Quiz">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3 text-sm text-gray-600">
         <p ref={questionHeadingRef} tabIndex={-1} className="font-semibold text-gray-800 focus:outline-none" aria-live="polite">
           Question {index + 1} of {items.length}

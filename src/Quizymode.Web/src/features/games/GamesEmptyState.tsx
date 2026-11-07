@@ -32,7 +32,7 @@ export function GamesEmptyState({
   return (
     <section
       role={onlyPictures ? "status" : undefined}
-      className="mx-auto mt-4 max-w-4xl rounded-lg bg-white p-6 text-center shadow"
+      className="mx-auto mt-4 max-w-4xl rounded-lg bg-surface p-6 text-center shadow"
     >
       <h2 className="text-xl font-bold text-gray-900">{onlyPictures ? "No games for this set" : heading}</h2>
       {onlyPictures ? (

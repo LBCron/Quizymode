@@ -38,13 +38,13 @@ export function LearnFinish({
   }, []);
 
   return (
-    <section className="mx-auto max-w-2xl rounded-lg bg-white p-4 text-center shadow sm:p-6">
+    <section className="mx-auto max-w-2xl rounded-lg bg-surface p-4 text-center shadow sm:p-6">
       <h2 ref={headingRef} tabIndex={-1} className="text-2xl font-bold text-gray-900 focus:outline-none">
         {total === 0 ? "No questions were scored" : <>You&apos;ve mastered all {total} {total === 1 ? "item" : "items"}</>}
       </h2>
       {total > 0 && (
         <>
-          <p className="mt-3 text-3xl font-bold text-indigo-700">
+          <p className="mt-3 text-3xl font-bold text-indigo-ink">
             First try: {firstTryCorrect} / {total}
           </p>
           <p className="mt-1 text-gray-700">{firstTryPercentage}% right first time</p>

@@ -22,7 +22,7 @@ export function TestSetupCard({ count, availableCount, requestedSize, initialLim
   const resolved = resolveTimeLimit(choice, customMinutes, count);
 
   return (
-    <section aria-labelledby="test-setup-title" className="rounded-lg border border-gray-200 bg-white p-4 sm:p-6">
+    <section aria-labelledby="test-setup-title" className="rounded-lg border border-gray-200 bg-surface p-4 sm:p-6">
       <h2 id="test-setup-title" className="text-xl font-bold text-gray-900">
         Test mode
       </h2>

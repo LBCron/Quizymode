@@ -473,7 +473,7 @@ const LearnModePage = () => {
     return (
       <div className="py-3 sm:py-4">
         {scopeBar}
-        <section className="mx-auto mt-4 max-w-4xl rounded-lg bg-white p-6 text-center shadow">
+        <section className="mx-auto mt-4 max-w-4xl rounded-lg bg-surface p-6 text-center shadow">
           <h2 className="text-xl font-bold text-gray-900">Nothing to learn here yet</h2>
           <p className="mt-2 text-gray-600">Learn needs questions with answer choices. Try Flashcards instead.</p>
           <button
@@ -510,7 +510,7 @@ const LearnModePage = () => {
             {quickNotice.documentId && (
               <Link
                 to={`/study-guides/documents/${encodeURIComponent(quickNotice.documentId)}`}
-                className="inline-flex min-h-11 items-center font-medium text-indigo-700 hover:text-indigo-900"
+                className="inline-flex min-h-11 items-center font-medium text-indigo-ink hover:text-indigo-ink"
               >
                 Open study guide
               </Link>
@@ -570,7 +570,7 @@ const LearnModePage = () => {
       <button type="button" onClick={startNewRun} className="font-medium text-red-700 underline">
         Start over
       </button>
-      <button type="button" onClick={() => setConfirmingRestart(false)} className="font-medium text-indigo-700 underline">
+      <button type="button" onClick={() => setConfirmingRestart(false)} className="font-medium text-indigo-ink underline">
         Keep learning
       </button>
     </div>
@@ -597,7 +597,7 @@ const LearnModePage = () => {
             setPendingSize(null);
             setLearnSizeInput(String(learnSize));
           }}
-          className="font-medium text-indigo-700 underline"
+          className="font-medium text-indigo-ink underline"
         >
           Keep learning
         </button>
@@ -646,7 +646,7 @@ const LearnModePage = () => {
       <div className="py-3 sm:py-4">
         {scopeBar}
         <div className="mt-4">{notices}</div>
-        <section className="mx-auto max-w-4xl space-y-4 rounded-lg bg-white p-4 shadow sm:p-6">
+        <section className="mx-auto max-w-4xl space-y-4 rounded-lg bg-surface p-4 shadow sm:p-6">
           {header}
           <LearnRecap
             roundNumber={activeRun.round.number}
@@ -680,7 +680,7 @@ const LearnModePage = () => {
     <div className="py-3 sm:py-4">
       {scopeBar}
       <div className="mt-4">{notices}</div>
-      <section className="mx-auto max-w-4xl space-y-4 rounded-lg bg-white p-4 shadow sm:p-6">
+      <section className="mx-auto max-w-4xl space-y-4 rounded-lg bg-surface p-4 shadow sm:p-6">
         {header}
         <div className="flex items-center justify-between text-sm text-gray-500">
           <span>
@@ -711,7 +711,7 @@ const LearnModePage = () => {
             key={`${currentItem.id}-explanation`}
             itemId={currentItem.id} image={currentItem.explanationImage}
             slot="explanation"
-            className="rounded-lg bg-white"
+            className="rounded-lg bg-surface"
           />
         )}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

@@ -47,7 +47,7 @@ const FunnelTab = ({ days, includeBots, includeInternal = false }: FunnelTabProp
   const maxSessions = Math.max(1, ...data.steps.map((step) => step.sessions));
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <section className="rounded-2xl border border-slate-200 bg-surface shadow-sm">
       <div className="border-b border-slate-200 px-5 py-4">
         <h2 className="text-lg font-semibold text-gray-900">Conversion Funnel</h2>
         <p className="mt-1 text-sm text-gray-600">
@@ -87,7 +87,7 @@ const FunnelTab = ({ days, includeBots, includeInternal = false }: FunnelTabProp
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-200 bg-white">
+          <tbody className="divide-y divide-slate-200 bg-surface">
             {data.steps.map((step) => (
               <tr key={step.eventName}>
                 <td className="px-5 py-4 text-sm text-slate-900">

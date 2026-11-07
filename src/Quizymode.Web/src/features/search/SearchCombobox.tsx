@@ -32,9 +32,9 @@ interface ActiveOverride {
 const INPUT_ID = "global-search-input";
 
 const INPUT_CLASS =
-  "h-9 w-56 rounded-md border border-gray-300 bg-white pl-8 pr-14 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500";
+  "h-9 w-56 rounded-md border border-gray-300 bg-surface pl-8 pr-14 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500";
 const OVERLAY_INPUT_CLASS =
-  "h-11 w-full rounded-lg border border-gray-300 bg-white pl-9 pr-16 text-base text-gray-900 placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500";
+  "h-11 w-full rounded-lg border border-gray-300 bg-surface pl-9 pr-16 text-base text-gray-900 placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500";
 
 /**
  * The WAI-ARIA combobox shared by the inline header box and the mobile overlay. DOM focus stays in the input; the
@@ -332,7 +332,7 @@ const SearchCombobox = ({
           <button
             type="button"
             onClick={onCancel}
-            className="min-h-11 px-2 text-sm font-medium text-indigo-600 hover:text-indigo-800"
+            className="min-h-11 px-2 text-sm font-medium text-indigo-ink hover:text-indigo-ink"
           >
             Cancel
           </button>
@@ -348,7 +348,7 @@ const SearchCombobox = ({
       {input}
       {liveRegion}
       {showPanel && (
-        <div className="absolute right-0 top-full z-50 mt-1.5 max-h-[min(70dvh,32rem)] w-[min(32rem,calc(100vw-2rem))] overflow-y-auto overscroll-contain rounded-xl border border-slate-200 bg-white py-1 shadow-xl shadow-slate-950/15">
+        <div className="absolute right-0 top-full z-50 mt-1.5 max-h-[min(70dvh,32rem)] w-[min(32rem,calc(100vw-2rem))] overflow-y-auto overscroll-contain rounded-xl border border-slate-200 bg-surface py-1 shadow-xl shadow-slate-950/15">
           {panel}
         </div>
       )}

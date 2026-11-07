@@ -19,7 +19,7 @@ export const CategoryFilter = ({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white"
+        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-surface"
       >
         <option value="">All Categories</option>
         {categories?.map((cat) => (

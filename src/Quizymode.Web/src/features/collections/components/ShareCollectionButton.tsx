@@ -36,7 +36,7 @@ export function ShareCollectionButton({ url, title, isPublic }: ShareCollectionB
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+        className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-surface px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
       >
         <ShareIcon className="h-4 w-4" aria-hidden="true" />
         Share
@@ -44,14 +44,14 @@ export function ShareCollectionButton({ url, title, isPublic }: ShareCollectionB
 
       {isOpen && (
         <div
-          className="fixed inset-0 z-40 h-full w-full overflow-y-auto bg-gray-600 bg-opacity-50"
+          className="fixed inset-0 z-40 h-full w-full overflow-y-auto bg-black/50"
           onClick={close}
         >
           <div
             role="dialog"
             aria-modal="true"
             aria-labelledby={titleId}
-            className="relative top-24 mx-auto w-full max-w-md rounded-md border bg-white p-5 shadow-lg"
+            className="relative top-24 mx-auto w-full max-w-md rounded-md border bg-surface p-5 shadow-lg"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="mb-4 flex items-center justify-between">
@@ -98,7 +98,7 @@ export function ShareCollectionButton({ url, title, isPublic }: ShareCollectionB
                 <button
                   type="button"
                   onClick={() => void nativeShare()}
-                  className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  className="rounded-md border border-gray-300 bg-surface px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
                 >
                   Share via…
                 </button>
@@ -107,7 +107,7 @@ export function ShareCollectionButton({ url, title, isPublic }: ShareCollectionB
                 type="button"
                 onClick={() => void showQr()}
                 disabled={isLoadingQr}
-                className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                className="rounded-md border border-gray-300 bg-surface px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
               >
                 {isLoadingQr ? "Loading QR code…" : "Show QR code"}
               </button>

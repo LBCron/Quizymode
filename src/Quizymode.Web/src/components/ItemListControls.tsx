@@ -20,7 +20,7 @@ const ItemListControls = ({
   }
 
   return (
-    <div className="mb-4 bg-white rounded-lg shadow p-4">
+    <div className="mb-4 bg-surface rounded-lg shadow p-4">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center space-x-2">
           <button

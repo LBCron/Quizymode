@@ -166,7 +166,7 @@ const TopicPathCombobox = ({
               setOpen(false);
               onOpenBrowse();
             }}
-            className="font-medium text-indigo-700 underline hover:text-indigo-900"
+            className="font-medium text-indigo-ink underline hover:text-indigo-ink"
           >
             browse all topics
           </button>
@@ -208,7 +208,7 @@ const TopicPathCombobox = ({
                         onClick={() => pick(path)}
                         className={`min-h-11 cursor-pointer border-l-2 px-3 py-2 text-sm sm:min-h-0 ${
                           active
-                            ? "border-indigo-600 bg-indigo-50 text-indigo-900 forced-colors:outline forced-colors:outline-2"
+                            ? "border-indigo-600 bg-indigo-50 text-indigo-ink forced-colors:outline forced-colors:outline-2"
                             : "border-transparent text-slate-900"
                         }`}
                       >
@@ -264,7 +264,7 @@ const TopicPathCombobox = ({
           onBlur={() => setFocused(false)}
           onClick={() => setOpen(true)}
           onKeyDown={onKeyDown}
-          className="h-11 w-full rounded-md border border-gray-300 bg-white pl-3 pr-16 text-base text-gray-900 placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-50 sm:h-10 sm:text-sm"
+          className="h-11 w-full rounded-md border border-gray-300 bg-surface pl-3 pr-16 text-base text-gray-900 placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-50 sm:h-10 sm:text-sm"
         />
         <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1">
           {isLoading && (
@@ -299,7 +299,7 @@ const TopicPathCombobox = ({
       {panelBody && (
         <div
           onMouseDown={(event) => event.preventDefault()}
-          className="mt-1 max-h-72 overflow-y-auto overscroll-contain rounded-lg border border-slate-200 bg-white sm:absolute sm:z-50 sm:max-h-[min(60dvh,24rem)] sm:w-full sm:max-w-xl sm:rounded-xl sm:shadow-xl sm:shadow-slate-950/15"
+          className="mt-1 max-h-72 overflow-y-auto overscroll-contain rounded-lg border border-slate-200 bg-surface sm:absolute sm:z-50 sm:max-h-[min(60dvh,24rem)] sm:w-full sm:max-w-xl sm:rounded-xl sm:shadow-xl sm:shadow-slate-950/15"
         >
           {panelBody}
         </div>

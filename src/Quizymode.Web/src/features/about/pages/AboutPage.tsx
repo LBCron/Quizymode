@@ -31,7 +31,7 @@ const AboutPage = () => {
             href={USER_GUIDE_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="font-medium text-indigo-600 underline underline-offset-2 hover:text-indigo-800"
+            className="font-medium text-indigo-ink underline underline-offset-2 hover:text-indigo-ink"
           >
             Open the User Guide
           </a>{" "}
@@ -44,7 +44,7 @@ const AboutPage = () => {
             href="https://medium.com/@yanis.krumins/quizymode-today-a-study-app-a-content-tool-and-a-useful-engineering-sandbox-f7aeb25e6683"
             target="_blank"
             rel="noopener noreferrer"
-            className="font-medium text-indigo-600 underline underline-offset-2 hover:text-indigo-800"
+            className="font-medium text-indigo-ink underline underline-offset-2 hover:text-indigo-ink"
           >
             Quizymode today — a study app, a content tool, and a useful engineering sandbox
           </a>

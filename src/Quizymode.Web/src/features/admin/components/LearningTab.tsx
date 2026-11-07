@@ -64,7 +64,7 @@ const LearningTab = ({ days, includeBots, includeInternal = false }: LearningTab
         <select
           value={channel}
           onChange={(event) => setChannel(event.target.value)}
-          className="mt-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+          className="mt-1 rounded-lg border border-slate-300 bg-surface px-3 py-2 text-sm"
         >
           {CHANNEL_OPTIONS.map((option) => (
             <option key={option.value} value={option.value}>
@@ -80,7 +80,7 @@ const LearningTab = ({ days, includeBots, includeInternal = false }: LearningTab
         <select
           value={visitorType}
           onChange={(event) => setVisitorType(event.target.value)}
-          className="mt-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+          className="mt-1 rounded-lg border border-slate-300 bg-surface px-3 py-2 text-sm"
         >
           {VISITOR_OPTIONS.map((option) => (
             <option key={option.value} value={option.value}>
@@ -119,7 +119,7 @@ const LearningTab = ({ days, includeBots, includeInternal = false }: LearningTab
   return (
     <div className="space-y-6">
       {filters}
-      <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <section className="rounded-2xl border border-slate-200 bg-surface shadow-sm">
         <div className="border-b border-slate-200 px-5 py-4">
           <h2 className="text-lg font-semibold text-gray-900">Study Engagement</h2>
           <p className="mt-1 text-sm text-gray-600">
@@ -171,7 +171,7 @@ const LearningTab = ({ days, includeBots, includeInternal = false }: LearningTab
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200 bg-white">
+              <tbody className="divide-y divide-slate-200 bg-surface">
                 {data.scopes.map((scope) => (
                   <tr key={`${scope.mode}:${scope.contextType ?? ""}:${scope.contextId ?? ""}`}>
                     <td className="px-5 py-4 text-sm font-medium capitalize text-slate-900">
@@ -203,7 +203,7 @@ const LearningTab = ({ days, includeBots, includeInternal = false }: LearningTab
         )}
       </section>
 
-      <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <section className="rounded-2xl border border-slate-200 bg-surface shadow-sm">
         <div className="border-b border-slate-200 px-5 py-4">
           <h2 className="text-lg font-semibold text-gray-900">Quiz Drop-off</h2>
           <p className="mt-1 text-sm text-gray-600">

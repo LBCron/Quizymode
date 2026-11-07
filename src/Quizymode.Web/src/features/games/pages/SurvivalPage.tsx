@@ -219,7 +219,7 @@ const SurvivalPage = () => {
       ghostMarks && run.startedAtMs !== null ? ghostProgressAt(ghostMarks, Math.max(0, nowMs - run.startedAtMs)) : 0;
     const showNext: boolean = answered && run.lastAnswer?.isCorrect === false;
     body = (
-      <section className="mx-auto max-w-2xl rounded-lg bg-white p-4 shadow sm:p-6">
+      <section className="mx-auto max-w-2xl rounded-lg bg-surface p-4 shadow sm:p-6">
         <div className="flex items-center justify-between gap-3">
           <h1 tabIndex={-1} className="text-lg font-semibold text-gray-900 focus:outline-none">
             Survival

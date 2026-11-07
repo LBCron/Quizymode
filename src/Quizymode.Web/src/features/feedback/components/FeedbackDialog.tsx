@@ -90,7 +90,7 @@ const FeedbackDialog = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/70 px-4 py-10 backdrop-blur-sm"
+      className="fixed inset-0 z-50 overflow-y-auto bg-panel-deep/70 px-4 py-10 backdrop-blur-sm"
       onClick={() => {
         if (!createFeedbackMutation.isPending) {
           onClose();
@@ -101,7 +101,7 @@ const FeedbackDialog = ({
         role="dialog"
         aria-modal="true"
         aria-labelledby="feedback-dialog-title"
-        className="mx-auto flex w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl"
+        className="mx-auto flex w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-slate-200 bg-surface shadow-2xl"
         style={{ maxHeight: "calc(100vh - 5rem)" }}
         onClick={(event) => event.stopPropagation()}
       >
@@ -142,7 +142,7 @@ const FeedbackDialog = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-full bg-slate-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800"
+                className="rounded-full bg-panel px-5 py-2.5 text-sm font-medium text-on-panel transition hover:bg-panel-raised"
               >
                 Close
               </button>
@@ -174,7 +174,7 @@ const FeedbackDialog = ({
                         className={`rounded-2xl border px-4 py-3 text-left transition ${
                           isSelected
                             ? "border-sky-500 bg-sky-50 text-sky-950 shadow-sm"
-                            : "border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300 hover:bg-white"
+                            : "border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300 hover:bg-surface"
                         }`}
                         aria-pressed={isSelected}
                       >
@@ -270,7 +270,7 @@ const FeedbackDialog = ({
               <button
                 type="submit"
                 disabled={!canSubmit || createFeedbackMutation.isPending}
-                className="rounded-full bg-slate-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-full bg-panel px-5 py-2.5 text-sm font-medium text-on-panel transition hover:bg-panel-raised disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {createFeedbackMutation.isPending ? "Submitting..." : "Submit"}
               </button>

@@ -55,7 +55,7 @@ const FeedbackPage = () => {
         description="Share your feedback, report bugs, or suggest features for Quizymode. Your input helps make the platform better for everyone."
         canonical="https://www.quizymode.com/feedback"
       />
-      <div className="mx-auto max-w-5xl rounded-[32px] bg-white px-4 py-8 shadow-sm sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-5xl rounded-[32px] bg-surface px-4 py-8 shadow-sm sm:px-6 lg:px-8">
         <div className="max-w-3xl">
           <p className="text-sm font-semibold uppercase tracking-[0.24em] text-sky-700">
             Feedback
@@ -93,7 +93,7 @@ const FeedbackPage = () => {
                     setSelectedType(card.type);
                     setIsDialogOpen(true);
                   }}
-                  className="mt-6 inline-flex items-center justify-center rounded-full bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800"
+                  className="mt-6 inline-flex items-center justify-center rounded-full bg-panel px-4 py-2.5 text-sm font-medium text-on-panel transition hover:bg-panel-raised"
                 >
                   Open{" "}
                   {feedbackTypeOptions.find((option) => option.value === card.type)?.label}

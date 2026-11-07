@@ -44,7 +44,7 @@ export function SwipeCard({ question, shownAnswer, revealAnswer, onSwipe, cardRe
         start.current = null;
       }}
       className={`relative flex min-h-48 touch-pan-y select-none flex-col justify-center rounded-lg border-2 p-4 [overflow-wrap:anywhere] focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 sm:min-h-56 sm:p-6 ${
-        revealed ? "border-red-500 bg-red-50 motion-safe:animate-wrong-shake" : "border-gray-300 bg-white"
+        revealed ? "border-red-500 bg-red-50 motion-safe:animate-wrong-shake" : "border-gray-300 bg-surface"
       }`}
     >
       {revealed && <XCircleIcon className="absolute right-3 top-3 h-6 w-6 text-red-600" aria-hidden="true" />}

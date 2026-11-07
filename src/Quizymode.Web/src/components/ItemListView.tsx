@@ -90,7 +90,7 @@ export function ItemListView({
                     ? navigate(`/explore/collections/${collectionId}/item/${item.id}`)
                     : navigate(`/explore/item/${item.id}?return=${encodeURIComponent(window.location.pathname)}`)
                 }
-                className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-md"
+                className="p-2 text-indigo-ink hover:bg-indigo-50 rounded-md"
                 title="View item"
               >
                 <EyeIcon className="h-5 w-5" />

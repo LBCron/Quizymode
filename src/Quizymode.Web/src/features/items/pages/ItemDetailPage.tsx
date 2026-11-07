@@ -95,7 +95,7 @@ const ItemDetailPage = () => {
           <button
             type="button"
             onClick={() => navigate(returnUrl)}
-            className="mt-4 inline-flex items-center text-indigo-600 hover:text-indigo-800"
+            className="mt-4 inline-flex items-center text-indigo-ink hover:text-indigo-ink"
           >
             <ArrowLeftIcon className="h-4 w-4 mr-1" />
             {returnLabel}
@@ -103,7 +103,7 @@ const ItemDetailPage = () => {
         ) : (
           <Link
             to="/categories"
-            className="mt-4 inline-flex items-center text-indigo-600 hover:text-indigo-800"
+            className="mt-4 inline-flex items-center text-indigo-ink hover:text-indigo-ink"
           >
             <ArrowLeftIcon className="h-4 w-4 mr-1" />
             Back to Categories
@@ -130,19 +130,19 @@ const ItemDetailPage = () => {
             <button
               type="button"
               onClick={() => navigate(returnUrl)}
-              className="inline-flex items-center text-sm font-medium text-gray-600 hover:text-indigo-600"
+              className="inline-flex items-center text-sm font-medium text-gray-600 hover:text-indigo-ink"
             >
               <ArrowLeftIcon className="h-4 w-4 mr-1" />
               {returnLabel}
             </button>
           ) : navBreadcrumb ? (
             <nav className="flex items-center gap-1 text-sm text-gray-600 flex-wrap">
-              <Link to="/categories" className="text-indigo-600 hover:text-indigo-800">
+              <Link to="/categories" className="text-indigo-ink hover:text-indigo-ink">
                 Categories
               </Link>
               <Link
                 to={buildCategoryPath(categoryNameToSlug(item.category), [])}
-                className="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-800"
+                className="inline-flex items-center gap-1 text-indigo-ink hover:text-indigo-ink"
               >
                 <ChevronRightIcon className="h-4 w-4 text-gray-400 flex-shrink-0" />
                 {item.category}
@@ -154,7 +154,7 @@ const ItemDetailPage = () => {
                     categoryNameToSlug(item.category),
                     item.navigationBreadcrumb!.slice(0, i + 1)
                   )}
-                  className="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-800"
+                  className="inline-flex items-center gap-1 text-indigo-ink hover:text-indigo-ink"
                 >
                   <ChevronRightIcon className="h-4 w-4 text-gray-400 flex-shrink-0" />
                   {kw.toLowerCase() === "other" ? "Others" : kw}
@@ -164,7 +164,7 @@ const ItemDetailPage = () => {
           ) : (
             <Link
               to="/categories"
-              className="inline-flex items-center text-sm font-medium text-gray-600 hover:text-indigo-600"
+              className="inline-flex items-center text-sm font-medium text-gray-600 hover:text-indigo-ink"
             >
               <ArrowLeftIcon className="h-4 w-4 mr-1" />
               Back to Categories
@@ -174,7 +174,7 @@ const ItemDetailPage = () => {
             <div className="flex items-center gap-2">
               <Link
                 to={`/items/${item.id}/edit`}
-                className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 bg-surface border border-gray-300 rounded-md hover:bg-gray-50"
               >
                 <PencilSquareIcon className="h-4 w-4 mr-1.5" />
                 Edit
@@ -188,7 +188,7 @@ const ItemDetailPage = () => {
                   }
                 }}
                 disabled={deleteMutation.isPending}
-                className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-red-700 bg-white border border-red-200 rounded-md hover:bg-red-50 disabled:opacity-50"
+                className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-red-700 bg-surface border border-red-200 rounded-md hover:bg-red-50 disabled:opacity-50"
               >
                 <TrashIcon className="h-4 w-4 mr-1.5" />
                 Delete
@@ -203,7 +203,7 @@ const ItemDetailPage = () => {
           </div>
         )}
 
-        <div className="bg-white shadow rounded-lg p-6">
+        <div className="bg-surface shadow rounded-lg p-6">
           <div className="flex items-center gap-2 mb-4 text-gray-500">
             <EyeIcon className="h-5 w-5" />
             <span className="text-sm font-medium">Item details</span>
@@ -282,7 +282,7 @@ const ItemDetailPage = () => {
                           href={item.source}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-indigo-600 hover:text-indigo-800 hover:underline break-all"
+                          className="text-indigo-ink hover:text-indigo-ink hover:underline break-all"
                         >
                           {item.source}
                         </a>

@@ -57,7 +57,7 @@ const AdminClientErrorsPage = () => {
         include it. Reports are kept for 90 days.
       </p>
 
-      <div className="mb-6 flex flex-wrap items-end gap-4 rounded-lg bg-white p-4 shadow">
+      <div className="mb-6 flex flex-wrap items-end gap-4 rounded-lg bg-surface p-4 shadow">
         <label className="flex flex-col text-sm text-gray-700">
           Time window
           <select
@@ -125,7 +125,7 @@ const AdminClientErrorsPage = () => {
           </p>
 
           {data.groups.length === 0 ? (
-            <div className="rounded-lg bg-white p-6 text-sm text-gray-600 shadow">
+            <div className="rounded-lg bg-surface p-6 text-sm text-gray-600 shadow">
               No client errors in this window.
             </div>
           ) : (
@@ -142,7 +142,7 @@ const AdminClientErrorsPage = () => {
 };
 
 const SummaryCard = ({ label, value, detail }: { label: string; value: number; detail?: string }) => (
-  <div className="rounded-lg bg-white p-5 shadow">
+  <div className="rounded-lg bg-surface p-5 shadow">
     <p className="text-sm font-medium text-gray-500">{label}</p>
     <p className="mt-2 text-2xl font-semibold text-gray-900">{value.toLocaleString()}</p>
     {detail && <p className="mt-1 text-xs text-gray-500">{detail}</p>}
@@ -166,7 +166,7 @@ const ClientErrorGroupCard = ({
   });
 
   return (
-    <li className="rounded-lg bg-white p-5 shadow" data-testid="client-error-group">
+    <li className="rounded-lg bg-surface p-5 shadow" data-testid="client-error-group">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
           <h2 className="break-words text-base font-semibold text-gray-900">
@@ -196,7 +196,7 @@ const ClientErrorGroupCard = ({
       </dl>
 
       <details className="mt-4">
-        <summary className="cursor-pointer text-sm font-medium text-indigo-600">Sample stack</summary>
+        <summary className="cursor-pointer text-sm font-medium text-indigo-ink">Sample stack</summary>
         <pre className="mt-2 max-h-80 overflow-auto rounded bg-gray-100 p-3 text-xs text-gray-800">
           {group.sampleStack ?? "No stack was reported."}
         </pre>
@@ -213,7 +213,7 @@ const ClientErrorGroupCard = ({
       <div className="mt-3 text-sm">
         <button
           type="button"
-          className="font-medium text-indigo-600 hover:text-indigo-800"
+          className="font-medium text-indigo-ink hover:text-indigo-ink"
           aria-expanded={showJourney}
           onClick={() => setShowJourney((current) => !current)}
         >

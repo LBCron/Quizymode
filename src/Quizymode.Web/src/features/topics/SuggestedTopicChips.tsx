@@ -70,7 +70,7 @@ const SuggestedTopicChips = ({ suggestions, phase, isRefreshing = false, onPick,
               type="button"
               data-testid="topic-chip"
               onClick={() => onPick(suggestion, index + 1)}
-              className="min-h-11 w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-2 text-left text-sm text-slate-900 hover:border-indigo-500 hover:bg-indigo-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 sm:w-auto sm:max-w-sm"
+              className="min-h-11 w-full min-w-0 rounded-lg border border-slate-300 bg-surface px-3 py-2 text-left text-sm text-slate-900 hover:border-indigo-500 hover:bg-indigo-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 sm:w-auto sm:max-w-sm"
             >
               <span className="flex items-start gap-2">
                 <span className="min-w-0 flex-1 break-words font-medium">

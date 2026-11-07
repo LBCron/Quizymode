@@ -70,13 +70,13 @@ function PictureZoomDialog({
   }, [onClose, returnFocusRef]);
 
   return createPortal(
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/70 px-4 py-10 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-panel-deep/70 px-4 py-10 backdrop-blur-sm" onClick={onClose}>
       <div
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="picture-zoom-title"
-        className="mx-auto w-full max-w-4xl rounded-lg bg-white p-4 shadow-2xl"
+        className="mx-auto w-full max-w-4xl rounded-lg bg-surface p-4 shadow-2xl"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-center justify-between gap-3">
@@ -147,7 +147,7 @@ function PictureThumb({ itemId, slot, image }: { itemId: string; slot: Slot; ima
             setBlob({ status: "loading" });
             setAttempt((current) => current + 1);
           }}
-          className="min-h-[44px] rounded-md border border-gray-300 bg-white px-3 text-xs font-medium text-gray-700 hover:bg-gray-50"
+          className="min-h-[44px] rounded-md border border-gray-300 bg-surface px-3 text-xs font-medium text-gray-700 hover:bg-gray-50"
         >
           Retry
         </button>
@@ -193,9 +193,9 @@ function PictureTile({
   const picture = pictureFor(item);
   return (
     <li
-      className={`relative flex flex-col gap-2 rounded-lg border p-2 ${selected ? "border-indigo-500 bg-indigo-50" : "border-gray-200 bg-white"}`}
+      className={`relative flex flex-col gap-2 rounded-lg border p-2 ${selected ? "border-indigo-500 bg-indigo-50" : "border-gray-200 bg-surface"}`}
     >
-      <label className="absolute left-2 top-2 z-10 flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center rounded bg-white/90 shadow">
+      <label className="absolute left-2 top-2 z-10 flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center rounded bg-surface/90 shadow">
         <input
           type="checkbox"
           checked={selected}
@@ -287,7 +287,7 @@ export function ImageReviewBulkQueue() {
         {oldest ? <p className="text-sm text-gray-500">Oldest submitted {formatAge(secondsSince(oldest))} ago</p> : null}
         <p className="mt-1 text-sm text-gray-600">
           Review against the{" "}
-          <a href={PICTURE_POLICY_URL} target="_blank" rel="noopener noreferrer" className="text-indigo-700 underline">
+          <a href={PICTURE_POLICY_URL} target="_blank" rel="noopener noreferrer" className="text-indigo-ink underline">
             Picture policy (opens GitHub)
           </a>{" "}
           (version {PICTURE_POLICY_VERSION}). Approving pictures does not publish the item.
@@ -304,14 +304,14 @@ export function ImageReviewBulkQueue() {
             <button
               type="button"
               onClick={() => setSelected(new Set(items.map((item) => item.id)))}
-              className="min-h-[44px] rounded-md border border-gray-300 bg-white px-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="min-h-[44px] rounded-md border border-gray-300 bg-surface px-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
               Select all on this page
             </button>
             <button
               type="button"
               onClick={() => setSelected(new Set())}
-              className="min-h-[44px] rounded-md border border-gray-300 bg-white px-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="min-h-[44px] rounded-md border border-gray-300 bg-surface px-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
               Deselect all
             </button>
@@ -328,7 +328,7 @@ export function ImageReviewBulkQueue() {
             <p className="mt-4 text-sm text-gray-500">Showing the oldest {items.length} of {total}. Decide these to load the next ones.</p>
           ) : null}
 
-          <div className="sticky bottom-0 mt-4 space-y-2 rounded-lg border border-gray-200 bg-white p-3 shadow">
+          <div className="sticky bottom-0 mt-4 space-y-2 rounded-lg border border-gray-200 bg-surface p-3 shadow">
             <label htmlFor="bulk-reject-reason" className="block text-sm font-medium text-gray-700">
               Reason for rejection (required to reject; shown to the owner)
             </label>

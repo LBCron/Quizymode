@@ -47,8 +47,8 @@ export function BucketGridView({
           onKeyDown={(e) => e.key === "Enter" && onOpenBucket(bucket)}
           className={
             bucket.backgroundImage
-              ? "group relative isolate overflow-hidden rounded-[24px] border border-white/10 bg-slate-900 text-left shadow-lg shadow-slate-950/20 transition duration-200 hover:-translate-y-1 hover:shadow-xl cursor-pointer"
-              : "bg-white overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow p-4 text-left cursor-pointer"
+              ? "group relative isolate overflow-hidden rounded-[24px] border border-white/10 bg-panel text-left shadow-lg shadow-slate-950/20 transition duration-200 hover:-translate-y-1 hover:shadow-xl cursor-pointer"
+              : "bg-surface overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow p-4 text-left cursor-pointer"
           }
         >
           {bucket.backgroundImage ? (
@@ -67,12 +67,12 @@ export function BucketGridView({
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-2 flex-wrap">
                     {bucket.eyebrow ? (
-                      <span className="rounded-full border border-white/16 bg-slate-950/40 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-sky-100 backdrop-blur">
+                      <span className="rounded-full border border-white/16 bg-slate-950/40 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-sky-200 backdrop-blur">
                         {bucket.eyebrow}
                       </span>
                     ) : null}
                     {bucket.isPrivate === true && (
-                      <span className="rounded-full bg-purple-500/20 px-3 py-1 text-[11px] font-semibold text-purple-100 backdrop-blur">
+                      <span className="rounded-full bg-purple-500/20 px-3 py-1 text-[11px] font-semibold text-purple-200 backdrop-blur">
                         Private
                       </span>
                     )}
@@ -94,12 +94,12 @@ export function BucketGridView({
                     </h3>
                   </div>
                   {bucket.description ? (
-                    <p className={`max-w-lg text-slate-200 line-clamp-1 ${compact ? "text-[10px] leading-4" : "text-sm leading-6"}`}>
+                    <p className={`max-w-lg text-[#e2e8f0] line-clamp-1 ${compact ? "text-[10px] leading-4" : "text-sm leading-6"}`}>
                       {bucket.description}
                     </p>
                   ) : null}
                   {bucket.averageRating != null && (
-                    <div className="flex items-center gap-1.5 text-sm text-slate-100">
+                    <div className="flex items-center gap-1.5 text-sm text-[#f1f5f9]">
                       <StarIconSolid className="h-4 w-4 text-yellow-300" />
                       <span className="font-medium">
                         {bucket.averageRating.toFixed(1)}

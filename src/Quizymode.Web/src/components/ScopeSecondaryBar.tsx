@@ -38,7 +38,7 @@ export function ScopeSecondaryBar({
 
   return (
     <div
-      className={`flex flex-wrap items-center gap-2 py-2 px-2 bg-white border-b border-gray-200 ${className}`}
+      className={`flex flex-wrap items-center gap-2 py-2 px-2 bg-surface border-b border-gray-200 ${className}`}
       role="region"
       aria-label={`Scope toolbar: ${scopeType}`}
     >

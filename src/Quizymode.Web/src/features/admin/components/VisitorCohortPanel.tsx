@@ -15,7 +15,7 @@ const headerCell =
 const VisitorCohortPanel = ({ visitors, showReturnTable = true }: VisitorCohortPanelProps) => {
   return (
     <section
-      className="rounded-2xl border border-slate-200 bg-white shadow-sm"
+      className="rounded-2xl border border-slate-200 bg-surface shadow-sm"
       aria-labelledby="visitor-cohort-heading"
     >
       <div className="border-b border-slate-200 px-5 py-4">
@@ -95,7 +95,7 @@ const VisitorCohortPanel = ({ visitors, showReturnTable = true }: VisitorCohortP
                     <th className={headerCell}>Return rate</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200 bg-white">
+                <tbody className="divide-y divide-slate-200 bg-surface">
                   {visitors.returnWithin7Days.map((row) => (
                     <tr key={`${row.channel}:${row.utmCampaign ?? ""}`}>
                       <td className="px-5 py-3 text-sm font-medium capitalize text-slate-900">

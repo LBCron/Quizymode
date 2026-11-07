@@ -268,7 +268,7 @@ const StudyGuideUploadPage = () => {
       <StudyGuideSteps current="add" />
       <div className="mb-1 flex flex-wrap items-baseline justify-between gap-2">
         <h1 className="text-2xl font-bold text-gray-900">Turn notes into a quiz</h1>
-        <Link to="/study-guides/documents" className="text-sm font-medium text-indigo-600 hover:text-indigo-800">
+        <Link to="/study-guides/documents" className="text-sm font-medium text-indigo-ink hover:text-indigo-ink">
           My study guides
         </Link>
       </div>
@@ -304,23 +304,23 @@ const StudyGuideUploadPage = () => {
       {isLoadingConfig ? (
         <LoadingSpinner />
       ) : !isEnabled ? (
-        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm space-y-2" role="status">
+        <div className="rounded-lg border border-gray-200 bg-surface p-6 shadow-sm space-y-2" role="status">
           <h2 className="text-sm font-semibold text-gray-900">Feature unavailable</h2>
           <p className="text-sm text-gray-600">{UNAVAILABLE_MESSAGE}</p>
           <p className="text-sm text-gray-600">
             You can still{" "}
-            <Link to="/create/import" className="font-medium text-indigo-600 hover:text-indigo-800">
+            <Link to="/create/import" className="font-medium text-indigo-ink hover:text-indigo-ink">
               import questions from text or a file
             </Link>{" "}
             or open{" "}
-            <Link to="/study-guides/documents" className="font-medium text-indigo-600 hover:text-indigo-800">
+            <Link to="/study-guides/documents" className="font-medium text-indigo-ink hover:text-indigo-ink">
               your earlier study guides
             </Link>
             .
           </p>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="space-y-5 bg-white p-4 rounded-lg shadow" noValidate>
+        <form onSubmit={handleSubmit} className="space-y-5 bg-surface p-4 rounded-lg shadow" noValidate>
           <div>
             <div role="tablist" aria-label="Study guide source" className="flex gap-1 border-b border-gray-200">
               {TABS.map((tab) => (
@@ -343,7 +343,7 @@ const StudyGuideUploadPage = () => {
                   disabled={isSubmitting}
                   className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium ${
                     mode === tab.id
-                      ? "border-indigo-600 text-indigo-700"
+                      ? "border-indigo-600 text-indigo-ink"
                       : "border-transparent text-gray-500 hover:text-gray-700"
                   }`}
                 >
@@ -373,7 +373,7 @@ const StudyGuideUploadPage = () => {
                   <p className="text-sm text-gray-700">Drag a file here, or</p>
                   <label
                     htmlFor="study-guide-file"
-                    className="mt-2 inline-block cursor-pointer rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-indigo-500"
+                    className="mt-2 inline-block cursor-pointer rounded-md border border-gray-300 bg-surface px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-indigo-500"
                   >
                     Choose study guide file
                     <input
@@ -459,7 +459,7 @@ const StudyGuideUploadPage = () => {
               aria-expanded={moreOptionsOpen}
               aria-controls="study-guide-more-options"
               onClick={() => setMoreOptionsOpen((open) => !open)}
-              className="inline-flex min-h-11 items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-800 focus-visible:ring-2 focus-visible:ring-indigo-500"
+              className="inline-flex min-h-11 items-center gap-1 text-sm font-medium text-indigo-ink hover:text-indigo-ink focus-visible:ring-2 focus-visible:ring-indigo-500"
             >
               <svg
                 aria-hidden="true"
@@ -530,7 +530,7 @@ const StudyGuideUploadPage = () => {
               aria-disabled={isSubmitting || undefined}
               aria-describedby={allowanceLine ? "quick-allowance" : undefined}
               onClick={() => submit(false)}
-              className={`inline-flex min-h-11 w-full items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-center text-sm font-medium text-gray-700 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-indigo-500 sm:w-auto disabled:opacity-50 ${
+              className={`inline-flex min-h-11 w-full items-center justify-center rounded-md border border-gray-300 bg-surface px-4 text-center text-sm font-medium text-gray-700 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-indigo-500 sm:w-auto disabled:opacity-50 ${
                 isSubmitting ? "cursor-not-allowed opacity-50" : ""
               }`}
             >

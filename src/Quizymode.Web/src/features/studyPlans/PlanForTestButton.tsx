@@ -35,8 +35,8 @@ export function PlanForTestButton({ collectionId, collectionName }: { collection
         onClick={() => setOpen(true)}
         className={`inline-flex min-h-[44px] items-center gap-1 rounded-md border px-3 py-1.5 text-sm font-medium ${
           planDate
-            ? "border-indigo-300 bg-indigo-50 text-indigo-800 hover:bg-indigo-100"
-            : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
+            ? "border-indigo-300 bg-indigo-50 text-indigo-ink hover:bg-indigo-100"
+            : "border-slate-300 bg-surface text-slate-700 hover:bg-slate-50"
         }`}
       >
         <CalendarDaysIcon className="h-4 w-4" aria-hidden="true" />

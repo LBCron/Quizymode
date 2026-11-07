@@ -44,7 +44,7 @@ const LARGE_ERROR_BOX =
   "relative w-full overflow-hidden rounded-lg bg-slate-100 ring-1 ring-inset ring-gray-300 focus:outline-none";
 
 const buttonClass =
-  "min-h-[44px] rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2";
+  "min-h-[44px] rounded-md border border-gray-300 bg-surface px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2";
 
 /**
  * Curated picture (#407 question, #403 explanation). Renders nothing without an image. The alt text is the image's
@@ -259,7 +259,7 @@ function QuestionImageBox({
           aria-label="Enlarge picture"
           aria-haspopup="dialog"
           onClick={() => setZoomOpen(true)}
-          className="absolute bottom-2 right-2 flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-slate-800 shadow ring-1 ring-slate-300 hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 print:hidden"
+          className="absolute bottom-2 right-2 flex h-11 w-11 items-center justify-center rounded-full bg-surface/90 text-slate-800 shadow ring-1 ring-slate-300 hover:bg-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 print:hidden"
         >
           <MagnifyingGlassPlusIcon className="h-5 w-5" aria-hidden="true" />
         </button>

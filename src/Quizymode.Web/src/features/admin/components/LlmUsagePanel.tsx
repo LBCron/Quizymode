@@ -29,7 +29,7 @@ const LlmUsagePanel = () => {
   });
 
   return (
-    <section aria-labelledby="llm-usage-heading" className="rounded-lg bg-white p-5 shadow">
+    <section aria-labelledby="llm-usage-heading" className="rounded-lg bg-surface p-5 shadow">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 id="llm-usage-heading" className="text-base font-semibold text-gray-900">
           Usage
@@ -42,7 +42,7 @@ const LlmUsagePanel = () => {
             id="llm-usage-days"
             value={days}
             onChange={(event) => setDays(Number(event.target.value))}
-            className="rounded-md border border-gray-300 bg-white px-2 py-1 text-sm"
+            className="rounded-md border border-gray-300 bg-surface px-2 py-1 text-sm"
           >
             {USAGE_WINDOWS.map((window) => (
               <option key={window.days} value={window.days}>

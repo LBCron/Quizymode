@@ -31,7 +31,7 @@ function SourceActions({ summary }: { summary: GuestRunSummary }) {
   if (!source) {
     return (
       <div className="mt-2 flex flex-wrap items-center gap-2">
-        <Link to="/categories" className={`${linkClass} border border-white/20 text-white hover:bg-white/10`}>
+        <Link to="/categories" className={`${linkClass} border border-on-panel/20 text-on-panel hover:bg-on-panel/10`}>
           Browse categories
         </Link>
       </div>
@@ -41,11 +41,11 @@ function SourceActions({ summary }: { summary: GuestRunSummary }) {
   if (source.kind === "collection" && collectionQuery.isError) {
     return (
       <div className="mt-2">
-        <p className="text-xs text-amber-200" role="status">
+        <p className="text-xs text-amber-ink" role="status">
           That collection is no longer available.
         </p>
         <div className="mt-2 flex flex-wrap items-center gap-2">
-          <Link to="/categories" className={`${linkClass} border border-white/20 text-white hover:bg-white/10`}>
+          <Link to="/categories" className={`${linkClass} border border-on-panel/20 text-on-panel hover:bg-on-panel/10`}>
             Browse categories
           </Link>
         </div>
@@ -60,8 +60,8 @@ function SourceActions({ summary }: { summary: GuestRunSummary }) {
 
   return (
     <div className="mt-1">
-      <p className="text-xs text-slate-300">
-        <span className="font-semibold text-white">{topicLabel}</span>
+      <p className="text-xs text-on-panel-muted">
+        <span className="font-semibold text-on-panel">{topicLabel}</span>
         {source.kind !== "collection" && (
           <span> · Practice again starts a new random set from this topic.</span>
         )}
@@ -75,7 +75,7 @@ function SourceActions({ summary }: { summary: GuestRunSummary }) {
         </Link>
         <Link
           to={buildGuestBrowsePath(source, collectionQuery.data?.name)}
-          className={`${linkClass} border border-white/20 text-white hover:bg-white/10`}
+          className={`${linkClass} border border-on-panel/20 text-on-panel hover:bg-on-panel/10`}
         >
           Browse topic
         </Link>
@@ -95,7 +95,7 @@ export function GuestHistoryCard() {
   const latest = summaries[0];
   if (!latest) {
     return clearedNotice ? (
-      <p role="status" className="px-2 text-xs text-slate-300">
+      <p role="status" className="px-2 text-xs text-on-panel-muted">
         Guest history cleared from this browser.
       </p>
     ) : null;
@@ -107,19 +107,19 @@ export function GuestHistoryCard() {
   return (
     <section
       aria-labelledby="guest-history-heading"
-      className="rounded-[24px] border border-white/10 bg-slate-950/70 p-2 shadow-xl shadow-slate-950/25 sm:p-3"
+      className="rounded-[24px] border border-on-panel/10 bg-panel-deep/70 p-2 shadow-xl shadow-slate-950/25 sm:p-3"
     >
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
           <h2
             id="guest-history-heading"
-            className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-300"
+            className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-ink"
           >
             Your last quiz
           </h2>
-          <p className="mt-1 text-sm font-semibold text-white">
+          <p className="mt-1 text-sm font-semibold text-on-panel">
             {latest.correct} / {latest.total} correct
-            <span className="font-normal text-slate-300">
+            <span className="font-normal text-on-panel-muted">
               {" "}
               · {missed === 0 ? "no misses" : `${missed} missed`} ·{" "}
               <time dateTime={latest.completedAt}>{dateFormatter.format(completedAt)}</time>
@@ -133,7 +133,7 @@ export function GuestHistoryCard() {
             setClearFailed(!cleared);
             setClearedNotice(cleared);
           }}
-          className="rounded-full px-3 py-1.5 text-xs font-medium text-slate-300 underline-offset-2 hover:text-white hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200"
+          className="rounded-full px-3 py-1.5 text-xs font-medium text-on-panel-muted underline-offset-2 hover:text-on-panel hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200"
         >
           Clear guest history
         </button>
@@ -145,7 +145,7 @@ export function GuestHistoryCard() {
         removes it.
       </p>
       {clearFailed && (
-        <p className="mt-1 text-xs text-amber-200" role="alert">
+        <p className="mt-1 text-xs text-amber-ink" role="alert">
           Guest history could not be cleared in this browser. Try clearing site data in your browser settings.
         </p>
       )}

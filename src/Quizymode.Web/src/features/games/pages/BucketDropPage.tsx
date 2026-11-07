@@ -228,7 +228,7 @@ const BucketDropPage = () => {
     const answered: boolean = run.status === "feedback";
     const result = run.lastResult;
     body = (
-      <section className="mx-auto max-w-2xl rounded-lg bg-white p-4 shadow sm:p-6">
+      <section className="mx-auto max-w-2xl rounded-lg bg-surface p-4 shadow sm:p-6">
         <div className="flex items-center justify-between gap-3">
           <h1 tabIndex={-1} className="text-lg font-semibold text-gray-900 focus:outline-none">
             Bucket Drop
@@ -270,7 +270,7 @@ const BucketDropPage = () => {
           {run.buckets.map((bucket, index) => {
             const isPicked: boolean = answered && result?.pickedIndex === index;
             const isCorrectBucket: boolean = answered && bucket === item.correctAnswer;
-            let style = "border-gray-300 bg-white hover:bg-gray-50";
+            let style = "border-gray-300 bg-surface hover:bg-gray-50";
             let suffix = "";
             let icon = null;
             if (isPicked && isCorrectBucket) {
@@ -286,7 +286,7 @@ const BucketDropPage = () => {
               suffix = " Right answer";
               icon = <CheckCircleIcon className="h-5 w-5 text-green-600" aria-hidden="true" />;
             } else if (answered) {
-              style = "border-gray-300 bg-white opacity-60";
+              style = "border-gray-300 bg-surface opacity-60";
             }
             return (
               <button

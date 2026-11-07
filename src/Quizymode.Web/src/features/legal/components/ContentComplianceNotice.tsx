@@ -37,7 +37,7 @@ const ContentComplianceNotice = () => {
               type="button"
               onClick={dismiss}
               disabled={isDismissing}
-              className="inline-flex items-center justify-center rounded-md border border-amber-400 bg-white px-3 py-1.5 text-sm font-medium text-amber-900 transition hover:bg-amber-100 disabled:opacity-60"
+              className="inline-flex items-center justify-center rounded-md border border-amber-400 bg-surface px-3 py-1.5 text-sm font-medium text-amber-900 transition hover:bg-amber-100 disabled:opacity-60"
             >
               {isDismissing ? "Saving..." : "I understand, don't show again"}
             </button>

@@ -273,7 +273,7 @@ export function ItemForm({
                 ? `${listboxId}-opt-${highlightIndex}`
                 : undefined
             }
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white text-gray-900 placeholder:text-gray-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-surface text-gray-900 placeholder:text-gray-500"
             onKeyDown={(e) => {
               if (e.key === "ArrowDown") {
                 if (matches.length === 0) return;
@@ -317,7 +317,7 @@ export function ItemForm({
             <ul
               id={listboxId}
               role="listbox"
-              className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-200 bg-white py-1 text-sm shadow-lg"
+              className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-200 bg-surface py-1 text-sm shadow-lg"
             >
               {matches.map((name, idx) => (
                 <li
@@ -326,7 +326,7 @@ export function ItemForm({
                   role="option"
                   aria-selected={idx === highlightIndex}
                   className={`cursor-pointer px-3 py-2 ${
-                    idx === highlightIndex ? "bg-indigo-50 text-indigo-900" : "text-gray-800"
+                    idx === highlightIndex ? "bg-indigo-50 text-indigo-ink" : "text-gray-800"
                   }`}
                   onMouseEnter={() => setHighlightIndex(idx)}
                   onMouseDown={(ev) => {
@@ -375,7 +375,7 @@ export function ItemForm({
   return (
     <form
       onSubmit={e => { if (picturesBusy) { e.preventDefault(); return; } onSubmit(e); }}
-      className="bg-white shadow rounded-lg p-6 space-y-6"
+      className="bg-surface shadow rounded-lg p-6 space-y-6"
     >
       {validationError && (
         <ErrorMessage message={validationError} />
@@ -405,7 +405,7 @@ export function ItemForm({
             onChange={(e) => onChange({ ...values, question: e.target.value })}
             required
             rows={3}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white text-gray-900 placeholder:text-gray-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-surface text-gray-900 placeholder:text-gray-500"
           />
         </div>
 
@@ -426,7 +426,7 @@ export function ItemForm({
               onChange({ ...values, correctAnswer: e.target.value })
             }
             required
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white text-gray-900 placeholder:text-gray-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-surface text-gray-900 placeholder:text-gray-500"
           />
         </div>
 
@@ -444,7 +444,7 @@ export function ItemForm({
                 }
                 aria-label={`Incorrect answer ${index + 1}`}
                 placeholder={`Incorrect answer ${index + 1}`}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white text-gray-900 placeholder:text-gray-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-surface text-gray-900 placeholder:text-gray-500"
               />
               <input
                 type="text"
@@ -453,7 +453,7 @@ export function ItemForm({
                 onChange={(e) => handleIncorrectAnswerRationaleChange(index, e.target.value)}
                 aria-label={`Why incorrect answer ${index + 1} is wrong (optional)`}
                 placeholder="Why this is wrong (optional, max 200 characters)"
-                className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white text-gray-900 placeholder:text-gray-500"
+                className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-surface text-gray-900 placeholder:text-gray-500"
               />
             </div>
           ))}
@@ -467,7 +467,7 @@ export function ItemForm({
           aria-expanded={moreOpen}
           aria-controls={moreOptionsId}
           onClick={() => setMoreOpenChoice(!moreOpen)}
-          className="inline-flex items-center gap-2 text-sm font-medium text-indigo-700 hover:text-indigo-900"
+          className="inline-flex items-center gap-2 text-sm font-medium text-indigo-ink hover:text-indigo-ink"
         >
           <span aria-hidden>{moreOpen ? "▾" : "▸"}</span>
           More options
@@ -497,7 +497,7 @@ export function ItemForm({
               maxLength={30}
               placeholder="e.g., Mammals"
               aria-describedby={`${mode}-group-label-help`}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white text-gray-900 placeholder:text-gray-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-surface text-gray-900 placeholder:text-gray-500"
             />
             <p id={`${mode}-group-label-help`} className="mt-1 text-xs text-gray-500">
               Used by Sort It. Items with the same label form a group. Up to 30 characters.
@@ -518,7 +518,7 @@ export function ItemForm({
                 onChange({ ...values, explanation: e.target.value })
               }
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white text-gray-900 placeholder:text-gray-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-surface text-gray-900 placeholder:text-gray-500"
             />
           </div>
 
@@ -538,7 +538,7 @@ export function ItemForm({
               onChange={(e) => onChange({ ...values, source: e.target.value })}
               maxLength={1000}
               placeholder="e.g., ChatGPT, Claude, Manual"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white text-gray-900 placeholder:text-gray-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-surface text-gray-900 placeholder:text-gray-500"
             />
           </div>
 
@@ -567,7 +567,7 @@ export function ItemForm({
                     })
                   }
                   placeholder="kuroi"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white text-gray-900 placeholder:text-gray-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-surface text-gray-900 placeholder:text-gray-500"
                 />
               </div>
               <div>
@@ -588,7 +588,7 @@ export function ItemForm({
                     })
                   }
                   placeholder="ja-JP"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white text-gray-900 placeholder:text-gray-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-surface text-gray-900 placeholder:text-gray-500"
                 />
               </div>
               <div>
@@ -609,7 +609,7 @@ export function ItemForm({
                     })
                   }
                   placeholder="kuroi"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white text-gray-900 placeholder:text-gray-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-surface text-gray-900 placeholder:text-gray-500"
                 />
               </div>
               <div>
@@ -630,7 +630,7 @@ export function ItemForm({
                     })
                   }
                   placeholder="ja-JP"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white text-gray-900 placeholder:text-gray-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-surface text-gray-900 placeholder:text-gray-500"
                 />
               </div>
             </div>
@@ -647,7 +647,7 @@ export function ItemForm({
                       handleIncorrectAnswerSpeechChange(index, "pronunciation", e.target.value)
                     }
                     placeholder="Optional"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white text-gray-900 placeholder:text-gray-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-surface text-gray-900 placeholder:text-gray-500"
                   />
                 </div>
                 <div>
@@ -661,7 +661,7 @@ export function ItemForm({
                       handleIncorrectAnswerSpeechChange(index, "languageCode", e.target.value)
                     }
                     placeholder="Optional"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white text-gray-900 placeholder:text-gray-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-surface text-gray-900 placeholder:text-gray-500"
                   />
                 </div>
               </div>
@@ -742,7 +742,7 @@ export function ItemForm({
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+          className="px-4 py-2 text-sm font-medium text-gray-700 bg-surface border border-gray-300 rounded-md hover:bg-gray-50"
         >
           Cancel
         </button>
@@ -751,7 +751,7 @@ export function ItemForm({
             type="submit"
             data-action="another"
             disabled={isPending || picturesBusy}
-            className="px-4 py-2 text-sm font-medium text-indigo-700 bg-white border border-indigo-300 rounded-md hover:bg-indigo-50 disabled:opacity-50"
+            className="px-4 py-2 text-sm font-medium text-indigo-ink bg-surface border border-indigo-300 rounded-md hover:bg-indigo-50 disabled:opacity-50"
           >
             Save and add another
           </button>

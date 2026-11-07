@@ -32,7 +32,7 @@ const FORMATS: Record<TextFormat, { extension: string; mimeType: string; withBom
 };
 
 const buttonClass =
-  "inline-flex items-center rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500";
+  "inline-flex items-center rounded-md border border-slate-300 bg-surface px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500";
 
 const plural = (count: number, one: string, many: string): string => (count === 1 ? one : many);
 
@@ -216,7 +216,7 @@ export const CollectionExportControls = ({
           type="checkbox"
           checked={hideAnswers}
           onChange={(e) => onHideAnswersChange(e.target.checked)}
-          className="h-4 w-4 rounded border-slate-300 text-indigo-600"
+          className="h-4 w-4 rounded border-slate-300 text-indigo-ink"
         />
         Hide answers when printing (worksheet)
       </label>

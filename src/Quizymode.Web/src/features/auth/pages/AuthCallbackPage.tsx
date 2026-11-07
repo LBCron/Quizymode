@@ -162,7 +162,7 @@ const AuthCallbackPage = () => {
             </Link>
             <Link
               to={`${SIGNUP_PATH}${query}`}
-              className="block text-sm font-medium text-indigo-600 hover:text-indigo-500"
+              className="block text-sm font-medium text-indigo-ink hover:text-indigo-500"
             >
               Use a different email to sign up
             </Link>
@@ -191,7 +191,7 @@ const AuthCallbackPage = () => {
                 <p className="text-sm text-gray-600">Still working… If nothing happens, go back to sign in.</p>
                 <Link
                   to={`${LOGIN_PATH}${buildAuthIntentQuery(intent)}`}
-                  className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                  className="text-sm font-medium text-indigo-ink hover:text-indigo-500"
                 >
                   Back to sign in
                 </Link>

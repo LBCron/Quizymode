@@ -2,6 +2,17 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <!-- Theme first paint (#504): apply the saved theme before React mounts. Key must match THEME_STORAGE_KEY. -->
+    <script>
+      (function () {
+        var theme = "dark";
+        try {
+          var saved = window.localStorage.getItem("quizymode.theme.v1");
+          if (saved === "light" || saved === "dark") theme = saved;
+        } catch (e) {}
+        document.documentElement.setAttribute("data-theme", theme);
+      })();
+    </script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="alternate icon" type="image/png" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/favicon.png" />

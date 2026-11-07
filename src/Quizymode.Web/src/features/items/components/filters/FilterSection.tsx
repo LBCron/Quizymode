@@ -17,13 +17,13 @@ export const FilterSection = ({
   children,
 }: FilterSectionProps) => {
   return (
-    <div className="mb-6 bg-white rounded-lg shadow">
+    <div className="mb-6 bg-surface rounded-lg shadow">
       <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <FunnelIcon className="h-5 w-5 text-gray-500" />
           <h2 className="text-lg font-medium text-gray-900">Filters</h2>
           {hasActiveFilters && (
-            <span className="px-2 py-1 text-xs font-medium bg-indigo-100 text-indigo-800 rounded-full">
+            <span className="px-2 py-1 text-xs font-medium bg-indigo-100 text-indigo-ink rounded-full">
               Active
             </span>
           )}
@@ -39,7 +39,7 @@ export const FilterSection = ({
           )}
           <button
             onClick={onToggleFilters}
-            className="text-sm text-indigo-600 hover:text-indigo-800 font-medium"
+            className="text-sm text-indigo-ink hover:text-indigo-ink font-medium"
           >
             {showFilters ? "Hide Filters" : "Show Filters"}
           </button>
@@ -84,7 +84,7 @@ export const AddFilterButton = ({ onClick, label }: AddFilterButtonProps) => {
   return (
     <button
       onClick={onClick}
-      className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100"
+      className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-indigo-ink bg-indigo-50 rounded-md hover:bg-indigo-100"
     >
       <PlusIcon className="h-4 w-4 mr-1" />
       {label}

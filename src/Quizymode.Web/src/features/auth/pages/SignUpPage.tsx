@@ -357,7 +357,7 @@ const SignUpPage = () => {
                 type="button"
                 onClick={handleResend}
                 disabled={cooldownRemainingSeconds > 0}
-                className="font-medium text-indigo-600 hover:text-indigo-500 disabled:text-gray-400 disabled:cursor-not-allowed"
+                className="font-medium text-indigo-ink hover:text-indigo-500 disabled:text-gray-400 disabled:cursor-not-allowed"
               >
                 {cooldownRemainingSeconds > 0
                   ? `Resend code (${cooldownRemainingSeconds}s)`
@@ -475,15 +475,15 @@ const SignUpPage = () => {
                 {...fieldErrorProps("legal")}
                 checked={hasAcceptedLegal}
                 onChange={(e) => setHasAcceptedLegal(e.target.checked)}
-                className="mt-1 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                className="mt-1 h-4 w-4 rounded border-slate-300 text-indigo-ink focus:ring-indigo-500"
               />
               <span>
                 I agree to the{" "}
-                <Link to="/terms" className="font-medium text-indigo-600 hover:text-indigo-500">
+                <Link to="/terms" className="font-medium text-indigo-ink hover:text-indigo-500">
                   Terms of Service
                 </Link>{" "}
                 and acknowledge the{" "}
-                <Link to="/privacy" className="font-medium text-indigo-600 hover:text-indigo-500">
+                <Link to="/privacy" className="font-medium text-indigo-ink hover:text-indigo-500">
                   Privacy Policy
                 </Link>
                 . You control whether your collections are private or shared.
@@ -513,7 +513,7 @@ const SignUpPage = () => {
             <span className="text-gray-600">Already have an account? </span>
             <Link
               to={loginHref}
-              className="font-medium text-indigo-600 hover:text-indigo-500"
+              className="font-medium text-indigo-ink hover:text-indigo-500"
             >
               Sign in
             </Link>

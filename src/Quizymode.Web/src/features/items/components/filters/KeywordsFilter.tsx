@@ -24,7 +24,7 @@ export const KeywordsFilter = ({
             onAddKeyword(e.target.value);
           }
         }}
-        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white mb-2"
+        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-surface mb-2"
       >
         <option value="">Select a keyword...</option>
         {availableKeywords
@@ -40,7 +40,7 @@ export const KeywordsFilter = ({
           {selectedKeywords.map((keyword) => (
             <span
               key={keyword}
-              className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800"
+              className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-ink"
             >
               {keyword}
               <button

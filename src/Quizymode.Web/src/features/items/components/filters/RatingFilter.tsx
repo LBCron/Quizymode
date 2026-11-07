@@ -6,7 +6,7 @@ const MIN = 1;
 const MAX = 5;
 
 const thumbStyles =
-  "absolute w-full h-5 appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-slate-300 [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-grab [&::-webkit-slider-thumb]:hover:border-indigo-400 [&::-webkit-slider-thumb]:transition-colors [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-slate-300 [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:cursor-grab [&::-moz-range-thumb]:hover:border-indigo-400";
+  "absolute w-full h-5 appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-surface [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-slate-300 [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-grab [&::-webkit-slider-thumb]:hover:border-indigo-400 [&::-webkit-slider-thumb]:transition-colors [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-surface [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-slate-300 [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:cursor-grab [&::-moz-range-thumb]:hover:border-indigo-400";
 
 interface RatingFilterProps {
   value: RatingRangeFilter;
@@ -62,7 +62,7 @@ export const RatingFilter = ({
               className="sr-only peer"
             />
             <span className="absolute inset-0 rounded-full bg-slate-200 transition-colors peer-focus:ring-2 peer-focus:ring-indigo-500/30 peer-focus:ring-offset-1 peer-checked:bg-indigo-500" />
-            <span className="absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform peer-checked:translate-x-4" />
+            <span className="absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-surface shadow-sm transition-transform peer-checked:translate-x-4" />
           </span>
           <span className="text-sm font-medium text-slate-700 group-hover:text-slate-900 transition-colors">
             Only items with no rating
@@ -112,7 +112,7 @@ export const RatingFilter = ({
             <span className="flex items-center gap-1.5 text-slate-600">
               <StarIcon className="w-4 h-4 text-amber-400 fill-amber-400" aria-hidden />
               <span className="font-medium tabular-nums">{minVal}</span>
-              <span className="text-slate-300">–</span>
+              <span className="text-on-panel-muted">–</span>
               <span className="font-medium tabular-nums">{maxVal}</span>
               <span className="text-slate-400 text-xs ml-0.5">stars</span>
             </span>
@@ -120,7 +120,7 @@ export const RatingFilter = ({
               <button
                 type="button"
                 onClick={handleClearRange}
-                className="text-indigo-600 hover:text-indigo-700 text-xs font-medium transition-colors"
+                className="text-indigo-ink hover:text-indigo-ink text-xs font-medium transition-colors"
               >
                 Clear range
               </button>
@@ -138,7 +138,7 @@ export const RatingFilter = ({
               className="sr-only peer"
             />
             <span className="absolute inset-0 rounded-full bg-slate-200 transition-colors peer-focus:ring-2 peer-focus:ring-indigo-500/30 peer-focus:ring-offset-1 peer-checked:bg-indigo-500" />
-            <span className="absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform peer-checked:translate-x-4" />
+            <span className="absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-surface shadow-sm transition-transform peer-checked:translate-x-4" />
           </span>
           <span className="text-sm text-slate-600 group-hover:text-slate-800 transition-colors">
             Include items with no rating

@@ -171,7 +171,7 @@ const ItemRatingsComments = ({
             );
           }
         }}
-        className="whitespace-nowrap text-sm font-medium text-indigo-600 hover:text-indigo-700"
+        className="whitespace-nowrap text-sm font-medium text-indigo-ink hover:text-indigo-ink"
       >
         Comments ({commentsCount})
       </button>

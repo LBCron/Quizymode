@@ -88,7 +88,7 @@ const SessionRow = ({
             type="button"
             onClick={() => setIsExpanded((current) => !current)}
             aria-expanded={isExpanded}
-            className="flex items-center gap-2 text-left font-medium text-indigo-600 hover:text-indigo-800"
+            className="flex items-center gap-2 text-left font-medium text-indigo-ink hover:text-indigo-ink"
           >
             <span aria-hidden="true">{isExpanded ? "▾" : "▸"}</span>
             {formatDateTime(session.startedUtc)}
@@ -148,7 +148,7 @@ const SessionRow = ({
             {session.ipAddress}
           </div>
           {(session.city || session.region || session.country) && (
-            <div className="mt-1 text-xs font-medium text-indigo-600">
+            <div className="mt-1 text-xs font-medium text-indigo-ink">
               {[session.city, session.region, session.country].filter(Boolean).join(", ")}
               <span className="ml-1 font-normal text-slate-400">(approximate)</span>
             </div>
@@ -182,7 +182,7 @@ const SessionRow = ({
                   <button
                     type="button"
                     onClick={copySessionId}
-                    className="font-medium text-indigo-600 hover:text-indigo-800"
+                    className="font-medium text-indigo-ink hover:text-indigo-ink"
                   >
                     {copied ? "Copied" : "Copy session id"}
                   </button>
@@ -190,7 +190,7 @@ const SessionRow = ({
                     <button
                       type="button"
                       onClick={() => onFilterToSession(session.sessionId)}
-                      className="font-medium text-indigo-600 hover:text-indigo-800"
+                      className="font-medium text-indigo-ink hover:text-indigo-ink"
                     >
                       Filter to this session
                     </button>
@@ -200,7 +200,7 @@ const SessionRow = ({
                       <button
                         type="button"
                         onClick={() => onFilterToVisitor(detail.visitorId as string)}
-                        className="font-medium text-indigo-600 hover:text-indigo-800"
+                        className="font-medium text-indigo-ink hover:text-indigo-ink"
                       >
                         {detail.sessionsFromVisitor} sessions from this visitor
                       </button>
@@ -226,15 +226,15 @@ const SessionRow = ({
                   {detail.steps.map((step) => (
                     <li
                       key={step.stepNumber}
-                      className="flex flex-col gap-1 rounded-xl border border-slate-200 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+                      className="flex flex-col gap-1 rounded-xl border border-slate-200 bg-surface px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
                     >
                       <div className="flex min-w-0 items-center gap-3">
-                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-900 text-xs font-semibold text-white">
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-panel text-xs font-semibold text-on-panel">
                           {step.stepNumber}
                         </span>
                         <div className="min-w-0">
                           <div className="break-all text-sm font-medium text-slate-900">
-                            <span className="mr-2 inline-flex rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-700">
+                            <span className="mr-2 inline-flex rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-ink">
                               {formatArea(step.area)}
                             </span>
                             {(() => {
@@ -244,7 +244,7 @@ const SessionRow = ({
                                   href={href}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-indigo-700 underline hover:text-indigo-900"
+                                  className="text-indigo-ink underline hover:text-indigo-ink"
                                 >
                                   {step.url}
                                 </a>
@@ -290,7 +290,7 @@ const SessionRow = ({
                       {(detail.activities ?? []).map((activity) => (
                         <li
                           key={activity.runId}
-                          className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs text-slate-700"
+                          className="rounded-xl border border-slate-200 bg-surface px-4 py-2 text-xs text-slate-700"
                         >
                           <span className="font-semibold text-slate-900">
                             {ACTIVITY_LABELS[activity.kind]}

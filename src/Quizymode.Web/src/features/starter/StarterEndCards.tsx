@@ -37,12 +37,12 @@ export function StarterEndCards({ run, runId }: StarterEndCardsProps) {
               <Link
                 to={world.target}
                 onClick={() => track(index + 1, id)}
-                className="block h-full min-h-[44px] rounded-lg border border-gray-200 bg-white p-4 text-left hover:border-indigo-400 hover:bg-indigo-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                className="block h-full min-h-[44px] rounded-lg border border-gray-200 bg-surface p-4 text-left hover:border-indigo-400 hover:bg-indigo-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
               >
                 <span aria-hidden="true" className="text-2xl">{world.emoji}</span>
                 <span className="mt-1 block font-semibold text-gray-900">{world.label}</span>
                 <span className="mt-0.5 block text-sm text-gray-600">{world.copy}</span>
-                <span className="mt-2 block text-sm font-semibold text-indigo-700">{world.cta}</span>
+                <span className="mt-2 block text-sm font-semibold text-indigo-ink">{world.cta}</span>
               </Link>
             </li>
           );

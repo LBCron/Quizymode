@@ -115,7 +115,7 @@ const IdeaFormModal = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/70 px-4 py-10 backdrop-blur-sm"
+      className="fixed inset-0 z-50 overflow-y-auto bg-panel-deep/70 px-4 py-10 backdrop-blur-sm"
       onClick={() => {
         if (!isPending) {
           onClose();
@@ -126,7 +126,7 @@ const IdeaFormModal = ({
         role="dialog"
         aria-modal="true"
         aria-labelledby="idea-form-title"
-        className="mx-auto flex w-full max-w-3xl flex-col overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-2xl"
+        className="mx-auto flex w-full max-w-3xl flex-col overflow-hidden rounded-[28px] border border-slate-200 bg-surface shadow-2xl"
         style={{ maxHeight: "calc(100vh - 5rem)" }}
         onClick={(event) => event.stopPropagation()}
       >
@@ -303,7 +303,7 @@ const IdeaFormModal = ({
                 <button
                   type="submit"
                   disabled={!canSubmit || isPending}
-                  className="rounded-full bg-slate-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 disabled:opacity-50"
+                  className="rounded-full bg-panel px-5 py-2.5 text-sm font-medium text-on-panel transition hover:bg-panel-raised disabled:opacity-50"
                 >
                   {isPending ? "Saving..." : submitLabel}
                 </button>

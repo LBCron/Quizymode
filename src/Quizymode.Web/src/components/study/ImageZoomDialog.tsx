@@ -43,7 +43,7 @@ export function ImageZoomDialog({ url, altText, onClose, returnFocusRef }: Image
   // Portalled to the body: an ancestor with backdrop-filter would otherwise make `fixed` relative to itself.
   return createPortal(
     <div
-      className="fixed inset-0 z-[60] overflow-hidden bg-slate-950/80"
+      className="fixed inset-0 z-[60] overflow-hidden bg-panel-deep/80"
       onClick={(event) => {
         event.stopPropagation();
         onClose();
@@ -56,7 +56,7 @@ export function ImageZoomDialog({ url, altText, onClose, returnFocusRef }: Image
         aria-labelledby="image-zoom-title"
         onKeyDown={onKeyDown}
         onClick={(event) => event.stopPropagation()}
-        className="mx-auto flex h-[100dvh] w-full min-w-0 max-w-4xl flex-col overflow-x-hidden rounded-none bg-white p-3 sm:my-6 sm:h-auto sm:max-h-[calc(100dvh-3rem)] sm:rounded-2xl sm:p-4"
+        className="mx-auto flex h-[100dvh] w-full min-w-0 max-w-4xl flex-col overflow-x-hidden rounded-none bg-surface p-3 sm:my-6 sm:h-auto sm:max-h-[calc(100dvh-3rem)] sm:rounded-2xl sm:p-4"
       >
         <div className="flex items-center justify-between gap-3">
           <h2 id="image-zoom-title" className="text-base font-semibold text-slate-900">

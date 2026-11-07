@@ -74,7 +74,7 @@ export function SignupPrompt({ reason, returnTo, className }: SignupPromptProps)
           Have an account?{" "}
           <Link
             to={loginHref}
-            className="font-medium text-indigo-700 underline hover:text-indigo-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+            className="font-medium text-indigo-ink underline hover:text-indigo-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
           >
             Sign in
           </Link>

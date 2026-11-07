@@ -56,7 +56,7 @@ const SearchOverlay = ({ onClose, children }: SearchOverlayProps) => {
       aria-label="Search"
       data-global-search-overlay=""
       onKeyDown={onKeyDown}
-      className="fixed inset-0 z-[200] flex h-dvh flex-col bg-white pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)]"
+      className="fixed inset-0 z-[200] flex h-dvh flex-col bg-surface pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)]"
     >
       <div className="mx-auto flex min-h-0 w-full max-w-2xl flex-1 flex-col">{children}</div>
     </div>

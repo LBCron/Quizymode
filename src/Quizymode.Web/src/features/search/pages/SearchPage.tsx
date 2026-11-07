@@ -38,7 +38,7 @@ const EMPTY_NOUN: Record<Exclude<SearchTab, "all">, string> = {
 
 const TAB_BASE =
   "inline-flex shrink-0 items-center gap-1 px-1.5 sm:px-2 py-1 text-sm font-medium rounded-md whitespace-nowrap";
-const TAB_ACTIVE = "bg-indigo-50 text-indigo-700 border border-indigo-200";
+const TAB_ACTIVE = "bg-indigo-50 text-indigo-ink border border-indigo-200";
 const TAB_INACTIVE = "border border-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-900";
 
 function SearchForm({ initial, onSubmit }: { initial: string; onSubmit: (q: string) => void }) {
@@ -231,27 +231,27 @@ const SearchPage = () => {
     body = !isFresh ? (
       <LoadingSpinner />
     ) : isAll ? (
-      <div className="rounded-[24px] border border-dashed border-slate-300 bg-white/80 px-6 py-12 text-center">
+      <div className="rounded-[24px] border border-dashed border-slate-300 bg-surface/80 px-6 py-12 text-center">
         <p className="font-medium text-slate-900">No results for “{trimmed}”</p>
         <p className="mt-1 text-sm text-slate-600">Check the spelling or try fewer words.</p>
-        <p className="mt-3 flex justify-center gap-4 text-sm font-medium text-indigo-700">
-          <Link to="/categories" className="hover:text-indigo-900">
+        <p className="mt-3 flex justify-center gap-4 text-sm font-medium text-indigo-ink">
+          <Link to="/categories" className="hover:text-indigo-ink">
             Browse categories
           </Link>
-          <Link to="/collections" className="hover:text-indigo-900">
+          <Link to="/collections" className="hover:text-indigo-ink">
             Browse collections
           </Link>
         </p>
       </div>
     ) : (
-      <div className="rounded-[24px] border border-dashed border-slate-300 bg-white/80 px-6 py-12 text-center">
+      <div className="rounded-[24px] border border-dashed border-slate-300 bg-surface/80 px-6 py-12 text-center">
         <p className="font-medium text-slate-900">
           No {EMPTY_NOUN[tab as Exclude<SearchTab, "all">]} for “{trimmed}”
         </p>
         <button
           type="button"
           onClick={() => goTo("all")}
-          className="mt-3 text-sm font-medium text-indigo-700 hover:text-indigo-900"
+          className="mt-3 text-sm font-medium text-indigo-ink hover:text-indigo-ink"
         >
           Search everything
         </button>
@@ -283,7 +283,7 @@ const SearchPage = () => {
               <button
                 type="button"
                 onClick={() => goTo(GROUP_TABS[view.id])}
-                className="mt-1 px-3 py-2 text-sm font-medium text-indigo-700 hover:text-indigo-900"
+                className="mt-1 px-3 py-2 text-sm font-medium text-indigo-ink hover:text-indigo-ink"
               >
                 See all {GROUP_LABELS[view.id].toLowerCase()}
               </button>

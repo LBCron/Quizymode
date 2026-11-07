@@ -21,7 +21,7 @@ const UserSessionsPanel = ({ userId, days, includeInternal, formatDateTime }: Us
   });
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <section className="rounded-2xl border border-slate-200 bg-surface shadow-sm">
       <div className="border-b border-slate-200 px-5 py-4">
         <h3 className="text-lg font-semibold text-gray-900">Sessions</h3>
         <p className="mt-1 text-sm text-gray-600">
@@ -52,7 +52,7 @@ const UserSessionsPanel = ({ userId, days, includeInternal, formatDateTime }: Us
                 <th className={TH}>IP / Client</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200 bg-white">
+            <tbody className="divide-y divide-slate-200 bg-surface">
               {data.sessions.map((session) => (
                 <SessionRow
                   key={session.sessionId}

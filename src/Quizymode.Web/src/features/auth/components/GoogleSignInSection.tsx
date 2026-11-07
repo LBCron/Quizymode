@@ -126,7 +126,7 @@ function GoogleSignInSectionContent({
           onClick={handleClick}
           disabled={disabled || isStarting}
           aria-busy={isStarting || undefined}
-          className="w-full min-h-[44px] inline-flex items-center justify-center gap-3 py-2 px-4 border border-gray-300 rounded-md bg-white text-sm font-medium text-gray-900 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full min-h-[44px] inline-flex items-center justify-center gap-3 py-2 px-4 border border-gray-300 rounded-md bg-surface text-sm font-medium text-gray-900 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isStarting ? (
             <span
@@ -145,11 +145,11 @@ function GoogleSignInSectionContent({
       {showLegalHelper && !embedded && (
         <p className="text-xs text-gray-500 text-center">
           By continuing with Google you agree to the{" "}
-          <Link to="/terms" className="font-medium text-indigo-600 hover:text-indigo-500">
+          <Link to="/terms" className="font-medium text-indigo-ink hover:text-indigo-500">
             Terms of Service
           </Link>{" "}
           and acknowledge the{" "}
-          <Link to="/privacy" className="font-medium text-indigo-600 hover:text-indigo-500">
+          <Link to="/privacy" className="font-medium text-indigo-ink hover:text-indigo-500">
             Privacy Policy
           </Link>
           .
@@ -189,7 +189,7 @@ function InAppBrowserNotice() {
         <button
           type="button"
           onClick={handleCopy}
-          className="py-2 font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 rounded-md"
+          className="py-2 font-medium text-indigo-ink hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 rounded-md"
         >
           Copy link
         </button>

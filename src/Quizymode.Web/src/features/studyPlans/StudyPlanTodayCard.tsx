@@ -15,10 +15,10 @@ import {
 } from "./studyPlanSteps";
 
 const shellClass =
-  "rounded-[18px] border border-white/10 bg-gradient-to-br from-emerald-500/20 to-sky-500/10 p-3";
+  "rounded-[18px] border border-on-panel/10 bg-gradient-to-br from-emerald-500/20 to-sky-500/10 p-3";
 const linkShellClass = `${shellClass} hover:border-emerald-300/60 focus-within:ring-2 focus-within:ring-emerald-200`;
 const pillClass =
-  "relative z-10 inline-flex min-h-[44px] items-center gap-1 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200";
+  "relative z-10 inline-flex min-h-[44px] items-center gap-1 rounded-full border border-on-panel/15 bg-on-panel/5 px-3 py-1.5 text-xs font-semibold text-on-panel hover:bg-on-panel/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200";
 const stretchedLinkClass =
   "flex items-center justify-between gap-3 focus-visible:outline-none after:absolute after:inset-0 after:rounded-[18px]";
 
@@ -124,18 +124,18 @@ function CardLines({ plan, countdown, model }: { plan: PlanView; countdown: stri
   const name = plan.collectionName ?? "Unknown collection";
   return (
     <span className="min-w-0">
-      <span className="block truncate text-xs text-slate-300" title={name}>
+      <span className="block truncate text-xs text-on-panel-muted" title={name}>
         {name} · {countdown}
       </span>
-      <span className="block text-sm font-semibold text-white">{model.title}</span>
-      {model.detail && <span className="block text-xs text-slate-200">{model.detail}</span>}
+      <span className="block text-sm font-semibold text-on-panel">{model.title}</span>
+      {model.detail && <span className="block text-xs text-on-panel">{model.detail}</span>}
     </span>
   );
 }
 
 function Action({ label }: { label: string }): ReactNode {
   return (
-    <span className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-emerald-200">
+    <span className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-emerald-ink">
       {label}
       <ArrowRightIcon className="h-3 w-3" aria-hidden="true" />
     </span>

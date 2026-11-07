@@ -229,7 +229,7 @@ const MatchRacePage = () => {
     const elapsedNow: number = getElapsedMs(run, Math.max(nowMs, run.startedAtMs ?? 0));
     const ghostPairs: number = ghostMarks ? ghostProgressAt(ghostMarks, elapsedNow) : 0;
     body = (
-      <section className="mx-auto max-w-4xl rounded-lg bg-white p-4 shadow sm:p-6">
+      <section className="mx-auto max-w-4xl rounded-lg bg-surface p-4 shadow sm:p-6">
         <div className="flex items-center justify-between gap-3">
           <h1 ref={headingRef} tabIndex={-1} className="text-lg font-semibold text-gray-900 focus:outline-none">
             Match Race

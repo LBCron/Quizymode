@@ -68,7 +68,7 @@ const AdminCategoriesPage = () => {
       <div className="mb-6 flex items-center gap-4">
         <Link
           to="/admin"
-          className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+          className="text-indigo-ink hover:text-indigo-ink text-sm font-medium"
         >
           ← Admin Dashboard
         </Link>
@@ -86,7 +86,7 @@ const AdminCategoriesPage = () => {
         createError={createMutation.error}
       />
 
-      <div className="mt-6 bg-white shadow rounded-lg overflow-hidden">
+      <div className="mt-6 bg-surface shadow rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -108,7 +108,7 @@ const AdminCategoriesPage = () => {
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-surface divide-y divide-gray-200">
               {categories
                 .sort((a, b) => a.category.localeCompare(b.category))
                 .map((cat) => (
@@ -169,7 +169,7 @@ function AddCategoryForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-white shadow rounded-lg p-4 flex flex-wrap items-end gap-4"
+      className="bg-surface shadow rounded-lg p-4 flex flex-wrap items-end gap-4"
     >
       <label className="flex flex-col gap-1">
         <span className="text-xs font-medium text-gray-600">Name</span>
@@ -332,7 +332,7 @@ function CategoryRow({
               type="button"
               onClick={handleSave}
               disabled={isSaving || !nameValue.trim()}
-              className="text-sm font-medium text-indigo-600 hover:text-indigo-800 disabled:opacity-50 mr-2"
+              className="text-sm font-medium text-indigo-ink hover:text-indigo-ink disabled:opacity-50 mr-2"
             >
               {isSaving ? "Saving…" : "Save"}
             </button>
@@ -350,7 +350,7 @@ function CategoryRow({
             <button
               type="button"
               onClick={() => setEditing(true)}
-              className="text-sm font-medium text-indigo-600 hover:text-indigo-800"
+              className="text-sm font-medium text-indigo-ink hover:text-indigo-ink"
             >
               Edit
             </button>

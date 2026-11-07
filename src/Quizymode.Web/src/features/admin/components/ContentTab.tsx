@@ -23,7 +23,7 @@ const Section = ({
   description: string;
   children: React.ReactNode;
 }) => (
-  <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+  <section className="rounded-2xl border border-slate-200 bg-surface shadow-sm">
     <div className="border-b border-slate-200 px-5 py-4">
       <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
       <p className="mt-1 text-sm text-gray-600">{description}</p>
@@ -65,7 +65,7 @@ const ContentTable = ({
             <th className={TH}>Avg score %</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-200 bg-white">
+        <tbody className="divide-y divide-slate-200 bg-surface">
           {rows.map((row) => (
             <tr key={row.key}>
               <td className="px-4 py-3 text-sm font-medium text-slate-900">
@@ -155,7 +155,7 @@ const ContentTab = ({ days, includeBots, includeInternal = false }: ContentTabPr
                   <th className={TH}>Click-through</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200 bg-white">
+              <tbody className="divide-y divide-slate-200 bg-surface">
                 {data.featured.map((row) => (
                   <tr key={row.id}>
                     <td className="px-4 py-3 text-sm font-medium text-slate-900">{row.displayName}</td>
@@ -226,7 +226,7 @@ const ContentTab = ({ days, includeBots, includeInternal = false }: ContentTabPr
                   <th className={TH}>Collections</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200 bg-white">
+              <tbody className="divide-y divide-slate-200 bg-surface">
                 {data.userCreated.map((week) => (
                   <tr key={week.weekStartUtc}>
                     <td className="px-4 py-3 text-sm font-medium text-slate-900">

@@ -270,7 +270,7 @@ const StudyGuideDocumentPage = () => {
           message={notFound ? "This study guide could not be found. It may have expired." : "Failed to load this study guide."}
           onRetry={notFound ? undefined : () => void refetch()}
         />
-        <Link to="/study-guides/documents" className="text-sm font-medium text-indigo-600 hover:text-indigo-800">
+        <Link to="/study-guides/documents" className="text-sm font-medium text-indigo-ink hover:text-indigo-ink">
           Back to my study guides
         </Link>
       </div>
@@ -367,7 +367,7 @@ const StudyGuideDocumentPage = () => {
 
   return (
     <div className="px-4 py-6 sm:px-0 max-w-3xl mx-auto space-y-5">
-      <Link to="/study-guides/documents" className="text-sm font-medium text-indigo-600 hover:text-indigo-800">
+      <Link to="/study-guides/documents" className="text-sm font-medium text-indigo-ink hover:text-indigo-ink">
         ← My study guides
       </Link>
 
@@ -390,7 +390,7 @@ const StudyGuideDocumentPage = () => {
               checked={!!document.isPrimarySource}
               disabled={primarySourceMutation.isPending}
               onChange={(event) => primarySourceMutation.mutate(event.target.checked)}
-              className="h-4 w-4 rounded border-gray-300 text-indigo-600"
+              className="h-4 w-4 rounded border-gray-300 text-indigo-ink"
             />
             Primary source
           </label>
@@ -420,8 +420,8 @@ const StudyGuideDocumentPage = () => {
               to={buildCollectionStudyPath("explore", collectionId)}
               className={
                 acceptedTotal > 0
-                  ? "inline-flex min-h-11 flex-1 items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 hover:bg-gray-50 sm:flex-none"
-                  : "inline-flex min-h-11 items-center text-sm font-medium text-indigo-600 hover:text-indigo-800"
+                  ? "inline-flex min-h-11 flex-1 items-center justify-center rounded-md border border-gray-300 bg-surface px-4 text-sm font-medium text-gray-700 hover:bg-gray-50 sm:flex-none"
+                  : "inline-flex min-h-11 items-center text-sm font-medium text-indigo-ink hover:text-indigo-ink"
               }
             >
               Open collection
@@ -464,10 +464,10 @@ const StudyGuideDocumentPage = () => {
           tabIndex={-1}
           className="space-y-2 rounded-lg border border-indigo-200 bg-indigo-50 p-4 focus:outline-none"
         >
-          <h2 id="quick-progress-heading" className="text-base font-semibold text-indigo-900">
+          <h2 id="quick-progress-heading" className="text-base font-semibold text-indigo-ink">
             Making your quiz
           </h2>
-          <p role="status" className="text-sm text-indigo-900">
+          <p role="status" className="text-sm text-indigo-ink">
             {progressLine}
           </p>
           <div className="h-2 rounded-full bg-indigo-100" aria-hidden="true">
@@ -476,11 +476,11 @@ const StudyGuideDocumentPage = () => {
               style={{ width: `${quickProgress.total === 0 ? 0 : Math.round((quickProgress.ready / quickProgress.total) * 100)}%` }}
             />
           </div>
-          <p className="text-xs text-indigo-800">
+          <p className="text-xs text-indigo-ink">
             Questions save automatically, so you can leave this page. Find them later in My study guides.
           </p>
           {quickSlow && (
-            <p className="text-xs text-indigo-800">
+            <p className="text-xs text-indigo-ink">
               This is taking longer than usual. Your questions will still save when they&apos;re ready.
             </p>
           )}
@@ -558,26 +558,26 @@ const StudyGuideDocumentPage = () => {
                 </Link>
                 <Link
                   to={buildCollectionStudyPath("quiz", acceptSummary.collectionId)}
-                  className="inline-flex min-h-11 items-center rounded-md border border-green-300 bg-white px-3 font-medium text-green-900 hover:bg-green-100"
+                  className="inline-flex min-h-11 items-center rounded-md border border-green-300 bg-surface px-3 font-medium text-green-900 hover:bg-green-100"
                 >
                   Start quiz
                 </Link>
                 <Link
                   to={buildCollectionStudyPath("explore", acceptSummary.collectionId)}
-                  className="inline-flex min-h-11 items-center rounded-md border border-green-300 bg-white px-3 font-medium text-green-900 hover:bg-green-100"
+                  className="inline-flex min-h-11 items-center rounded-md border border-green-300 bg-surface px-3 font-medium text-green-900 hover:bg-green-100"
                 >
                   Study flashcards
                 </Link>
                 <button
                   type="button"
                   onClick={focusPicker}
-                  className="inline-flex min-h-11 items-center rounded-md border border-green-300 bg-white px-3 font-medium text-green-900 hover:bg-green-100"
+                  className="inline-flex min-h-11 items-center rounded-md border border-green-300 bg-surface px-3 font-medium text-green-900 hover:bg-green-100"
                 >
                   Add more
                 </button>
                 <Link
                   to={buildCollectionPath(acceptSummary.collectionId)}
-                  className="inline-flex min-h-11 items-center rounded-md border border-green-300 bg-white px-3 font-medium text-green-900 hover:bg-green-100"
+                  className="inline-flex min-h-11 items-center rounded-md border border-green-300 bg-surface px-3 font-medium text-green-900 hover:bg-green-100"
                 >
                   Open collection
                 </Link>
@@ -674,7 +674,7 @@ const StudyGuideDocumentPage = () => {
           )}
 
           {showSaveControls && (
-          <div className="sticky bottom-0 flex flex-wrap items-center gap-3 border-t border-gray-200 bg-white/95 py-3">
+          <div className="sticky bottom-0 flex flex-wrap items-center gap-3 border-t border-gray-200 bg-surface/95 py-3">
             <button
               type="button"
               disabled={acceptPayload.length === 0 || acceptMutation.isPending}

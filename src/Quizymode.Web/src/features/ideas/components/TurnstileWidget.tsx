@@ -143,7 +143,7 @@ const TurnstileWidget = ({ onTokenChange }: TurnstileWidgetProps) => {
           <button
             type="button"
             onClick={retryChallenge}
-            className="rounded-full border border-rose-300 bg-white px-3 py-1 font-semibold text-rose-900 hover:bg-rose-100"
+            className="rounded-full border border-rose-300 bg-surface px-3 py-1 font-semibold text-rose-900 hover:bg-rose-100"
           >
             Try again
           </button>

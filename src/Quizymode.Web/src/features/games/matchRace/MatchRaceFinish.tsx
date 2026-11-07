@@ -23,11 +23,11 @@ export function MatchRaceFinish({ elapsedMs, bestMs, isNewBest, ghostLine, hubPa
   }, []);
 
   return (
-    <div className="mx-auto max-w-2xl rounded-lg bg-white p-4 text-center shadow sm:p-6">
+    <div className="mx-auto max-w-2xl rounded-lg bg-surface p-4 text-center shadow sm:p-6">
       <h2 ref={headingRef} tabIndex={-1} className="text-2xl font-bold text-gray-900 focus:outline-none">
         Done!
       </h2>
-      <p className="mt-3 text-3xl font-bold text-indigo-700 tabular-nums">{formatGameTime(elapsedMs)}</p>
+      <p className="mt-3 text-3xl font-bold text-indigo-ink tabular-nums">{formatGameTime(elapsedMs)}</p>
       {isNewBest ? (
         <p className="mt-2 inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-900">
           <StarIcon className="h-4 w-4" aria-hidden="true" />

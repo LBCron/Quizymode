@@ -11,7 +11,7 @@ const RECENT_GUIDE_COUNT = 3;
 
 const focusRing =
   "focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950";
-const textLink = `font-medium text-indigo-300 hover:text-indigo-200 underline-offset-2 hover:underline rounded ${focusRing}`;
+const textLink = `font-medium text-on-panel-muted hover:text-on-panel-muted underline-offset-2 hover:underline rounded ${focusRing}`;
 
 const EXAMPLE_OPTIONS = [
   { label: "Mitochondria", correct: true },
@@ -34,16 +34,16 @@ const CreateHubPage = () => {
     .slice(0, RECENT_GUIDE_COUNT);
 
   return (
-    <div className="bg-slate-950 text-white">
+    <div className="bg-panel-deep text-on-panel">
       <SEO title="Create" description="Turn your notes into quiz questions, or write your own." />
       <div className="mx-auto max-w-3xl px-4 py-6">
         <h1 className="mb-2 text-3xl font-bold">Create</h1>
-        <p className="mb-6 text-sm text-slate-300">Turn your notes into quiz questions, or write your own.</p>
+        <p className="mb-6 text-sm text-on-panel-muted">Turn your notes into quiz questions, or write your own.</p>
 
         {!isAuthenticated && (
           <div
             role="status"
-            className="mb-6 rounded-lg border border-white/10 bg-slate-800/50 px-4 py-3 text-sm text-slate-200"
+            className="mb-6 rounded-lg border border-on-panel/10 bg-panel-raised/50 px-4 py-3 text-sm text-on-panel"
           >
             Sign in to create quizzes and questions.{" "}
             <Link to="/login" className={textLink}>
@@ -57,20 +57,20 @@ const CreateHubPage = () => {
         )}
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div className="flex flex-col rounded-lg border border-white/10 bg-slate-800/50 p-4 sm:p-5">
+          <div className="flex flex-col rounded-lg border border-on-panel/10 bg-panel-raised/50 p-4 sm:p-5">
             <h2 className="mb-1 text-lg font-semibold">Turn notes into a quiz</h2>
-            <p className="mb-4 text-sm text-slate-300">
+            <p className="mb-4 text-sm text-on-panel-muted">
               Upload a study guide or paste your notes. Quizymode makes quiz questions and saves them to a private collection you can edit.
             </p>
-            <div aria-hidden="true" className="mb-4 rounded-md border border-white/10 bg-slate-900/60 p-3 text-sm">
+            <div aria-hidden="true" className="mb-4 rounded-md border border-on-panel/10 bg-panel/60 p-3 text-sm">
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Example</p>
-              <p className="mb-2 text-slate-100">Which organelle produces most of a cell&apos;s ATP?</p>
+              <p className="mb-2 text-on-panel">Which organelle produces most of a cell&apos;s ATP?</p>
               <ul className="space-y-1">
                 {EXAMPLE_OPTIONS.map((option) => (
                   <li
                     key={option.label}
                     className={`rounded px-2 py-1 ${
-                      option.correct ? "bg-emerald-500/20 text-emerald-200" : "bg-white/5 text-slate-300"
+                      option.correct ? "bg-emerald-500/20 text-emerald-ink" : "bg-on-panel/5 text-on-panel-muted"
                     }`}
                   >
                     {option.label}
@@ -86,14 +86,14 @@ const CreateHubPage = () => {
             </Link>
           </div>
 
-          <div className="flex flex-col rounded-lg border border-white/10 bg-slate-800/50 p-4 sm:p-5">
+          <div className="flex flex-col rounded-lg border border-on-panel/10 bg-panel-raised/50 p-4 sm:p-5">
             <h2 className="mb-1 text-lg font-semibold">Write a question</h2>
-            <p className="mb-4 text-sm text-slate-300">
+            <p className="mb-4 text-sm text-on-panel-muted">
               Add a single question with its correct answer, wrong options and an optional explanation.
             </p>
             <Link
               to={`/create/question${location.search}`}
-              className={`mt-auto inline-flex min-h-11 w-full items-center justify-center rounded-md border border-white/30 px-4 py-2 text-sm font-medium text-white hover:bg-white/10 sm:w-auto sm:self-start ${focusRing}`}
+              className={`mt-auto inline-flex min-h-11 w-full items-center justify-center rounded-md border border-on-panel/30 px-4 py-2 text-sm font-medium text-on-panel hover:bg-on-panel/10 sm:w-auto sm:self-start ${focusRing}`}
             >
               Write a question
             </Link>
@@ -123,7 +123,7 @@ const CreateHubPage = () => {
             ) : error ? (
               <ErrorMessage message="Couldn't load your recent study guides." onRetry={() => void refetch()} />
             ) : recent.length === 0 ? (
-              <div className="rounded-lg border border-dashed border-white/20 p-6 text-center text-sm text-slate-300">
+              <div className="rounded-lg border border-dashed border-on-panel/20 p-6 text-center text-sm text-on-panel-muted">
                 No study guides yet. Make your first quiz above.
               </div>
             ) : (
@@ -131,7 +131,7 @@ const CreateHubPage = () => {
                 {recent.map((document) => (
                   <li
                     key={document.id}
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-white/10 bg-slate-800/50 p-4"
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-on-panel/10 bg-panel-raised/50 p-4"
                   >
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold">{document.title}</p>
@@ -143,7 +143,7 @@ const CreateHubPage = () => {
                     <Link
                       to={`/study-guides/documents/${encodeURIComponent(document.id)}`}
                       aria-label={`Continue ${document.title}`}
-                      className={`rounded-md border border-white/30 px-3 py-1.5 text-sm font-medium text-white hover:bg-white/10 ${focusRing}`}
+                      className={`rounded-md border border-on-panel/30 px-3 py-1.5 text-sm font-medium text-on-panel hover:bg-on-panel/10 ${focusRing}`}
                     >
                       Continue
                     </Link>

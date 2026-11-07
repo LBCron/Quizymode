@@ -179,7 +179,7 @@ const CollectionDetailPage = () => {
       {fromFeatured && (
         <Link
           to="/featured"
-          className="inline-flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-800"
+          className="inline-flex items-center gap-1 text-sm font-medium text-indigo-ink hover:text-indigo-ink"
         >
           <ChevronLeftIcon className="h-4 w-4" />
           Back to Featured
@@ -199,7 +199,7 @@ const CollectionDetailPage = () => {
           }}
         />
       )}
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-4 rounded-[28px] border border-slate-200/80 bg-white/90 p-5 shadow-sm shadow-slate-300/20">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-4 rounded-[28px] border border-slate-200/80 bg-surface/90 p-5 shadow-sm shadow-slate-300/20">
         <div className="min-w-0">
           <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
             Collection
@@ -228,7 +228,7 @@ const CollectionDetailPage = () => {
                   updatePageSize(parseInt(e.target.value, 10));
                   setItemsPage(1);
                 }}
-                className="rounded border-slate-300 bg-white text-sm text-slate-900"
+                className="rounded border-slate-300 bg-surface text-sm text-slate-900"
               >
                 {PAGE_SIZE_OPTIONS.map((n) => (
                   <option key={n} value={n}>
@@ -251,7 +251,7 @@ const CollectionDetailPage = () => {
           <button
             type="button"
             onClick={() => setShowDetails(true)}
-            className="inline-flex items-center rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            className="inline-flex items-center rounded-md border border-slate-300 bg-surface px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
           >
             Details
           </button>
@@ -293,7 +293,7 @@ const CollectionDetailPage = () => {
             }}
             placeholder="e.g. Biology chapter 5 practice set"
             rows={2}
-            className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
+            className="w-full rounded-md border border-slate-300 bg-surface px-3 py-2 text-sm text-slate-900"
           />
         </div>
       )}
@@ -354,11 +354,11 @@ const CollectionDetailPage = () => {
       )}
       {showDetails && collectionData && (
         <div
-          className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-40"
+          className="fixed inset-0 bg-black/50 overflow-y-auto h-full w-full z-40"
           onClick={() => setShowDetails(false)}
         >
           <div
-            className="relative top-24 mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white"
+            className="relative top-24 mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-surface"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-4">
@@ -420,7 +420,7 @@ const CollectionDetailPage = () => {
               className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-sm font-medium transition ${
                 showAnswers
                   ? "border-green-300 bg-green-50 text-green-700 hover:bg-green-100"
-                  : "border-gray-200 bg-white text-gray-500 hover:bg-gray-50"
+                  : "border-gray-200 bg-surface text-gray-500 hover:bg-gray-50"
               }`}
             >
               {showAnswers ? (
@@ -445,8 +445,8 @@ const CollectionDetailPage = () => {
                 }
                 className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-sm font-medium transition ${
                   listenAllState !== "idle"
-                    ? "border-indigo-300 bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
-                    : "border-gray-200 bg-white text-gray-500 hover:bg-gray-50"
+                    ? "border-indigo-300 bg-indigo-50 text-indigo-ink hover:bg-indigo-100"
+                    : "border-gray-200 bg-surface text-gray-500 hover:bg-gray-50"
                 }`}
               >
                 {listenAllState === "playing" ? (
@@ -487,7 +487,7 @@ const CollectionDetailPage = () => {
               <>
                 <Link
                   to={`/items/${item.id}${itemDetailSearch}`}
-                  className="inline-flex rounded-md p-1.5 text-indigo-600 hover:bg-indigo-50 sm:p-2"
+                  className="inline-flex rounded-md p-1.5 text-indigo-ink hover:bg-indigo-50 sm:p-2"
                   title="View item details"
                 >
                   <EyeIcon className="h-4 w-4 sm:h-5 sm:w-5" />

@@ -204,8 +204,8 @@ const AdminIdeasPage = () => {
                   aria-pressed={activeFilter === filter}
                   className={`rounded-full px-4 py-2 text-sm font-medium transition ${
                     activeFilter === filter
-                      ? "bg-slate-900 text-white"
-                      : "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
+                      ? "bg-panel text-on-panel"
+                      : "border border-slate-300 bg-surface text-slate-700 hover:bg-slate-50"
                   }`}
                 >
                   {formatFilterLabel(filter)}
@@ -218,7 +218,7 @@ const AdminIdeasPage = () => {
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Search title, problem, change, or notes"
-              className="w-full rounded-full border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-700 outline-none transition focus:border-amber-500 lg:w-96"
+              className="w-full rounded-full border border-slate-300 bg-surface px-4 py-2.5 text-sm text-slate-700 outline-none transition focus:border-amber-500 lg:w-96"
             />
           </div>
         </div>
@@ -249,7 +249,7 @@ const AdminIdeasPage = () => {
             />
           </div>
         ) : filteredIdeas.length === 0 ? (
-          <div className="mt-6 rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-8 text-center text-sm text-slate-500">
+          <div className="mt-6 rounded-2xl border border-dashed border-slate-300 bg-surface px-4 py-8 text-center text-sm text-slate-500">
             No ideas match this moderation filter right now.
           </div>
         ) : (
@@ -348,7 +348,7 @@ function ModerationPanel({
   const [note, setNote] = useState(idea.moderationNotes ?? "");
 
   return (
-    <div className="rounded-2xl border border-amber-200 bg-white px-4 py-4">
+    <div className="rounded-2xl border border-amber-200 bg-surface px-4 py-4">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
         <div className="flex-1">
           <label

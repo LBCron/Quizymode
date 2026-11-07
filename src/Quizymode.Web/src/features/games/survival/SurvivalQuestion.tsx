@@ -35,7 +35,7 @@ export function SurvivalQuestion({ question, options, correctAnswer, picked, onA
         {options.map((option) => {
           const isPicked: boolean = answered && option === picked;
           const isCorrectOption: boolean = answered && option === correctAnswer;
-          let style = "border-gray-300 bg-white hover:bg-gray-50";
+          let style = "border-gray-300 bg-surface hover:bg-gray-50";
           let suffix = "";
           let icon = null;
           if (isPicked && isCorrectOption) {
@@ -51,7 +51,7 @@ export function SurvivalQuestion({ question, options, correctAnswer, picked, onA
             suffix = " Right answer";
             icon = <CheckCircleIcon className="h-6 w-6 text-green-600" aria-hidden="true" />;
           } else if (answered) {
-            style = "border-gray-300 bg-white opacity-60";
+            style = "border-gray-300 bg-surface opacity-60";
           }
           return (
             <button

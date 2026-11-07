@@ -92,7 +92,7 @@ export function ExploreRenderer({
 
         {/* ── Front face: question ── */}
         <div
-          className={`rounded-xl border border-gray-200 bg-white shadow-sm transition-opacity duration-300 ${
+          className={`rounded-xl border border-gray-200 bg-surface shadow-sm transition-opacity duration-300 ${
             isFlipped ? "absolute inset-0 opacity-0 pointer-events-none select-none" : "opacity-100"
           }`}
           aria-hidden={isFlipped}
@@ -177,7 +177,7 @@ export function ExploreRenderer({
                 <button
                   type="button"
                   onClick={() => setExplanationExpanded((e) => !e)}
-                  className="mt-2 flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-800 focus:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500 rounded"
+                  className="mt-2 flex items-center gap-1 text-xs font-medium text-indigo-ink hover:text-indigo-ink focus:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500 rounded"
                 >
                   {explanationExpanded ? "Show less" : "Show more"}
                   <ChevronDownIcon
@@ -193,7 +193,7 @@ export function ExploreRenderer({
                   key={`${item.id}-explanation`}
                   itemId={item.id} image={item.explanationImage}
                   slot="explanation"
-                  className="mt-3 rounded-lg bg-white"
+                  className="mt-3 rounded-lg bg-surface"
                 />
               )}
             </div>
@@ -227,7 +227,7 @@ export function ExploreRenderer({
                         className={`inline-flex disabled:cursor-not-allowed disabled:opacity-60 items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 ${
                           pressed
                             ? "border-indigo-600 bg-indigo-600 text-white"
-                            : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                            : "border-gray-300 bg-surface text-gray-700 hover:bg-gray-50"
                         }`}
                       >
                         {pressed && <CheckIcon className="h-4 w-4" aria-hidden="true" />}

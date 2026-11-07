@@ -59,7 +59,7 @@ export function GameMisses({ runId, misses }: GameMissesProps) {
             onClick={() => {
               if (!disabled) void review.addAll();
             }}
-            className={`inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-md border border-indigo-600 px-4 py-2 font-semibold text-indigo-700 hover:bg-indigo-50 sm:w-auto ${
+            className={`inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-md border border-indigo-600 px-4 py-2 font-semibold text-indigo-ink hover:bg-indigo-50 sm:w-auto ${
               disabled ? "cursor-not-allowed opacity-60" : ""
             } ${RING}`}
           >

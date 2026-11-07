@@ -230,7 +230,7 @@ const SessionsTab = ({
       )}
 
       <section className="grid gap-6 xl:grid-cols-[1fr_1fr]">
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="rounded-2xl border border-slate-200 bg-surface p-5 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900">
             Engagement by Visitor Type
           </h2>
@@ -285,7 +285,7 @@ const SessionsTab = ({
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="rounded-2xl border border-slate-200 bg-surface p-5 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900">Session Depth</h2>
           <p className="mt-1 text-sm text-gray-600">
             How many pages visitors saw before leaving.
@@ -297,7 +297,7 @@ const SessionsTab = ({
         </div>
       </section>
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <section className="rounded-2xl border border-slate-200 bg-surface p-5 shadow-sm">
         <h2 className="text-lg font-semibold text-gray-900">Landing Pages</h2>
         <p className="mt-1 text-sm text-gray-600">
           Where sessions started, grouped by feature area and content scope, and
@@ -306,7 +306,7 @@ const SessionsTab = ({
         <LandingPagesTable landingPages={data.landingPages} />
       </section>
 
-      <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <section className="rounded-2xl border border-slate-200 bg-surface shadow-sm">
         <div className="flex flex-col gap-4 border-b border-slate-200 px-5 py-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <h2 className="text-lg font-semibold text-gray-900">Sessions</h2>
@@ -399,7 +399,7 @@ const SessionsTab = ({
           {(sessionId || visitorId) && (
             <div className="mt-2 flex flex-wrap gap-2">
               {sessionId && (
-                <span className="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-800">
+                <span className="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-ink">
                   Session: <span className="font-mono">{sessionId}</span>
                   <button
                     type="button"
@@ -411,7 +411,7 @@ const SessionsTab = ({
                 </span>
               )}
               {visitorId && (
-                <span className="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-800">
+                <span className="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-ink">
                   Visitor: <span className="font-mono">{visitorId}</span>
                   <button
                     type="button"
@@ -459,7 +459,7 @@ const SessionsTab = ({
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200 bg-white">
+                <tbody className="divide-y divide-slate-200 bg-surface">
                   {data.sessions.map((session) => (
                     <SessionRow
                       key={session.sessionId}
@@ -527,7 +527,7 @@ const MetricCard = ({
   detail,
   emphasis = "neutral",
 }: MetricCardProps) => (
-  <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+  <div className="rounded-2xl border border-slate-200 bg-surface p-5 shadow-sm">
     <div className="text-sm font-medium text-slate-500">{label}</div>
     <div
       className={`mt-3 text-3xl font-semibold ${

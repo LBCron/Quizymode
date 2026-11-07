@@ -97,7 +97,7 @@ export function CommentsDrawer({
       />
       {/* Drawer panel */}
       <div
-        className="fixed top-0 right-0 h-full w-full sm:max-w-md bg-white shadow-xl z-50 flex flex-col transition-transform duration-200 ease-out"
+        className="fixed top-0 right-0 h-full w-full sm:max-w-md bg-surface shadow-xl z-50 flex flex-col transition-transform duration-200 ease-out"
         style={{
           transform: isOpen ? "translateX(0)" : "translateX(100%)",
         }}
@@ -189,7 +189,7 @@ export function CommentsDrawer({
                     return (
                       <div
                         key={comment.id}
-                        className="bg-white border border-gray-200 rounded-lg p-4"
+                        className="bg-surface border border-gray-200 rounded-lg p-4"
                       >
                         {isEditing ? (
                           <div className="space-y-3">
@@ -244,7 +244,7 @@ export function CommentsDrawer({
                                   <button
                                     type="button"
                                     onClick={() => handleEdit(comment)}
-                                    className="p-1 text-indigo-600 hover:bg-indigo-50 rounded"
+                                    className="p-1 text-indigo-ink hover:bg-indigo-50 rounded"
                                     title="Edit"
                                   >
                                     <PencilIcon className="h-4 w-4" />

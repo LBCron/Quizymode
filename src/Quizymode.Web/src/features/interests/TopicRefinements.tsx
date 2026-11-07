@@ -18,11 +18,11 @@ export function TopicRefinements({ selected, onAdd }: { selected: string[]; onAd
   const path = [category, l1, l2].filter(Boolean).join("/");
   const blocked = !category || taxonomy.isPending || taxonomy.isError ||
     (selected.length >= MAX_INTERESTS && !selected.some(existing => topicsOverlap(existing, path)));
-  const selectClass = "mt-1 min-h-[44px] w-full rounded-md border border-slate-500 bg-slate-800 px-3 text-sm text-white";
+  const selectClass = "mt-1 min-h-[44px] w-full rounded-md border border-slate-500 bg-panel-raised px-3 text-sm text-on-panel";
   return (
-    <details className="mt-3 rounded-lg border border-white/20 p-3">
+    <details className="mt-3 rounded-lg border border-on-panel/20 p-3">
       <summary className="min-h-[44px] cursor-pointer py-2 text-sm font-semibold">Refine a topic</summary>
-      <p className="mb-3 text-xs text-slate-300">Choose a category, then optionally a topic and subtopic. Adding it replaces overlapping selections.</p>
+      <p className="mb-3 text-xs text-on-panel-muted">Choose a category, then optionally a topic and subtopic. Adding it replaces overlapping selections.</p>
       {taxonomy.isPending ? <p role="status" className="text-sm">Loading topic refinements…</p> : taxonomy.isError ? (
         <p className="text-sm">Topic refinements could not be loaded. <button type="button" className="min-h-[44px] underline" onClick={() => void taxonomy.refetch()} disabled={taxonomy.isFetching}>Retry refinements</button></p>
       ) : (

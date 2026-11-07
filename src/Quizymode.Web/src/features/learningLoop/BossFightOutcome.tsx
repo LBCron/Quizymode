@@ -37,7 +37,7 @@ export function BossFightOutcome({ defeated, hp, followUp, rematching, onRematch
     followUp?.status === "ready" && followUp.dueCount >= BOSS_FIGHT_MIN_DUE;
 
   return (
-    <div className="mb-3 rounded-lg bg-white p-4 text-center shadow">
+    <div className="mb-3 rounded-lg bg-surface p-4 text-center shadow">
       <h2 tabIndex={-1} className={`text-2xl font-bold focus:outline-none ${defeated ? "text-green-800" : "text-gray-900"}`}>
         {defeated ? "Boss defeated!" : `The boss escaped with ${hp} HP`}
       </h2>
@@ -66,7 +66,7 @@ export function BossFightOutcome({ defeated, hp, followUp, rematching, onRematch
             onClick={() => {
               if (!rematching) onRematch();
             }}
-            className={`min-h-[44px] w-full rounded-md border border-indigo-600 px-4 py-2 font-semibold text-indigo-700 hover:bg-indigo-50 sm:w-auto ${
+            className={`min-h-[44px] w-full rounded-md border border-indigo-600 px-4 py-2 font-semibold text-indigo-ink hover:bg-indigo-50 sm:w-auto ${
               rematching ? "cursor-not-allowed opacity-60" : ""
             } ${RING}`}
           >

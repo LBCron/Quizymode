@@ -46,7 +46,7 @@ export const MyItemsActions = ({
     <>
       <button
         onClick={handleViewItem}
-        className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-md"
+        className="p-2 text-indigo-ink hover:bg-indigo-50 rounded-md"
         title="View item"
       >
         <EyeIcon className="h-5 w-5" />
@@ -68,7 +68,7 @@ export const MyItemsActions = ({
         disabled={!canEditDelete}
         className={`p-2 rounded-md ${
           canEditDelete
-            ? "text-indigo-600 hover:bg-indigo-50"
+            ? "text-indigo-ink hover:bg-indigo-50"
             : "text-gray-400 cursor-not-allowed"
         }`}
         title={

@@ -107,7 +107,7 @@ const IdeaDiscussionPanel = ({
       )}
 
       {isAuthenticated && canPost ? (
-        <div className="rounded-2xl border border-slate-200 bg-white p-4">
+        <div className="rounded-2xl border border-slate-200 bg-surface p-4">
           <label htmlFor={`idea-comment-${ideaId}`} className="sr-only">
             New comment
           </label>
@@ -142,14 +142,14 @@ const IdeaDiscussionPanel = ({
               disabled={
                 getIdeaCommentError(newCommentText) !== null || createMutation.isPending
               }
-              className="rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800 disabled:opacity-50"
+              className="rounded-full bg-panel px-4 py-2 text-sm font-medium text-on-panel transition hover:bg-panel-raised disabled:opacity-50"
             >
               {createMutation.isPending ? "Posting..." : "Post comment"}
             </button>
           </div>
         </div>
       ) : (
-        <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
+        <div className="rounded-2xl border border-slate-200 bg-surface px-4 py-3 text-sm text-slate-600">
           {postingDisabledMessage ??
             (isAuthenticated
               ? "Comments are only open on published ideas."
@@ -232,7 +232,7 @@ function CommentCard({
   const editingError = editingText.trim() ? getIdeaCommentError(editingText) : null;
 
   return (
-    <article className="rounded-2xl border border-slate-200 bg-white p-4">
+    <article className="rounded-2xl border border-slate-200 bg-surface p-4">
       <div className="flex items-start justify-between gap-3">
         <div>
           <div className="text-sm font-semibold text-slate-900">{comment.authorName}</div>
@@ -299,7 +299,7 @@ function CommentCard({
               type="button"
               onClick={onSaveEdit}
               disabled={getIdeaCommentError(editingText) !== null || isSaving}
-              className="rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800 disabled:opacity-50"
+              className="rounded-full bg-panel px-4 py-2 text-sm font-medium text-on-panel transition hover:bg-panel-raised disabled:opacity-50"
             >
               {isSaving ? "Saving..." : "Save"}
             </button>

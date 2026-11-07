@@ -48,14 +48,14 @@ export function TestDialog({ titleId, title, initialFocusRef, onEscape, children
 
   // Portalled to the body so a backdrop-filter ancestor cannot turn `fixed` into content-relative positioning.
   return createPortal(
-    <div className="fixed inset-0 z-[60] overflow-y-auto bg-slate-950/60 px-4 py-10">
+    <div className="fixed inset-0 z-[60] overflow-y-auto bg-panel-deep/60 px-4 py-10">
       <div
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
         onKeyDown={onKeyDown}
-        className="mx-auto w-full max-w-md rounded-3xl border border-slate-200 bg-white p-6 text-slate-700 shadow-2xl"
+        className="mx-auto w-full max-w-md rounded-3xl border border-slate-200 bg-surface p-6 text-slate-700 shadow-2xl"
       >
         <h2 id={titleId} className="text-xl font-semibold text-slate-900">
           {title}

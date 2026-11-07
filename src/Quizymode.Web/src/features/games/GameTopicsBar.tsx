@@ -7,7 +7,7 @@ import { buildGamePath, type GameScope } from "./gameScope";
 import type { GameTopicResolution } from "./gameTopicResolution";
 
 const names = new Map(homeCategoryCards.map(card => [card.slug, card.name]));
-const buttonClass = "inline-flex min-h-[44px] items-center justify-center rounded-md border border-indigo-600 px-3 py-2 text-sm font-semibold text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500";
+const buttonClass = "inline-flex min-h-[44px] items-center justify-center rounded-md border border-indigo-600 px-3 py-2 text-sm font-semibold text-indigo-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500";
 
 export function GameTopicsBar({ scope, resolution, unavailable }: { scope: GameScope; resolution: GameTopicResolution; unavailable: string[] }) {
   const editor = useTopicEditor();
@@ -20,7 +20,7 @@ export function GameTopicsBar({ scope, resolution, unavailable }: { scope: GameS
     resolution.mode === "loading" ? "Loading your topics…" : resolution.mode === "error" ? "My topics unavailable" :
     resolution.mode === "choose" ? "No topics chosen" : scope.kind === "global" && scope.filterKeywords.length ? `Keywords: ${scope.filterKeywords.join(", ")}` : "All topics";
   return (
-    <section aria-label="Game topics" className="mx-auto mt-4 max-w-4xl rounded-lg bg-white px-4 py-3 text-sm shadow">
+    <section aria-label="Game topics" className="mx-auto mt-4 max-w-4xl rounded-lg bg-surface px-4 py-3 text-sm shadow">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="min-w-0 break-words font-medium text-gray-900">{label}</p>
         <div className="flex flex-wrap gap-2">
@@ -40,7 +40,7 @@ export function GameTopicsPrompt({ mode, onRetry }: { mode: "choose" | "error"; 
   const location = useLocation();
   const gameId = GAMES.find(game => game.id === location.pathname.split("/")[2])?.id;
   return (
-    <section className="mx-auto mt-4 max-w-4xl rounded-lg bg-white p-6 text-center shadow">
+    <section className="mx-auto mt-4 max-w-4xl rounded-lg bg-surface p-6 text-center shadow">
       <h1 className="text-xl font-bold text-gray-900">{mode === "error" ? "Your topics could not be loaded." : "Choose topics for your games"}</h1>
       <p className="mt-2 text-sm text-gray-600">Choose the subjects you want to play, or explicitly play all topics.</p>
       <div className="mt-4 flex flex-wrap justify-center gap-3">

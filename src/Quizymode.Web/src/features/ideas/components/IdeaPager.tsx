@@ -25,9 +25,9 @@ const IdeaPager = ({
 
   const buttonClass =
     tone === "dark"
-      ? "rounded-full border border-white/20 px-4 py-2 text-sm font-medium text-slate-200 transition hover:bg-white/10 disabled:opacity-40"
-      : "rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:opacity-40";
-  const textClass = tone === "dark" ? "text-slate-300" : "text-slate-600";
+      ? "rounded-full border border-on-panel/20 px-4 py-2 text-sm font-medium text-on-panel transition hover:bg-on-panel/10 disabled:opacity-40"
+      : "rounded-full border border-slate-300 bg-surface px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:opacity-40";
+  const textClass = tone === "dark" ? "text-on-panel-muted" : "text-slate-600";
 
   return (
     <nav

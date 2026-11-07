@@ -78,7 +78,7 @@ export function StudyGuideCandidateCard({
   };
 
   return (
-    <li className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm" data-testid={`candidate-${candidate.id}`}>
+    <li className="rounded-lg border border-gray-200 bg-surface p-4 shadow-sm" data-testid={`candidate-${candidate.id}`}>
       <div className="flex items-start gap-3">
         {candidate.accepted ? (
           <span className="mt-0.5 rounded-full border border-green-300 bg-green-50 px-2 py-0.5 text-xs font-semibold text-green-800">
@@ -163,7 +163,7 @@ export function StudyGuideCandidateCard({
               <button
                 type="button"
                 onClick={() => setDraft({ ...draft, incorrectAnswers: [...draft.incorrectAnswers, ""] })}
-                className="text-xs font-medium text-indigo-600 hover:text-indigo-800"
+                className="text-xs font-medium text-indigo-ink hover:text-indigo-ink"
               >
                 Add wrong answer
               </button>
@@ -199,7 +199,7 @@ export function StudyGuideCandidateCard({
                   setDraft(null);
                   setError(null);
                 }}
-                className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                className="rounded-md border border-gray-300 bg-surface px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
               >
                 Cancel
               </button>
@@ -209,7 +209,7 @@ export function StudyGuideCandidateCard({
           <div className="min-w-0 flex-1 space-y-2">
             <p className="text-sm font-medium text-gray-900">
               {number}. {shown.question}
-              {edit && <span className="ml-2 text-xs font-normal text-indigo-700">(edited)</span>}
+              {edit && <span className="ml-2 text-xs font-normal text-indigo-ink">(edited)</span>}
             </p>
             <ul className="space-y-1 text-sm">
               <li className="text-green-700">
@@ -232,7 +232,7 @@ export function StudyGuideCandidateCard({
                 type="button"
                 onClick={startEditing}
                 disabled={disabled}
-                className="inline-flex min-h-11 items-center text-xs font-medium text-indigo-600 hover:text-indigo-800 disabled:opacity-50"
+                className="inline-flex min-h-11 items-center text-xs font-medium text-indigo-ink hover:text-indigo-ink disabled:opacity-50"
                 aria-label={`Edit question ${number}`}
               >
                 Edit
@@ -241,7 +241,7 @@ export function StudyGuideCandidateCard({
             {candidate.accepted && candidate.itemId && (
               <Link
                 to={`/items/${candidate.itemId}/edit`}
-                className="inline-flex min-h-11 items-center text-xs font-medium text-indigo-600 hover:text-indigo-800"
+                className="inline-flex min-h-11 items-center text-xs font-medium text-indigo-ink hover:text-indigo-ink"
                 aria-label={`Edit saved question ${number}`}
               >
                 Edit

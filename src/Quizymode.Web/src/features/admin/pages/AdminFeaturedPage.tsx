@@ -259,7 +259,7 @@ const AdminFeaturedPage = () => {
           onClick={() => handleTabChange("set")}
           className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
             tab === "set"
-              ? "bg-white text-indigo-700 shadow-sm"
+              ? "bg-surface text-indigo-ink shadow-sm"
               : "text-gray-600 hover:text-gray-900"
           }`}
         >
@@ -270,7 +270,7 @@ const AdminFeaturedPage = () => {
           onClick={() => handleTabChange("collection")}
           className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
             tab === "collection"
-              ? "bg-white text-amber-700 shadow-sm"
+              ? "bg-surface text-amber-700 shadow-sm"
               : "text-gray-600 hover:text-gray-900"
           }`}
         >
@@ -298,7 +298,7 @@ const AdminFeaturedPage = () => {
             className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
 
-          <div className="max-h-80 overflow-y-auto rounded-md border border-gray-200 bg-white">
+          <div className="max-h-80 overflow-y-auto rounded-md border border-gray-200 bg-surface">
             {tab === "set" ? (
               filteredCombos.length === 0 ? (
                 <p className="px-4 py-8 text-center text-sm text-gray-400">
@@ -320,7 +320,7 @@ const AdminFeaturedPage = () => {
                             checked={checked.has(combo.key)}
                             disabled={already}
                             onChange={() => toggleCheck(combo.key)}
-                            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            className="h-4 w-4 rounded border-gray-300 text-indigo-ink focus:ring-indigo-500"
                           />
                           <span className="flex-1 text-gray-800">{combo.label}</span>
                           <span className="text-xs text-gray-400">{combo.itemCount}</span>
@@ -404,7 +404,7 @@ const AdminFeaturedPage = () => {
               No featured {tab === "set" ? "sets" : "collections"} yet.
             </div>
           ) : (
-            <ul className="divide-y divide-gray-100 rounded-md border border-gray-200 bg-white">
+            <ul className="divide-y divide-gray-100 rounded-md border border-gray-200 bg-surface">
               {currentItems.map((item, index) => (
                 <li key={item.id} className="flex items-center gap-2 px-3 py-2">
                   <div className="flex flex-col">
@@ -475,7 +475,7 @@ const AdminFeaturedPage = () => {
                         <button
                           type="button"
                           onClick={() => handleStartEdit(item)}
-                          className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-indigo-600"
+                          className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-indigo-ink"
                           title="Rename"
                         >
                           <PencilSquareIcon className="h-4 w-4" />

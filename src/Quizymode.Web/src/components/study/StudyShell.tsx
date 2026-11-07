@@ -100,7 +100,7 @@ export function StudyShell({
     <div className="max-w-4xl mx-auto">
         {backContent}
 
-        <div className="bg-white shadow rounded-lg p-4 mb-4">
+        <div className="bg-surface shadow rounded-lg p-4 mb-4">
           {title && (
             <h2 className="text-2xl font-bold text-gray-900 mb-2">{title}</h2>
           )}
@@ -130,7 +130,7 @@ export function StudyShell({
                 {currentIndex + 1} of {totalCount}
               </span>
               {roundLabel && (
-                <span className="hidden text-xs font-medium text-indigo-700 sm:inline" aria-hidden="true">
+                <span className="hidden text-xs font-medium text-indigo-ink sm:inline" aria-hidden="true">
                   {roundLabel}
                 </span>
               )}
@@ -149,7 +149,7 @@ export function StudyShell({
               {currentItem && !hideItemDetailsLink ? (
                 <Link
                   to={itemDetailHref ?? `/items/${currentItem.id}`}
-                  className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-md"
+                  className="p-1.5 text-indigo-ink hover:bg-indigo-50 rounded-md"
                   title="View item details"
                 >
                   <EyeIcon className="h-5 w-5" />

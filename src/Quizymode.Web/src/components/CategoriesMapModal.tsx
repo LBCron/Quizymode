@@ -124,7 +124,7 @@ function TreeNode({
               )}
             </button>
           ) : (
-            <span className="block h-4 w-4 text-slate-300" aria-hidden>
+            <span className="block h-4 w-4 text-on-panel-muted" aria-hidden>
               .
             </span>
           )}
@@ -356,7 +356,7 @@ const CategoriesMapModal = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/72 px-4 py-6 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-panel-deep/72 px-4 py-6 backdrop-blur-sm"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -366,7 +366,7 @@ const CategoriesMapModal = ({
         className="relative flex max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-slate-300 bg-slate-50 shadow-2xl shadow-slate-950/30"
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="flex items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-3 sm:px-5">
+        <div className="flex items-center justify-between gap-3 border-b border-slate-200 bg-surface px-4 py-3 sm:px-5">
           <h2
             id="categories-map-title"
             className="text-base font-semibold text-slate-900"
@@ -377,21 +377,21 @@ const CategoriesMapModal = ({
             <button
               type="button"
               onClick={() => setExpandedNodeIds(new Set(expandableNodeIds))}
-              className="rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-700"
+              className="rounded border border-slate-300 bg-surface px-2 py-1 text-xs text-slate-700"
             >
               Expand all
             </button>
             <button
               type="button"
               onClick={() => setExpandedNodeIds(new Set())}
-              className="rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-700"
+              className="rounded border border-slate-300 bg-surface px-2 py-1 text-xs text-slate-700"
             >
               Collapse all
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="inline-flex h-8 w-8 items-center justify-center rounded border border-slate-300 bg-white text-slate-600"
+              className="inline-flex h-8 w-8 items-center justify-center rounded border border-slate-300 bg-surface text-slate-600"
               aria-label="Close categories map"
             >
               <XMarkIcon className="h-4 w-4" aria-hidden />
@@ -399,7 +399,7 @@ const CategoriesMapModal = ({
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto bg-white px-4 py-3 sm:px-5">
+        <div className="flex-1 overflow-y-auto bg-surface px-4 py-3 sm:px-5">
           {isLoading ? (
             <div className="flex min-h-40 items-center justify-center">
               <LoadingSpinner />
@@ -413,7 +413,7 @@ const CategoriesMapModal = ({
               }}
             />
           ) : nodes.length === 0 ? (
-            <div className="rounded-[24px] border border-dashed border-slate-300 bg-white/80 px-6 py-12 text-center">
+            <div className="rounded-[24px] border border-dashed border-slate-300 bg-surface/80 px-6 py-12 text-center">
               <p className="text-base font-medium text-slate-900">
                 No taxonomy categories are available right now.
               </p>

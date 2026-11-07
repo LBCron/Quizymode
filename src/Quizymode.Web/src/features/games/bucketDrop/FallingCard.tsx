@@ -92,7 +92,7 @@ export function FallingCard({
   }, [running, fallMs]);
 
   const revealed: boolean = revealAnswer !== null;
-  let style = "border-indigo-300 bg-white";
+  let style = "border-indigo-300 bg-surface";
   if (revealed) style = "border-red-500 bg-red-50 motion-safe:animate-wrong-shake";
   else if (caught) style = "border-green-500 bg-green-50 motion-safe:animate-correct-pulse";
 

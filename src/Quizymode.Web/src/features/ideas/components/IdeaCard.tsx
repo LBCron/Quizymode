@@ -43,8 +43,8 @@ interface IdeaCardProps {
 }
 
 const SECTION_CLASS_MAP: Record<SectionStyle, string> = {
-  public: "border-slate-200 bg-white",
-  private: "border-slate-200 bg-white",
+  public: "border-slate-200 bg-surface",
+  private: "border-slate-200 bg-surface",
   admin: "border-amber-200/80 bg-amber-50/40",
 };
 
@@ -151,7 +151,7 @@ const IdeaCard = ({
             <button
               type="button"
               onClick={onToggleExpand}
-              className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+              className="inline-flex items-center gap-2 rounded-full bg-panel px-4 py-2 text-sm font-medium text-on-panel transition hover:bg-panel-raised"
             >
               {expanded ? "Collapse" : "Open"}
               {expanded ? (
@@ -235,7 +235,7 @@ const IdeaCard = ({
             )}
 
             {idea.canChangeStatus && onStatusChange && (
-              <div className="flex flex-col gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-col gap-2 rounded-2xl border border-slate-200 bg-surface px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <div className="text-sm font-medium text-slate-900">
                     Lifecycle status
@@ -257,7 +257,7 @@ const IdeaCard = ({
                       ? "Only published ideas can change lifecycle status."
                       : undefined
                   }
-                  className="rounded-full border border-slate-300 bg-white px-4 py-2 text-sm text-slate-700 outline-none transition focus:border-emerald-500"
+                  className="rounded-full border border-slate-300 bg-surface px-4 py-2 text-sm text-slate-700 outline-none transition focus:border-emerald-500"
                 >
                   {STATUS_ORDER.filter(
                     (status) =>
@@ -302,7 +302,7 @@ function IdeaField({
   muted?: boolean;
 }) {
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white/80 p-4">
+    <section className="rounded-2xl border border-slate-200 bg-surface/80 p-4">
       <h4 className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
         {label}
       </h4>
@@ -345,7 +345,7 @@ function IdeaRatingControl({
             ) : (
               <StarIconOutline
                 key={star}
-                className={`${iconClass} text-slate-300`}
+                className={`${iconClass} text-on-panel-muted`}
               />
             );
           }

@@ -88,7 +88,7 @@ const ReviewBoardPage = () => {
             onKeyDown={handleTabKeyDown}
             className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium ${
               activeTab === tab
-                ? "border-indigo-600 text-indigo-700"
+                ? "border-indigo-600 text-indigo-ink"
                 : "border-transparent text-gray-500 hover:text-gray-700"
             }`}
           >
@@ -174,7 +174,7 @@ function ReviewBoardItemCard({
   };
 
   return (
-    <div className="bg-white shadow rounded-lg p-6">
+    <div className="bg-surface shadow rounded-lg p-6">
       <div className="flex flex-col gap-4">
         <div className="flex justify-between items-start gap-4">
           <QuestionImage itemId={item.id} image={item.questionImage} size="sm" />

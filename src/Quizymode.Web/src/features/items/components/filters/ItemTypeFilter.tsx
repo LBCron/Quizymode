@@ -20,7 +20,7 @@ export const ItemTypeFilter = ({
           className={`px-4 py-2 rounded-md text-sm font-medium ${
             value === "all"
               ? "bg-indigo-600 text-white"
-              : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
+              : "bg-surface text-gray-700 hover:bg-gray-100 border border-gray-300"
           }`}
         >
           All
@@ -30,7 +30,7 @@ export const ItemTypeFilter = ({
           className={`px-4 py-2 rounded-md text-sm font-medium ${
             value === "public"
               ? "bg-indigo-600 text-white"
-              : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
+              : "bg-surface text-gray-700 hover:bg-gray-100 border border-gray-300"
           }`}
         >
           Public
@@ -40,7 +40,7 @@ export const ItemTypeFilter = ({
           className={`px-4 py-2 rounded-md text-sm font-medium ${
             value === "private"
               ? "bg-indigo-600 text-white"
-              : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
+              : "bg-surface text-gray-700 hover:bg-gray-100 border border-gray-300"
           }`}
         >
           Private

@@ -62,7 +62,7 @@ export function KeywordFilterCombobox({
       </div>
       {isOpen && suggestions.length > 0 && (
         <ul
-          className="absolute z-20 mt-0.5 w-full rounded-md border border-gray-200 bg-white py-1 shadow-lg text-sm"
+          className="absolute z-20 mt-0.5 w-full rounded-md border border-gray-200 bg-surface py-1 shadow-lg text-sm"
           role="listbox"
         >
           {suggestions.map((opt) => (
@@ -71,7 +71,7 @@ export function KeywordFilterCombobox({
               role="option"
               aria-selected={false}
               onMouseDown={() => handleSelect(opt)}
-              className="cursor-pointer px-3 py-1.5 hover:bg-indigo-50 hover:text-indigo-800"
+              className="cursor-pointer px-3 py-1.5 hover:bg-indigo-50 hover:text-indigo-ink"
             >
               {opt}
             </li>

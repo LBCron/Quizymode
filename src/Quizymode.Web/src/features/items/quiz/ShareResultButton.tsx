@@ -86,7 +86,7 @@ export function ShareResultButton({ descriptor, runId, score, total, context, em
 
   const triggerClass = emphasized
     ? "bg-indigo-600 text-white hover:bg-indigo-700"
-    : "border border-indigo-600 text-indigo-700 hover:bg-indigo-50";
+    : "border border-indigo-600 text-indigo-ink hover:bg-indigo-50";
 
   return (
     <>
@@ -101,7 +101,7 @@ export function ShareResultButton({ descriptor, runId, score, total, context, em
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 z-[60] overflow-y-auto bg-slate-950/60 px-4 py-10" onClick={close}>
+        <div className="fixed inset-0 z-[60] overflow-y-auto bg-panel-deep/60 px-4 py-10" onClick={close}>
           <div
             ref={dialogRef}
             role="dialog"
@@ -109,7 +109,7 @@ export function ShareResultButton({ descriptor, runId, score, total, context, em
             aria-labelledby={titleId}
             onKeyDown={onKeyDown}
             onClick={(event) => event.stopPropagation()}
-            className="mx-auto w-full max-w-md rounded-3xl border border-slate-200 bg-white p-6 text-left text-slate-700 shadow-2xl"
+            className="mx-auto w-full max-w-md rounded-3xl border border-slate-200 bg-surface p-6 text-left text-slate-700 shadow-2xl"
           >
             <div className="mb-4 flex items-center justify-between">
               <h3 id={titleId} className="text-lg font-semibold text-slate-900">
@@ -157,7 +157,7 @@ export function ShareResultButton({ descriptor, runId, score, total, context, em
                 <button
                   type="button"
                   onClick={() => void handleNativeShare()}
-                  className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  className="rounded-md border border-gray-300 bg-surface px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
                 >
                   Share via…
                 </button>
@@ -167,7 +167,7 @@ export function ShareResultButton({ descriptor, runId, score, total, context, em
                   type="button"
                   onClick={() => void showQr()}
                   disabled={isLoadingQr}
-                  className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                  className="rounded-md border border-gray-300 bg-surface px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
                 >
                   {isLoadingQr ? "Loading QR code…" : "Show QR code"}
                 </button>

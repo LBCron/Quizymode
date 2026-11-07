@@ -50,7 +50,7 @@ export function GuestProgressClaim() {
 
   if (result.status === "saved") {
     return (
-      <div role="status" className="mx-auto mt-3 max-w-3xl rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
+      <div role="status" className="mx-auto mt-3 max-w-3xl rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-ink">
         Saved {result.saved} quiz {result.saved === 1 ? "result" : "results"} from this browser to your account.
         They are marked as imported and unverified.
         {result.skipped > 0 ? ` ${result.skipped} could not be saved and were discarded.` : ""}
@@ -62,7 +62,7 @@ export function GuestProgressClaim() {
   }
 
   return (
-    <div role="alert" className="mx-auto mt-3 max-w-3xl rounded-2xl border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+    <div role="alert" className="mx-auto mt-3 max-w-3xl rounded-2xl border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-ink">
       We could not save your {result.pending} earlier quiz {result.pending === 1 ? "result" : "results"} yet. They are still in
       this browser.
       <button type="button" className="ml-3 underline disabled:opacity-60" disabled={busy} onClick={() => void run()}>

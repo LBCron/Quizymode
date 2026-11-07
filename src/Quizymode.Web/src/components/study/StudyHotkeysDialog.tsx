@@ -53,7 +53,7 @@ export function StudyHotkeysDialog({ open, onClose, shortcuts }: StudyHotkeysDia
   };
 
   return (
-    <div className="fixed inset-0 z-[60] overflow-y-auto bg-slate-950/60 px-4 py-10" onClick={onClose}>
+    <div className="fixed inset-0 z-[60] overflow-y-auto bg-panel-deep/60 px-4 py-10" onClick={onClose}>
       <div
         ref={dialogRef}
         role="dialog"
@@ -61,7 +61,7 @@ export function StudyHotkeysDialog({ open, onClose, shortcuts }: StudyHotkeysDia
         aria-labelledby="study-hotkeys-title"
         onKeyDown={onKeyDown}
         onClick={(event) => event.stopPropagation()}
-        className="mx-auto w-full max-w-md rounded-3xl border border-slate-200 bg-white p-6 text-slate-700 shadow-2xl"
+        className="mx-auto w-full max-w-md rounded-3xl border border-slate-200 bg-surface p-6 text-slate-700 shadow-2xl"
       >
         <h2 id="study-hotkeys-title" className="text-xl font-semibold text-slate-900">
           Keyboard shortcuts
@@ -84,7 +84,7 @@ export function StudyHotkeysDialog({ open, onClose, shortcuts }: StudyHotkeysDia
           >
             <span
               aria-hidden="true"
-              className={`inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${
+              className={`inline-block h-5 w-5 rounded-full bg-surface shadow transition-transform ${
                 enabled ? "translate-x-5" : "translate-x-0.5"
               }`}
             />

@@ -154,7 +154,7 @@ export function StudyPlanDialog({ collectionId, collectionName, plan, loading, o
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="max-h-[85vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-4 text-slate-900 shadow-2xl"
+        className="max-h-[85vh] w-full max-w-md overflow-y-auto rounded-2xl bg-surface p-4 text-slate-900 shadow-2xl"
         onClick={(event) => event.stopPropagation()}
       >
         <h2 id={titleId} className="text-lg font-semibold">Plan for a test</h2>

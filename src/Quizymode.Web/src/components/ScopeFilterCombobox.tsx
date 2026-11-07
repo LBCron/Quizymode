@@ -98,7 +98,7 @@ export function ScopeFilterCombobox({
           onKeyDown={handleKeyDown}
           disabled={disabled}
           placeholder={placeholder}
-          className="rounded border border-gray-300 text-sm px-2 py-1.5 pr-7 w-40 bg-white disabled:bg-gray-100"
+          className="rounded border border-gray-300 text-sm px-2 py-1.5 pr-7 w-40 bg-surface disabled:bg-gray-100"
           aria-expanded={isOpen}
           aria-autocomplete="list"
           aria-controls="scope-combobox-list"
@@ -110,7 +110,7 @@ export function ScopeFilterCombobox({
       {isOpen && (
         <ul
           id="scope-combobox-list"
-          className="absolute z-10 mt-0.5 w-56 max-h-48 overflow-auto rounded border border-gray-200 bg-white shadow-lg py-1 text-sm"
+          className="absolute z-10 mt-0.5 w-56 max-h-48 overflow-auto rounded border border-gray-200 bg-surface shadow-lg py-1 text-sm"
           role="listbox"
         >
           <li

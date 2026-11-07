@@ -129,7 +129,7 @@ export function ActivityHeatmap({ activity, today, showDailyMarker = false }: Ac
 
       {activeCells.length > 0 && (
         <details className="mt-3 text-sm text-gray-700">
-          <summary className="cursor-pointer font-medium text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+          <summary className="cursor-pointer font-medium text-indigo-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
             Show activity as a list
           </summary>
           <ul className="mt-2 max-h-48 list-disc overflow-y-auto pl-5">

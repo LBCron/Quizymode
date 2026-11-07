@@ -84,7 +84,7 @@ export function LearnQuestion({
                   item.incorrectAnswerSpeech,
                   item.incorrectAnswers.findIndex((candidate) => candidate === option),
                 );
-            let bgColor = "bg-white hover:bg-gray-50";
+            let bgColor = "bg-surface hover:bg-gray-50";
             const showsCorrect = showAnswer && isCorrect;
             const showsWrong = showAnswer && isSelected && !isCorrect;
             if (showsCorrect) bgColor = "bg-green-100 border-green-500";

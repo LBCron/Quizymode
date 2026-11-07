@@ -41,7 +41,7 @@ const ItemListCard = ({
   const { isSupported } = useSpeech();
 
   return (
-    <div className="bg-white shadow rounded-lg p-6">
+    <div className="bg-surface shadow rounded-lg p-6">
       <div className="space-y-3">
         <div className="flex items-start gap-3">
           <QuestionImage collectionId={collectionId} itemId={item.id} image={item.questionImage} size="sm" />

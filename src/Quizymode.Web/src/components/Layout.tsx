@@ -14,6 +14,7 @@ import { SEO } from "@/components/SEO";
 import FeedbackDialog from "@/features/feedback/components/FeedbackDialog";
 import GlobalSearch from "@/features/search/GlobalSearch";
 import UserProfileModal from "./UserProfileModal";
+import { useApplyTheme } from "@/theme/useApplyTheme";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 
 interface LayoutProps {
@@ -138,6 +139,7 @@ function getFallbackTitle(pathname: string): string | undefined {
 
 const LayoutContent = ({ children }: LayoutProps) => {
   const { isAuthenticated, logout, username, email, isAdmin } = useAuth();
+  useApplyTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const [showProfileModal, setShowProfileModal] = useState(false);
@@ -210,24 +212,24 @@ const LayoutContent = ({ children }: LayoutProps) => {
 
   const desktopNavLinkClass = (active: boolean) =>
     `inline-flex items-center px-1 pt-1 text-sm font-medium ${
-      active ? "text-indigo-600" : "text-gray-900 hover:text-indigo-600"
+      active ? "text-indigo-ink" : "text-gray-900 hover:text-indigo-ink"
     }`;
 
   const mobileNavLinkClass = (active: boolean) =>
     `block px-3 py-2 text-base font-medium ${
-      active ? "text-indigo-600 bg-gray-50" : "text-gray-900 hover:text-indigo-600 hover:bg-gray-50"
+      active ? "text-indigo-ink bg-gray-50" : "text-gray-900 hover:text-indigo-ink hover:bg-gray-50"
     }`;
 
   return (
-    <div className="flex min-h-screen flex-col bg-[radial-gradient(circle_at_top,#1e3a8a_0%,#0f172a_34%,#020617_100%)] print:bg-none print:bg-white">
+    <div className="flex min-h-screen flex-col bg-[radial-gradient(circle_at_top,var(--qm-shell-a)_0%,var(--qm-shell-b)_34%,var(--qm-shell-c)_100%)] print:bg-none print:bg-surface">
       {fallbackTitle && <SEO title={fallbackTitle} noindex={location.pathname === "/login" || location.pathname === "/signup"} />}
-      <nav className="relative z-40 border-b border-slate-200/70 bg-white/95 shadow-sm backdrop-blur print:hidden">
+      <nav className="relative z-40 border-b border-slate-200/70 bg-surface/95 shadow-sm backdrop-blur print:hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-14">
             <div className="flex">
               <Link
                 to="/"
-                className={`flex items-center px-2 py-2 text-xl font-bold text-indigo-600 hover:text-indigo-700 border-b-2 -mb-px ${
+                className={`flex items-center px-2 py-2 text-xl font-bold text-indigo-ink hover:text-indigo-ink border-b-2 -mb-px ${
                   isPathActive("/") ? "border-indigo-600" : "border-transparent"
                 }`}
                 onClick={closeMobileMenu}
@@ -316,7 +318,7 @@ const LayoutContent = ({ children }: LayoutProps) => {
                     </button>
                     <button
                       onClick={handleLogout}
-                      className="ml-4 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                      className="ml-4 px-4 py-2 text-sm font-medium text-gray-700 bg-surface border border-gray-300 rounded-md hover:bg-gray-50"
                     >
                       Sign Out
                     </button>
@@ -325,7 +327,7 @@ const LayoutContent = ({ children }: LayoutProps) => {
                   <>
                     <Link
                       to="/login"
-                      className="ml-4 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                      className="ml-4 px-4 py-2 text-sm font-medium text-gray-700 bg-surface border border-gray-300 rounded-md hover:bg-gray-50"
                     >
                       Sign In
                     </Link>
@@ -410,7 +412,7 @@ const LayoutContent = ({ children }: LayoutProps) => {
                         setShowProfileModal(true);
                         closeMobileMenu();
                       }}
-                      className="block w-full text-left px-4 py-2 text-base font-medium text-gray-900 hover:text-indigo-600 hover:bg-gray-50"
+                      className="block w-full text-left px-4 py-2 text-base font-medium text-gray-900 hover:text-indigo-ink hover:bg-gray-50"
                     >
                       Profile
                     </button>
@@ -419,7 +421,7 @@ const LayoutContent = ({ children }: LayoutProps) => {
                         handleLogout();
                         closeMobileMenu();
                       }}
-                      className="block w-full text-left px-4 py-2 text-base font-medium text-gray-900 hover:text-indigo-600 hover:bg-gray-50"
+                      className="block w-full text-left px-4 py-2 text-base font-medium text-gray-900 hover:text-indigo-ink hover:bg-gray-50"
                     >
                       Sign Out
                     </button>
@@ -429,7 +431,7 @@ const LayoutContent = ({ children }: LayoutProps) => {
                 <div className="space-y-1">
                   <Link
                     to="/login"
-                    className="block px-4 py-2 text-base font-medium text-gray-900 hover:text-indigo-600 hover:bg-gray-50"
+                    className="block px-4 py-2 text-base font-medium text-gray-900 hover:text-indigo-ink hover:bg-gray-50"
                     onClick={closeMobileMenu}
                   >
                     Sign In
@@ -462,15 +464,15 @@ const LayoutContent = ({ children }: LayoutProps) => {
         {isFullBleedPage ? (
           children
         ) : (
-          <div className="rounded-[32px] border border-white/45 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(248,250,252,0.96)_100%)] p-2 text-slate-900 shadow-2xl shadow-slate-950/20 backdrop-blur sm:p-6 lg:p-8 print:rounded-none print:border-0 print:bg-none print:bg-white print:p-0 print:shadow-none">
+          <div className="rounded-[32px] border border-white/45 bg-[linear-gradient(180deg,var(--qm-stage-a)_0%,var(--qm-stage-b)_100%)] p-2 text-gray-900 shadow-2xl shadow-slate-950/20 backdrop-blur sm:p-6 lg:p-8 print:rounded-none print:border-0 print:bg-none print:bg-surface print:p-0 print:shadow-none">
             {children}
           </div>
         )}
       </main>
       <footer className="mx-auto w-full max-w-7xl px-3 pb-3 pt-1 sm:px-6 lg:px-8 print:hidden">
-        <div className="rounded-[20px] border border-white/10 bg-[linear-gradient(180deg,rgba(15,23,42,0.7)_0%,rgba(2,6,23,0.64)_100%)] px-3 py-2.5 text-slate-100 shadow-xl shadow-slate-950/20 backdrop-blur sm:flex sm:items-center sm:justify-between sm:gap-4">
+        <div className="rounded-[20px] border border-on-panel/10 bg-panel/80 px-3 py-2.5 text-on-panel shadow-xl shadow-slate-950/20 backdrop-blur sm:flex sm:items-center sm:justify-between sm:gap-4">
           <div className="hidden sm:block shrink-0">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-300">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-on-panel-muted">
               Browse, Support &amp; Legal
             </div>
           </div>
@@ -478,7 +480,7 @@ const LayoutContent = ({ children }: LayoutProps) => {
           <div className="grid grid-cols-3 gap-1.5 sm:flex sm:flex-wrap sm:gap-2">
             <Link
               to="/about"
-              className="inline-flex items-center justify-center rounded-md border border-white/12 bg-white/8 px-2.5 py-1.5 text-sm font-medium text-slate-100 transition hover:border-sky-300/35 hover:bg-white/12 hover:text-white"
+              className="inline-flex items-center justify-center rounded-md border border-on-panel/12 bg-on-panel/8 px-2.5 py-1.5 text-sm font-medium text-on-panel transition hover:border-sky-300/35 hover:bg-on-panel/12 hover:text-on-panel"
             >
               About
             </Link>
@@ -486,32 +488,32 @@ const LayoutContent = ({ children }: LayoutProps) => {
               href={userGuideUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center rounded-md border border-white/12 bg-white/8 px-2.5 py-1.5 text-sm font-medium text-slate-100 transition hover:border-sky-300/35 hover:bg-white/12 hover:text-white"
+              className="inline-flex items-center justify-center rounded-md border border-on-panel/12 bg-on-panel/8 px-2.5 py-1.5 text-sm font-medium text-on-panel transition hover:border-sky-300/35 hover:bg-on-panel/12 hover:text-on-panel"
             >
               User Guide
             </a>
             <button
               type="button"
               onClick={() => setShowFeedbackDialog(true)}
-              className="inline-flex items-center justify-center rounded-md border border-white/12 bg-white/8 px-2.5 py-1.5 text-sm font-medium text-slate-100 transition hover:border-sky-300/35 hover:bg-white/12 hover:text-white"
+              className="inline-flex items-center justify-center rounded-md border border-on-panel/12 bg-on-panel/8 px-2.5 py-1.5 text-sm font-medium text-on-panel transition hover:border-sky-300/35 hover:bg-on-panel/12 hover:text-on-panel"
             >
               Feedback
             </button>
             <Link
               to="/ideas"
-              className="inline-flex items-center justify-center rounded-md border border-white/12 bg-white/8 px-2.5 py-1.5 text-sm font-medium text-slate-100 transition hover:border-sky-300/35 hover:bg-white/12 hover:text-white"
+              className="inline-flex items-center justify-center rounded-md border border-on-panel/12 bg-on-panel/8 px-2.5 py-1.5 text-sm font-medium text-on-panel transition hover:border-sky-300/35 hover:bg-on-panel/12 hover:text-on-panel"
             >
               Ideas
             </Link>
             <Link
               to="/privacy"
-              className="inline-flex items-center justify-center rounded-md border border-white/12 bg-white/8 px-2.5 py-1.5 text-sm font-medium text-slate-100 transition hover:border-sky-300/35 hover:bg-white/12 hover:text-white"
+              className="inline-flex items-center justify-center rounded-md border border-on-panel/12 bg-on-panel/8 px-2.5 py-1.5 text-sm font-medium text-on-panel transition hover:border-sky-300/35 hover:bg-on-panel/12 hover:text-on-panel"
             >
               Privacy
             </Link>
             <Link
               to="/terms"
-              className="inline-flex items-center justify-center rounded-md border border-white/12 bg-white/8 px-2.5 py-1.5 text-sm font-medium text-slate-100 transition hover:border-sky-300/35 hover:bg-white/12 hover:text-white"
+              className="inline-flex items-center justify-center rounded-md border border-on-panel/12 bg-on-panel/8 px-2.5 py-1.5 text-sm font-medium text-on-panel transition hover:border-sky-300/35 hover:bg-on-panel/12 hover:text-on-panel"
             >
               Terms
             </Link>

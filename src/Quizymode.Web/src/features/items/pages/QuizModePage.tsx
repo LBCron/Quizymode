@@ -1118,7 +1118,7 @@ const QuizModePageContent = () => {
           onRetry={() => void refetchCollection()}
         />
         <div className="mt-4 text-center">
-          <Link to="/categories" className="text-indigo-600 hover:text-indigo-700">
+          <Link to="/categories" className="text-indigo-ink hover:text-indigo-ink">
             Browse categories
           </Link>
         </div>
@@ -1137,11 +1137,11 @@ const QuizModePageContent = () => {
             <button
               type="button"
               onClick={() => applyModeChange("practice")}
-              className="text-indigo-600 hover:text-indigo-700"
+              className="text-indigo-ink hover:text-indigo-ink"
             >
               Switch to Practice
             </button>
-            <Link to="/categories" className="text-indigo-600 hover:text-indigo-700">
+            <Link to="/categories" className="text-indigo-ink hover:text-indigo-ink">
               Browse categories
             </Link>
           </div>
@@ -1158,7 +1158,7 @@ const QuizModePageContent = () => {
           </p>
           <Link
             to="/categories"
-            className="text-indigo-600 hover:text-indigo-700"
+            className="text-indigo-ink hover:text-indigo-ink"
           >
             Go back to categories
           </Link>
@@ -1256,13 +1256,13 @@ const QuizModePageContent = () => {
   const studyFooter = collectionId ? (
     <button
       onClick={() => collectionListPath && navigate(collectionListPath)}
-      className="text-indigo-600 hover:text-indigo-700"
+      className="text-indigo-ink hover:text-indigo-ink"
       type="button"
     >
       ← Back to collection
     </button>
   ) : (
-    <Link to="/categories" className="text-indigo-600 hover:text-indigo-700">
+    <Link to="/categories" className="text-indigo-ink hover:text-indigo-ink">
       ← Categories
     </Link>
   );
@@ -1361,7 +1361,7 @@ const QuizModePageContent = () => {
             <button
               type="button"
               onClick={() => setShowDetails(true)}
-              className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 bg-surface border border-gray-300 rounded-md hover:bg-gray-50"
             >
               Details
             </button>
@@ -1386,14 +1386,14 @@ const QuizModePageContent = () => {
       )}
       {showDetails && collectionId && collectionInfo && (
         <div
-          className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-40"
+          className="fixed inset-0 bg-black/50 overflow-y-auto h-full w-full z-40"
           onClick={() => setShowDetails(false)}
         >
           <div
             role="dialog"
             aria-modal="true"
             aria-labelledby="collection-details-title"
-            className="relative top-24 mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white"
+            className="relative top-24 mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-surface"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-4">
@@ -1443,7 +1443,7 @@ const QuizModePageContent = () => {
       )}
       {run.mode === "test" && run.startedAt === null ? (
         <div className="mx-auto max-w-4xl">
-          <div className="mb-4 rounded-lg bg-white p-4 shadow">{modeControls}</div>
+          <div className="mb-4 rounded-lg bg-surface p-4 shadow">{modeControls}</div>
           <TestSetupCard
             key={run.runId}
             count={items.length}

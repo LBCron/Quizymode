@@ -34,10 +34,10 @@ import {
 } from "./topicSuggestions";
 import { rankPersonalizedHome, type ActivityRun } from "./personalization";
 
-const laneClass = "rounded-[24px] border border-white/10 bg-slate-950/70 p-2 sm:p-3 shadow-xl shadow-slate-950/25";
-const eyebrowClass = "text-xs font-semibold uppercase tracking-[0.22em] text-sky-300";
+const laneClass = "rounded-[24px] border border-white/10 bg-panel-deep/70 p-2 sm:p-3 shadow-xl shadow-slate-950/25";
+const eyebrowClass = "text-xs font-semibold uppercase tracking-[0.22em] text-sky-ink";
 const pillLinkClass =
-  "inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200";
+  "inline-flex items-center gap-1 rounded-full border border-on-panel/15 bg-on-panel/5 px-3 py-1.5 text-xs font-semibold text-on-panel hover:bg-on-panel/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200";
 const categoryNames = new Map(homeCategoryCards.map((card) => [card.slug, card.name]));
 const knownCategories = homeCategoryCards.map((card) => card.slug);
 
@@ -67,7 +67,7 @@ function FeaturedCard({ set }: { set: FeaturedSetDto }) {
   return (
     <Link
       to={buildCategoryPath(set.categorySlug, keywords)}
-      className="group relative min-w-0 shrink-0 basis-[calc(50%-0.3125rem)] overflow-hidden rounded-[18px] border border-white/10 bg-slate-900/90 transition duration-200 hover:-translate-y-0.5 hover:border-sky-300/50 md:basis-[calc((100%-0.833rem)/3)] xl:basis-[calc((100%-1.875rem)/4)]"
+      className="group relative min-w-0 shrink-0 basis-[calc(50%-0.3125rem)] overflow-hidden rounded-[18px] border border-white/10 bg-panel/90 transition duration-200 hover:-translate-y-0.5 hover:border-sky-300/50 md:basis-[calc((100%-0.833rem)/3)] xl:basis-[calc((100%-1.875rem)/4)]"
     >
       <img src={getCategoryThemeBySlug(set.categorySlug).image} alt="" className="absolute inset-0 h-full w-full object-cover" />
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(2,6,23,0.05)_0%,rgba(2,6,23,0.78)_100%)]" />
@@ -202,7 +202,7 @@ export function PersonalizedLanes({ featuredSets, focused = false }: { featuredS
             />
           ))}
           {morePlans > 0 && (
-            <p className="col-span-full text-xs text-slate-300">
+            <p className="col-span-full text-xs text-on-panel-muted">
               +{morePlans} more test {morePlans === 1 ? "plan" : "plans"}
             </p>
           )}
@@ -211,12 +211,12 @@ export function PersonalizedLanes({ featuredSets, focused = false }: { featuredS
             className="flex items-center justify-between gap-3 rounded-[18px] border border-white/10 bg-gradient-to-br from-amber-500/20 to-rose-500/10 p-3 hover:border-amber-300/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200"
           >
             <span>
-              <span className="block text-sm font-semibold text-white">Daily quiz</span>
-              <span className="block text-xs text-slate-200">
+              <span className="block text-sm font-semibold text-on-panel">Daily quiz</span>
+              <span className="block text-xs text-on-panel">
                 {dailyDone ? "Done for today. New set at midnight UTC." : "Five new questions, same for everyone today."}
               </span>
             </span>
-            <span className="shrink-0 text-xs font-semibold text-amber-200">
+            <span className="shrink-0 text-xs font-semibold text-amber-ink">
               {streak > 0 ? `🔥 ${streak}-day streak` : dailyDone ? "✓ Done" : "Play"}
             </span>
           </Link>
@@ -226,14 +226,14 @@ export function PersonalizedLanes({ featuredSets, focused = false }: { featuredS
               className="flex items-center justify-between gap-3 rounded-[18px] border border-white/10 bg-gradient-to-br from-indigo-500/20 to-sky-500/10 p-3 hover:border-sky-300/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200"
             >
               <span>
-                <span className="block text-sm font-semibold text-white">Review mistakes</span>
-                <span className="block text-xs text-slate-200">
+                <span className="block text-sm font-semibold text-on-panel">Review mistakes</span>
+                <span className="block text-xs text-on-panel">
                   {review.dueCount > 0
                     ? `${review.dueCount} ${review.dueCount === 1 ? "question" : "questions"} due`
                     : "Nothing due right now"}
                 </span>
               </span>
-              <span className="shrink-0 text-xs font-semibold text-sky-200">{review.dueCount > 0 ? "Review" : "Later"}</span>
+              <span className="shrink-0 text-xs font-semibold text-sky-ink">{review.dueCount > 0 ? "Review" : "Later"}</span>
             </Link>
           )}
         </div>
@@ -256,7 +256,7 @@ export function PersonalizedLanes({ featuredSets, focused = false }: { featuredS
           <button
             type="button"
             onClick={topicEditor.open}
-            className="min-h-[44px] px-2 text-xs font-semibold text-sky-400 hover:text-sky-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200"
+            className="min-h-[44px] px-2 text-xs font-semibold text-sky-400 hover:text-sky-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200"
           >
             Change topics
           </button>
@@ -270,13 +270,13 @@ export function PersonalizedLanes({ featuredSets, focused = false }: { featuredS
             ))}
           </div>
         ) : (
-          <p className="text-xs text-slate-300">Choose a few topics and we'll put them first.</p>
+          <p className="text-xs text-on-panel-muted">Choose a few topics and we'll put them first.</p>
         )}
         {suggestion && (
           <div className="mt-2 flex flex-wrap items-center gap-2 rounded-[18px] border border-sky-300/30 bg-sky-500/10 p-3" role="group" aria-label="Topic suggestion">
-            <p className="min-w-0 flex-1 text-xs text-slate-100">
+            <p className="min-w-0 flex-1 text-xs text-on-panel">
               Because you played {topicLabel(suggestion.path, categoryNames)}, add it to My topics?
-              {suggestionError && <span className="block text-rose-300">Could not save. Try again.</span>}
+              {suggestionError && <span className="block text-rose-ink">Could not save. Try again.</span>}
             </p>
             <button
               type="button"
@@ -284,7 +284,7 @@ export function PersonalizedLanes({ featuredSets, focused = false }: { featuredS
                 setSuggestionError(false);
                 saveInterests([...explicitInterests, suggestion.path]).catch(() => setSuggestionError(true));
               }}
-              className="min-h-[44px] rounded-full bg-sky-400 px-3 text-xs font-semibold text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200"
+              className="min-h-[44px] rounded-full bg-sky-400 px-3 text-xs font-semibold text-[#020617] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200"
             >
               Add topic
             </button>
@@ -294,7 +294,7 @@ export function PersonalizedLanes({ featuredSets, focused = false }: { featuredS
                 addSuppression(suggestion.path);
                 setSuppressed((current) => [...current, suggestion.path]);
               }}
-              className="min-h-[44px] px-2 text-xs font-semibold text-slate-300 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200"
+              className="min-h-[44px] px-2 text-xs font-semibold text-on-panel-muted hover:text-on-panel focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200"
             >
               Not interested
             </button>
@@ -302,7 +302,7 @@ export function PersonalizedLanes({ featuredSets, focused = false }: { featuredS
         )}
         {ranked.recommended.length > 0 && (
           <>
-            <h3 className="mt-3 mb-1.5 text-xs font-semibold text-slate-300">
+            <h3 className="mt-3 mb-1.5 text-xs font-semibold text-on-panel-muted">
               {ranked.isColdStart ? "Popular right now" : "Recommended next"}
             </h3>
             <div className="flex gap-2.5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">

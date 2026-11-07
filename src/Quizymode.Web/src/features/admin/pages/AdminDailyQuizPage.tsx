@@ -37,7 +37,7 @@ const AdminDailyQuizPage = () => {
 
   return (
     <div className="mx-auto max-w-4xl px-3 py-4 sm:px-6">
-      <Link to="/admin" className="text-sm font-semibold text-indigo-700 hover:underline">
+      <Link to="/admin" className="text-sm font-semibold text-indigo-ink hover:underline">
         ← Admin
       </Link>
       <h1 className="mt-2 text-2xl font-bold text-gray-900">Daily quiz</h1>
@@ -82,7 +82,7 @@ const AdminDailyQuizPage = () => {
           ) : (
             <ol className="mt-4 space-y-2">
               {active.map((item) => (
-                <li key={item.itemId} className="flex items-start justify-between gap-3 rounded-lg bg-white p-3 shadow">
+                <li key={item.itemId} className="flex items-start justify-between gap-3 rounded-lg bg-surface p-3 shadow">
                   <div className="flex min-w-0 items-start gap-3">
                     <QuestionImage itemId={item.itemId} image={item.questionImage} size="sm" />
                     <div className="min-w-0">
@@ -90,7 +90,7 @@ const AdminDailyQuizPage = () => {
                         #{item.position + 1} · {item.category ?? "No category"}
                       </p>
                       <p className="mt-1 text-sm text-gray-900">{item.question}</p>
-                      <Link to={`/items/${item.itemId}`} className="mt-1 inline-block text-xs font-semibold text-indigo-700 hover:underline">
+                      <Link to={`/items/${item.itemId}`} className="mt-1 inline-block text-xs font-semibold text-indigo-ink hover:underline">
                         Open item
                       </Link>
                     </div>

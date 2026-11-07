@@ -83,9 +83,9 @@ const GamesHubPage = () => {
             const best: string | null = getBestLabel(game.id, scopeKey, targetPairs);
             const Icon = game.icon;
             return (
-              <section key={game.id} className="flex flex-col rounded-lg bg-white p-4 shadow sm:p-6">
+              <section key={game.id} className="flex flex-col rounded-lg bg-surface p-4 shadow sm:p-6">
                 <div className="flex items-center gap-3">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-md bg-indigo-50 text-indigo-700">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-md bg-indigo-50 text-indigo-ink">
                     <Icon className="h-6 w-6" aria-hidden="true" />
                   </span>
                   <h2 className="text-base font-semibold text-gray-900">{game.name}</h2>

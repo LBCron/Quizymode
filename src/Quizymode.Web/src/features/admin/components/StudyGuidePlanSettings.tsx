@@ -76,7 +76,7 @@ export function StudyGuidePlanSettings({ userId, settings }: StudyGuidePlanSetti
             type="checkbox"
             checked={form.premium}
             onChange={(event) => update({ premium: event.target.checked })}
-            className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+            className="h-4 w-4 rounded border-slate-300 text-indigo-ink focus:ring-indigo-500"
           />
           <label htmlFor={`study-guide-premium-${userId}`} className="text-sm font-medium text-slate-700">
             Premium

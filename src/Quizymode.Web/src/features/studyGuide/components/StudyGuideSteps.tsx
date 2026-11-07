@@ -24,7 +24,7 @@ export function StudyGuideSteps({ current }: StudyGuideStepsProps) {
               key={step.key}
               aria-current={isCurrent ? "step" : undefined}
               className={`flex items-center gap-2 ${
-                isCurrent ? "font-semibold text-indigo-700" : isDone ? "text-gray-700" : "text-gray-500"
+                isCurrent ? "font-semibold text-indigo-ink" : isDone ? "text-gray-700" : "text-gray-500"
               }`}
             >
               <span
@@ -33,7 +33,7 @@ export function StudyGuideSteps({ current }: StudyGuideStepsProps) {
                   isCurrent
                     ? "border-indigo-600 bg-indigo-600 text-white"
                     : isDone
-                      ? "border-indigo-300 bg-indigo-50 text-indigo-700"
+                      ? "border-indigo-300 bg-indigo-50 text-indigo-ink"
                       : "border-gray-300 text-gray-500"
                 }`}
               >

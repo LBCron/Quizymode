@@ -34,8 +34,8 @@ export function ConfirmDialog({ title, message, confirmLabel, cancelLabel = "Can
     };
   }, []);
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/60 px-4">
-      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={messageId} className="w-full max-w-md space-y-4 rounded-lg bg-white p-5 shadow-xl">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-panel-deep/60 px-4">
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={messageId} className="w-full max-w-md space-y-4 rounded-lg bg-surface p-5 shadow-xl">
         <h2 id={titleId} className="text-lg font-semibold text-gray-900">{title}</h2>
         <p id={messageId} className="text-sm text-gray-700">{message}</p>
         <div className="flex justify-end gap-3">

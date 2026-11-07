@@ -142,7 +142,7 @@ const LoginPage = () => {
             <span className="text-gray-600">Don't have an account? </span>
             <Link
               to={signupHref}
-              className="font-medium text-indigo-600 hover:text-indigo-500"
+              className="font-medium text-indigo-ink hover:text-indigo-500"
             >
               Sign up
             </Link>

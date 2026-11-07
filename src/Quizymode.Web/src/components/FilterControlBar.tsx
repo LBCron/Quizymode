@@ -53,8 +53,8 @@ export function FilterControlBar({
         onClick={onOpenFilters}
         className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition ${
           hasActiveFilters
-            ? "border-indigo-300 bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
-            : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+            ? "border-indigo-300 bg-indigo-50 text-indigo-ink hover:bg-indigo-100"
+            : "border-gray-200 bg-surface text-gray-600 hover:bg-gray-50"
         }`}
       >
         <FunnelIcon className="h-4 w-4" />
@@ -74,7 +74,7 @@ export function FilterControlBar({
           className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-sm font-medium transition ${
             showAnswers
               ? "border-green-300 bg-green-50 text-green-700 hover:bg-green-100"
-              : "border-gray-200 bg-white text-gray-500 hover:bg-gray-50"
+              : "border-gray-200 bg-surface text-gray-500 hover:bg-gray-50"
           }`}
         >
           {showAnswers ? (
@@ -99,8 +99,8 @@ export function FilterControlBar({
           }
           className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-sm font-medium transition ${
             listenAllState !== "idle"
-              ? "border-indigo-300 bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
-              : "border-gray-200 bg-white text-gray-500 hover:bg-gray-50"
+              ? "border-indigo-300 bg-indigo-50 text-indigo-ink hover:bg-indigo-100"
+              : "border-gray-200 bg-surface text-gray-500 hover:bg-gray-50"
           }`}
         >
           {listenAllState === "playing" ? (
@@ -126,7 +126,7 @@ export function FilterControlBar({
           <button
             type="button"
             onClick={onOpenMap}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-surface px-3 py-1.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
           >
             Map
           </button>
@@ -141,7 +141,7 @@ export function FilterControlBar({
               id="filter-bar-sort"
               value={sortBy}
               onChange={(e) => onSortChange!(e.target.value)}
-              className="rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-sm text-gray-700 focus:border-indigo-400 focus:outline-none focus:ring-0"
+              className="rounded-lg border border-gray-200 bg-surface px-2 py-1.5 text-sm text-gray-700 focus:border-indigo-400 focus:outline-none focus:ring-0"
             >
               {sortOptions!.map((opt) => (
                 <option key={opt.value} value={opt.value}>

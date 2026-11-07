@@ -39,11 +39,11 @@ export function GameFinishCard({
   }, []);
 
   return (
-    <div className="mx-auto max-w-2xl rounded-lg bg-white p-4 text-center shadow sm:p-6">
+    <div className="mx-auto max-w-2xl rounded-lg bg-surface p-4 text-center shadow sm:p-6">
       <h2 ref={headingRef} tabIndex={-1} className="text-2xl font-bold text-gray-900 focus:outline-none">
         {heading}
       </h2>
-      <p className="mt-3 text-3xl font-bold text-indigo-700 tabular-nums">{bigValue}</p>
+      <p className="mt-3 text-3xl font-bold text-indigo-ink tabular-nums">{bigValue}</p>
       <p className="mt-1 text-gray-700">{statLine}</p>
       {isNewBest ? (
         <p className="mt-2 inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-900">
