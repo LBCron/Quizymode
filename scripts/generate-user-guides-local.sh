@@ -7,6 +7,9 @@
 #   cd src/Quizymode.Api.AppHost && dotnet run
 #
 # Usage: ./scripts/generate-user-guides-local.sh
+#
+# Failed shots do not stop the run: the guides are still generated. The script then lists the failed shots
+# and exits non-zero, so the failures are not silently ignored (AC 7.1.6).
 
 set -euo pipefail
 
@@ -34,11 +37,26 @@ mkdir -p "$REPO_ROOT/docs/user-guide/screenshots/user"
 mkdir -p "$REPO_ROOT/docs/user-guide/screenshots/mobile"
 rm -f "$REPO_ROOT/docs/user-guide/screenshots/user"/*.png
 rm -f "$REPO_ROOT/docs/user-guide/screenshots/mobile"/*.png
-npx playwright test --project=screenshots --project=screenshots-mobile || echo "Screenshot capture had failures. Proceeding to generate guides anyway."
+rm -f "$REPO_ROOT/docs/user-guide/screenshots/failures.json"
+capture_status=0
+npx playwright test --project=screenshots --project=screenshots-mobile || capture_status=$?
 
 echo "Generating desktop and mobile user guides..."
 node scripts/generate-user-guide.js --all
 exit_code=$?
+
+echo "Checking capture results..."
+report_status=0
+node scripts/evaluate-user-guide-capture.js --mode report --viewports desktop,mobile || report_status=$?
+
+if [[ $exit_code -eq 0 && $capture_status -ne 0 ]]; then
+    echo "Playwright exited with status $capture_status. See the output above." >&2
+    exit_code=$capture_status
+fi
+if [[ $exit_code -eq 0 && $report_status -ne 0 ]]; then
+    echo "Some screenshots failed. The guides were generated with 'unavailable' cards for them." >&2
+    exit_code=$report_status
+fi
 
 for guide_file in \
     "$REPO_ROOT/docs/user-guide/user-guide.md" \

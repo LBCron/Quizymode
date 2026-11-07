@@ -262,8 +262,18 @@ export function getDescription(guideKey, slug) {
   return baseDescriptions[slug] ?? "";
 }
 
+/** GitHub Pages site that the Publish User Guide workflow deploys (AC 7.1.8). */
+export const PAGES_BASE_URL = "https://yanis-kr.github.io/Quizymode/";
+
+/**
+ * Published screenshot URL for one guide's viewport. Phase A serves the current `assets/<viewport>/` folders;
+ * the Dark/Light layout (`assets/dark/<viewport>/`) arrives with the theme switch (#506 Phase B).
+ */
+export function publishedImageUrl(guideKey, filename) {
+  return `${PAGES_BASE_URL}assets/${guideKey === "mobile" ? "mobile" : "desktop"}/${filename}`;
+}
+
 export function buildGuide(config) {
-  const available = gatherAvailableScreenshots(config.screenshotDir);
   const lines = [];
 
   lines.push(`# ${config.title}`);
@@ -272,7 +282,7 @@ export function buildGuide(config) {
   lines.push("");
   lines.push(config.intro);
   lines.push(
-    `_Screenshots are generated automatically - run ${config.refreshCommand} from the repo root to refresh both guides._`
+    `_Screenshots are captured from the live site and published to [GitHub Pages](${PAGES_BASE_URL}) by the Publish User Guide workflow. The images here show the latest published guide, which may differ from this repo version._`
   );
   lines.push("");
   lines.push("## Table of Contents");
@@ -293,11 +303,8 @@ export function buildGuide(config) {
     lines.push("");
 
     for (const slug of section.slugs) {
-      const filename = available.get(slug);
-      if (!filename) {
-        continue;
-      }
-
+      // Every slug gets a step: the file name is fixed by slugToFilename and the image is served from Pages,
+      // so the guide does not depend on PNGs being present in this checkout.
       lines.push(`### ${label(slug)}`);
       lines.push("");
 
@@ -308,7 +315,7 @@ export function buildGuide(config) {
       }
 
       lines.push(
-        `![${label(slug)}](${relativeScreenshotPath(config.outputFile, config.screenshotDir, filename)} "${label(slug)}")`
+        `![${label(slug)}](${publishedImageUrl(config.key, slugToFilename(slug))} "${label(slug)}")`
       );
       lines.push("");
     }

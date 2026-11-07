@@ -69,6 +69,9 @@ jobs:
             'playwright/fixtures.ts'
             'playwright.config.ts'
             'scripts/build-user-guide-site.js'
+            'scripts/evaluate-user-guide-capture.js'
+            'scripts/generate-user-guide.js'
+            'scripts/user-guide-capture-report.js'
             'scripts/wait-for-production-ready.js'
             '.github/workflows/user-guide-pages.yml'
           )
@@ -139,6 +142,10 @@ jobs:
         run: node scripts/wait-for-production-ready.js
 
       - name: Capture live production screenshots
+        id: capture
+        # A failed sign-in or failed shots must not end the step: the gate below decides whether to publish,
+        # and it reads failures.json, which a shot failure writes without throwing (AC 7.1.5, 7.1.6).
+        continue-on-error: true
         env:
           PLAYWRIGHT_BASE_URL: https://www.quizymode.com/
           TEST_USER_EMAIL: ${{ vars.TEST_USER_EMAIL || secrets.TEST_USER_EMAIL || 'test-user@quizymode.com' }}
@@ -150,7 +157,23 @@ jobs:
             exit 1
           fi
 
+          # Start from an empty report so a stale one from an earlier run cannot pass the gate.
+          mkdir -p "${USER_GUIDE_SCREENSHOT_ROOT}"
+          rm -f "${USER_GUIDE_SCREENSHOT_ROOT}/failures.json"
+
           npx playwright test --project=screenshots --project=screenshots-mobile
+
+      - name: Gate publishing on capture results
+        # Exits 1 when sign-in or setup failed (no report), a key page was not captured in a viewport, or more than
+        # 10% of shots failed. The job then fails, so the Build and Deploy steps below are skipped and the previous
+        # guide stays live. Otherwise it lists failed shots in the job summary and the deploy goes ahead (AC 7.1.6).
+        if: ${{ always() }}
+        env:
+          USER_GUIDE_SCREENSHOT_ROOT: ${{ runner.temp }}/user-guide-screenshots
+          CAPTURE_OUTCOME: ${{ steps.capture.outcome }}
+        run: |
+          echo "Capture step outcome: ${CAPTURE_OUTCOME}"
+          node scripts/evaluate-user-guide-capture.js --viewports desktop,mobile
 
       - name: Build static user-guide site
         env:

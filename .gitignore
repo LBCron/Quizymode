@@ -385,8 +385,9 @@ playwright/.auth/
 # Playwright test artifacts and local runner logs
 playwright/test-results/
 playwright/logs/
-# Note: docs/user-guide/screenshots/ is intentionally tracked in source control
-# so the user guide renders on GitHub without running Playwright locally.
+
+# User-guide screenshots are generated in CI and published only to GitHub Pages (AC 7.1.3).
+docs/user-guide/screenshots/
 .codex-temp/DbProbe/DbProbe.csproj
 .codex-temp/DbProbe/Program.cs
 /.claude/worktrees

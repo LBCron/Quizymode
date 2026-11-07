@@ -8,6 +8,9 @@
 # Usage:
 #   .\scripts\generate-user-guides-local.ps1
 #   .\scripts\generate-user-guides-local.ps1 -Password "your-password"
+#
+# Failed shots do not stop the run: the guides are still generated. The script then lists the failed shots
+# and exits non-zero, so the failures are not silently ignored (AC 7.1.6).
 
 param(
     [string]$Password
@@ -39,16 +42,31 @@ try {
             Remove-Item -LiteralPath (Join-Path $dir "*.png") -Force -ErrorAction SilentlyContinue
         }
     }
+    $reportFile = Join-Path $RepoRoot "docs\user-guide\screenshots\failures.json"
+    if (Test-Path $reportFile) {
+        Remove-Item -LiteralPath $reportFile -Force
+    }
 
     Write-Host "Capturing desktop and mobile screenshots from local dev stack..." -ForegroundColor Cyan
     npx playwright test --project=screenshots --project=screenshots-mobile
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "Screenshot capture had failures (non-zero exit). Proceeding to generate guides anyway." -ForegroundColor Yellow
-    }
+    $captureStatus = $LASTEXITCODE
 
     Write-Host "Generating desktop and mobile user guides..." -ForegroundColor Cyan
     node scripts/generate-user-guide.js --all
     $exitCode = $LASTEXITCODE
+
+    Write-Host "Checking capture results..." -ForegroundColor Cyan
+    node scripts/evaluate-user-guide-capture.js --mode report --viewports desktop,mobile
+    $reportStatus = $LASTEXITCODE
+
+    if ($exitCode -eq 0 -and $captureStatus -ne 0) {
+        Write-Host "Playwright exited with status $captureStatus. See the output above." -ForegroundColor Red
+        $exitCode = $captureStatus
+    }
+    if ($exitCode -eq 0 -and $reportStatus -ne 0) {
+        Write-Host "Some screenshots failed. The guides were generated with 'unavailable' cards for them." -ForegroundColor Red
+        $exitCode = $reportStatus
+    }
     Pop-Location
 } finally {
     Stop-ReactDevServer $react

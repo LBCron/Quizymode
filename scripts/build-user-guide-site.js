@@ -10,6 +10,7 @@ import {
   resolveGuideConfig,
   sections,
 } from "./generate-user-guide.js";
+import { readCaptureReport, screenshotRoot, shotStatus } from "./user-guide-capture-report.js";
 
 function parseArgs(argv) {
   const options = {
@@ -131,18 +132,22 @@ function toAnchor(value) {
     .replace(/(^-|-$)/g, "");
 }
 
-function buildManifest() {
+function buildManifest(report) {
   const desktopConfig = resolveGuideConfig("desktop");
   const mobileConfig = resolveGuideConfig("mobile");
   const desktopShots = gatherAvailableScreenshots(desktopConfig.screenshotDir);
   const mobileShots = gatherAvailableScreenshots(mobileConfig.screenshotDir);
+  const failed = (viewport, slug) => shotStatus(report, viewport, slug) === "failed";
 
   return sections
     .map((section) => ({
       title: section.title,
       anchor: toAnchor(section.title),
       steps: section.slugs
-        .filter((slug) => desktopShots.has(slug) || mobileShots.has(slug))
+        // A step stays in the guide when it has an image or a failed shot, so the "unavailable" card can show.
+        .filter((slug) =>
+          desktopShots.has(slug) || mobileShots.has(slug) || failed("desktop", slug) || failed("mobile", slug)
+        )
         .map((slug) => ({
           slug,
           title: label(slug),
@@ -153,6 +158,10 @@ function buildManifest() {
           images: {
             desktop: desktopShots.has(slug) ? `assets/desktop/${desktopShots.get(slug)}` : "",
             mobile: mobileShots.has(slug) ? `assets/mobile/${mobileShots.get(slug)}` : "",
+          },
+          failed: {
+            desktop: failed("desktop", slug),
+            mobile: failed("mobile", slug),
           },
         })),
     }))
@@ -216,11 +225,14 @@ function buildIndexHtml(manifest, options) {
                 <img
                   alt="${escapeHtml(step.title)} screenshot"
                   class="guide-step__image"
+                  data-desktop-failed="${step.failed.desktop ? "true" : "false"}"
                   data-desktop-src="${escapeHtml(step.images.desktop)}"
+                  data-mobile-failed="${step.failed.mobile ? "true" : "false"}"
                   data-mobile-src="${escapeHtml(step.images.mobile)}"
                   loading="lazy"
                   src="${escapeHtml(initialSrc)}"
                 />
+                <p class="guide-step__unavailable" hidden>Screenshot unavailable in this build</p>
                 <figcaption class="guide-step__meta">
                   <span class="guide-step__slug">${escapeHtml(step.slug)}</span>
                   <span class="guide-step__availability" hidden></span>
@@ -312,6 +324,10 @@ const siteCss = `:root {
 
 * {
   box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
 }
 
 html {
@@ -579,6 +595,17 @@ a {
   font-weight: 600;
 }
 
+.guide-step__unavailable {
+  margin: 0;
+  padding: 36px 16px;
+  border: 1px dashed var(--line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--muted);
+  font-size: 0.92rem;
+  text-align: center;
+}
+
 @media (min-width: 900px) {
   .guide-step-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -685,10 +712,24 @@ const siteJs = `(() => {
           ? description.dataset.mobileDescription || description.dataset.desktopDescription || ""
           : description.dataset.desktopDescription || description.dataset.mobileDescription || "";
 
-      image.src = preferredSrc;
+      // A failed shot in this viewport shows the card, not the other viewport's image (AC 7.1.7).
+      const ownFailed =
+        mode === "mobile" ? image.dataset.mobileFailed === "true" : image.dataset.desktopFailed === "true";
+      const showCard = ownFailed || !preferredSrc;
+      const unavailable = article.querySelector(".guide-step__unavailable");
+
+      image.hidden = showCard;
+      if (showCard) {
+        image.removeAttribute("src");
+      } else {
+        image.src = preferredSrc;
+      }
+      if (unavailable) {
+        unavailable.hidden = !showCard;
+      }
       description.innerHTML = renderInlineMarkup(preferredDescription);
 
-      if (fallbackUsed) {
+      if (fallbackUsed && !showCard) {
         availability.hidden = false;
         availability.textContent =
           mode === "mobile"
@@ -733,7 +774,7 @@ function writeSiteFiles(outputDir, manifest, options) {
 }
 
 const options = parseArgs(process.argv.slice(2));
-const manifest = buildManifest();
+const manifest = buildManifest(readCaptureReport(screenshotRoot()));
 
 if (manifest.length === 0) {
   console.error("No user-guide screenshots were found. Capture screenshots before building the site.");

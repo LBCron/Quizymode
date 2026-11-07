@@ -3,6 +3,7 @@ import { expect, test } from "../fixtures";
 import path from "path";
 import fs from "fs";
 import { slugToFilename } from "../../scripts/generate-user-guide.js";
+import { screenshotRoot, writeViewportRecords } from "../../scripts/user-guide-capture-report.js";
 
 const HOME_SAMPLE_COLLECTION_ID = "8f9b8c14-8d30-4d94-9b20-4c7bb7f7f511";
 const HOME_SAMPLE_COLLECTION_SLUG = "fun+trivia+facts";
@@ -40,6 +41,24 @@ async function ensureSignedIn(page: Page) {
   await signInWithEnvCredentials(page);
 }
 
+async function hasVisibleSpinner(page: Page) {
+  return page
+    .locator("[role='status']")
+    .evaluateAll((elements) =>
+      elements.some((element) => {
+        const htmlElement = element as HTMLElement;
+        // Ignore screen-reader-only live regions (e.g. the header search's
+        // sr-only role="status"), which are always mounted and 1x1px.
+        return (
+          htmlElement.offsetParent !== null &&
+          htmlElement.offsetWidth > 1 &&
+          htmlElement.offsetHeight > 1
+        );
+      })
+    )
+    .catch(() => false);
+}
+
 async function waitForUiToSettle(page: Page) {
   await page.waitForLoadState("domcontentloaded").catch(() => {});
   await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => {});
@@ -51,23 +70,7 @@ async function waitForUiToSettle(page: Page) {
   let cleanStreak = 0;
   const startedAt = Date.now();
   while (Date.now() - startedAt < 15_000) {
-    const hasVisibleSpinner = await page
-      .locator("[role='status']")
-      .evaluateAll((elements) =>
-        elements.some((element) => {
-          const htmlElement = element as HTMLElement;
-          // Ignore screen-reader-only live regions (e.g. the header search's
-          // sr-only role="status"), which are always mounted and 1x1px.
-          return (
-            htmlElement.offsetParent !== null &&
-            htmlElement.offsetWidth > 1 &&
-            htmlElement.offsetHeight > 1
-          );
-        })
-      )
-      .catch(() => false);
-
-    if (!hasVisibleSpinner) {
+    if (!(await hasVisibleSpinner(page))) {
       cleanStreak += 1;
       if (cleanStreak >= 3) {
         break;
@@ -78,6 +81,132 @@ async function waitForUiToSettle(page: Page) {
 
     await page.waitForTimeout(200);
   }
+}
+
+// Retry policy for one shot (AC 7.1.5): 3 attempts; wait 2 s, reload, try again; wait 5 s, reload, try again.
+const ATTEMPTS_PER_SHOT = 3;
+const RETRY_WAITS_MS = [2_000, 5_000];
+// One attempt may not run longer than this, so a shot cannot push its test past the 150 s limit.
+const ATTEMPT_TIMEOUT_MS = 55_000;
+// No new attempt starts once a shot has used this much time.
+const SHOT_RETRY_WINDOW_MS = 90_000;
+// Total time spent in retries across the whole run.
+const RUN_RETRY_BUDGET_MS = 5 * 60_000;
+
+type ShotRecord = {
+  slug: string;
+  status: "captured" | "failed";
+  attempts: number;
+  error?: string;
+  path?: string;
+};
+
+type Viewport = "desktop" | "mobile";
+
+// Every shot's outcome, per viewport, for failures.json. Rewritten after each shot so a later crash keeps earlier results.
+const shotRecords: Record<Viewport, ShotRecord[]> = { desktop: [], mobile: [] };
+let retryTimeSpentMs = 0;
+
+function viewportOf(testInfo: TestInfo): Viewport {
+  return testInfo.project.name === "screenshots-mobile" ? "mobile" : "desktop";
+}
+
+function recordShot(viewport: Viewport, record: ShotRecord) {
+  shotRecords[viewport] = shotRecords[viewport].filter((existing) => existing.slug !== record.slug).concat(record);
+  try {
+    writeViewportRecords(screenshotRoot(), viewport, shotRecords[viewport]);
+  } catch (error) {
+    console.warn(`Could not write the user-guide capture report: ${String(error)}`);
+  }
+}
+
+function describeError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+  return message.split("\n")[0].slice(0, 300);
+}
+
+function currentPath(page: Page) {
+  try {
+    return new URL(page.url()).pathname;
+  } catch {
+    return "";
+  }
+}
+
+async function withAttemptTimeout(work: () => Promise<void>, timeoutMs: number) {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`Attempt exceeded ${timeoutMs / 1000}s`)), timeoutMs);
+  });
+  const running = work();
+  // A late failure after the timeout is already handled; it must not surface as an unhandled rejection.
+  running.catch(() => {});
+  try {
+    await Promise.race([running, timeout]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
+/** A page counts as loaded only when it is signed in, #root renders, no error screen shows, and no spinner remains. */
+async function assertPageReady(page: Page) {
+  if (currentPath(page).endsWith("/login")) {
+    throw new Error("Redirected to /login: not signed in");
+  }
+
+  await expect(page.locator("#root")).toBeVisible({ timeout: 10_000 });
+
+  if (await page.getByText("Something went wrong", { exact: false }).first().isVisible().catch(() => false)) {
+    throw new Error("The error screen is showing");
+  }
+
+  if (await hasVisibleSpinner(page)) {
+    throw new Error("A loading spinner is still visible");
+  }
+}
+
+/**
+ * Runs one shot with retries. It never throws: a shot that still fails is recorded in failures.json,
+ * and the rest of the serial suite keeps running (AC 7.1.5).
+ */
+async function runShot(page: Page, testInfo: TestInfo, slug: string, shoot: () => Promise<void>) {
+  const viewport = viewportOf(testInfo);
+  const startedAt = Date.now();
+  let attempts = 0;
+  let lastError: unknown = null;
+
+  for (let attempt = 0; attempt < ATTEMPTS_PER_SHOT; attempt += 1) {
+    const retryStartedAt = Date.now();
+    if (attempt > 0) {
+      if (Date.now() - startedAt > SHOT_RETRY_WINDOW_MS || retryTimeSpentMs > RUN_RETRY_BUDGET_MS) {
+        break;
+      }
+
+      await page.waitForTimeout(RETRY_WAITS_MS[attempt - 1]);
+      await page.reload({ waitUntil: "load", timeout: 20_000 }).catch(() => {});
+    }
+
+    attempts += 1;
+    try {
+      await withAttemptTimeout(shoot, ATTEMPT_TIMEOUT_MS);
+      if (attempt > 0) retryTimeSpentMs += Date.now() - retryStartedAt;
+      recordShot(viewport, { slug, status: "captured", attempts });
+      return;
+    } catch (error) {
+      if (attempt > 0) retryTimeSpentMs += Date.now() - retryStartedAt;
+      lastError = error;
+    }
+  }
+
+  const record: ShotRecord = {
+    slug,
+    status: "failed",
+    attempts,
+    error: describeError(lastError),
+    path: currentPath(page),
+  };
+  recordShot(viewport, record);
+  console.warn(`User-guide shot failed: ${viewport}/${slug} after ${attempts} attempt(s): ${record.error}`);
 }
 
 function getScreenshotDir(testInfo: TestInfo) {
@@ -221,7 +350,7 @@ async function captureCurrentPage(page: Page, testInfo: TestInfo, slug: string) 
   const screenshotDir = getScreenshotDir(testInfo);
   fs.mkdirSync(screenshotDir, { recursive: true });
   await waitForUiToSettle(page);
-  await expect(page.locator("#root")).toBeVisible();
+  await assertPageReady(page);
   await openMobileMenuIfNeeded(page, testInfo, slug);
   await page.screenshot({
     path: path.join(screenshotDir, slugToFilename(slug)),
@@ -594,77 +723,85 @@ async function applyKeywordFilterWithResults(page: Page) {
   }
 }
 
+/** Declares one shot as a serial test. The body runs inside runShot, so a failed shot is recorded and never fails the test. */
+function shotTest(slug: string, body: (page: Page, testInfo: TestInfo) => Promise<void>) {
+  test(slug, async ({ page }, testInfo) => {
+    await runShot(page, testInfo, slug, () => body(page, testInfo));
+  });
+}
+
 test.describe("User guide screenshots", () => {
   test.describe.configure({ mode: "serial" });
-  test.setTimeout(60_000);
+  // Per-test limit (AC 7.1.5): a shot's attempts are bounded inside runShot, so 150 s is never reached by one shot.
+  test.setTimeout(150_000);
 
   const secondCollectionName = "Second collection";
 
-  test("home", async ({ page }, testInfo) => {
+  shotTest("home", async (page, testInfo) => {
     await setPageSizeToFive(page);
     await capture(page, testInfo, "home", "/");
   });
 
-  test("featured", async ({ page }, testInfo) => {
+  shotTest("featured", async (page, testInfo) => {
     await capture(page, testInfo, "featured", "/featured", [
       "button:has-text('Sets')",
       "text=No featured sets yet",
     ]);
   });
 
-  test("categories", async ({ page }, testInfo) => {
+  shotTest("categories", async (page, testInfo) => {
     await capture(page, testInfo, "categories", "/categories");
   });
 
-  test("add-items", async ({ page }, testInfo) => {
+  shotTest("add-items", async (page, testInfo) => {
     await capture(page, testInfo, "add-items", "/create");
   });
 
-  test("add-new-item", async ({ page }, testInfo) => {
+  shotTest("add-new-item", async (page, testInfo) => {
     await capture(page, testInfo, "add-new-item", "/create/question");
   });
 
-  test("create-notes", async ({ page }, testInfo) => {
+  shotTest("create-notes", async (page, testInfo) => {
     await capture(page, testInfo, "create-notes", "/create/notes");
   });
 
-  test("create-import", async ({ page }, testInfo) => {
+  shotTest("create-import", async (page, testInfo) => {
     await capture(page, testInfo, "create-import", "/create/import");
   });
 
-  test("collections-mine", async ({ page }, testInfo) => {
+  shotTest("collections-mine", async (page, testInfo) => {
     await capture(page, testInfo, "collections-mine", "/collections", [
       "button:has-text('New collection')",
       "button[title='Edit collection']",
     ]);
   });
 
-  test("collection-detail", async ({ page }, testInfo) => {
+  shotTest("collection-detail", async (page, testInfo) => {
     await openCollectionByName(page, secondCollectionName);
     await captureCurrentPage(page, testInfo, "collection-detail");
   });
 
-  test("about", async ({ page }, testInfo) => {
+  shotTest("about", async (page, testInfo) => {
     await capture(page, testInfo, "about", "/about");
   });
 
-  test("feedback", async ({ page }, testInfo) => {
+  shotTest("feedback", async (page, testInfo) => {
     await capture(page, testInfo, "feedback", "/feedback");
   });
 
-  test("ideas", async ({ page }, testInfo) => {
+  shotTest("ideas", async (page, testInfo) => {
     await capture(page, testInfo, "ideas", "/ideas");
   });
 
-  test("nav-geography", async ({ page }, testInfo) => {
+  shotTest("nav-geography", async (page, testInfo) => {
     await capture(page, testInfo, "nav-geography", "/categories/geography");
   });
 
-  test("nav-geography-capitals", async ({ page }, testInfo) => {
+  shotTest("nav-geography-capitals", async (page, testInfo) => {
     await capture(page, testInfo, "nav-geography-capitals", "/categories/geography/capitals");
   });
 
-  test("nav-geography-capitals-world", async ({ page }, testInfo) => {
+  shotTest("nav-geography-capitals-world", async (page, testInfo) => {
     await capture(
       page,
       testInfo,
@@ -673,26 +810,26 @@ test.describe("User guide screenshots", () => {
     );
   });
 
-  test("mode-flashcards", async ({ page }, testInfo) => {
+  shotTest("mode-flashcards", async (page, testInfo) => {
     await safeGoto(page, "/categories/geography/capitals/world");
     await clickMode(page, "flashcards");
     await captureCurrentPage(page, testInfo, "mode-flashcards");
   });
 
-  test("mode-quiz", async ({ page }, testInfo) => {
+  shotTest("mode-quiz", async (page, testInfo) => {
     await safeGoto(page, "/categories/geography/capitals/world");
     await clickMode(page, "quiz");
     await captureCurrentPage(page, testInfo, "mode-quiz");
   });
 
-  test("items-add-to-collection", async ({ page }, testInfo) => {
+  shotTest("items-add-to-collection", async (page, testInfo) => {
     await safeGoto(page, "/categories/geography/capitals/world");
     await ensureListMode(page);
     await waitForCategoryItemsLoaded(page);
     await captureCurrentPage(page, testInfo, "items-add-to-collection");
   });
 
-  test("items-collection-badges", async ({ page }, testInfo) => {
+  shotTest("items-collection-badges", async (page, testInfo) => {
     await safeGoto(page, "/categories/geography/capitals/world");
     await ensureListMode(page);
     await waitForCategoryItemsLoaded(page);
@@ -700,7 +837,7 @@ test.describe("User guide screenshots", () => {
     await captureCurrentPage(page, testInfo, "items-collection-badges");
   });
 
-  test("items-collection-removed", async ({ page }, testInfo) => {
+  shotTest("items-collection-removed", async (page, testInfo) => {
     await safeGoto(page, "/categories/geography/capitals/world");
     await ensureListMode(page);
     await waitForCategoryItemsLoaded(page);
@@ -717,7 +854,7 @@ test.describe("User guide screenshots", () => {
     await captureCurrentPage(page, testInfo, "items-collection-removed");
   });
 
-  test("active-collection-selector", async ({ page }, testInfo) => {
+  shotTest("active-collection-selector", async (page, testInfo) => {
     await safeGoto(page, "/categories/geography/capitals/world");
     await ensureListMode(page);
     await waitForCategoryItemsLoaded(page);
@@ -727,7 +864,7 @@ test.describe("User guide screenshots", () => {
     await addFirstItemsToActiveCollection(page, 2);
   });
 
-  test("collection-new", async ({ page }, testInfo) => {
+  shotTest("collection-new", async (page, testInfo) => {
     await safeGoto(page, "/collections");
     await page
       .getByRole("button", { name: /new collection/i })
@@ -743,50 +880,50 @@ test.describe("User guide screenshots", () => {
     await page.waitForTimeout(1_500);
   });
 
-  test("collections-mine-two", async ({ page }, testInfo) => {
+  shotTest("collections-mine-two", async (page, testInfo) => {
     await capture(page, testInfo, "collections-mine-two", "/collections", [
       "button[title='Edit collection']",
       "button[title='Active collection']",
     ]);
   });
 
-  test("keyword-filter", async ({ page }, testInfo) => {
+  shotTest("keyword-filter", async (page, testInfo) => {
     await applyKeywordFilterWithResults(page);
     await captureCurrentPage(page, testInfo, "keyword-filter");
   });
 
-  test("item-detail", async ({ page }, testInfo) => {
+  shotTest("item-detail", async (page, testInfo) => {
     await openFirstCategoryItemDetail(page);
     await captureCurrentPage(page, testInfo, "item-detail");
   });
 
-  test("item-rating-five-stars", async ({ page }, testInfo) => {
+  shotTest("item-rating-five-stars", async (page, testInfo) => {
     await openFirstCategoryItemDetail(page);
     await rateCurrentItemFiveStars(page);
     await captureCurrentPage(page, testInfo, "item-rating-five-stars");
   });
 
-  test("item-comment-added", async ({ page }, testInfo) => {
+  shotTest("item-comment-added", async (page, testInfo) => {
     await openFirstCategoryItemDetail(page);
     await addCommentForCurrentItem(page, USER_GUIDE_COMMENT_TEXT);
     await waitForAnyVisible(page, ["[role='dialog']", `text=${USER_GUIDE_COMMENT_TEXT}`]);
     await captureCurrentPage(page, testInfo, "item-comment-added");
   });
 
-  test("collection-detail-flashcards", async ({ page }, testInfo) => {
+  shotTest("collection-detail-flashcards", async (page, testInfo) => {
     await openCollectionByName(page, secondCollectionName);
     await clickMode(page, "flashcards");
     await captureCurrentPage(page, testInfo, "collection-detail-flashcards");
   });
 
-  test("collection-detail-quiz", async ({ page }, testInfo) => {
+  shotTest("collection-detail-quiz", async (page, testInfo) => {
     await openCollectionByName(page, secondCollectionName);
     await clickMode(page, "quiz");
     await waitForCollectionQuizModeLoaded(page);
     await captureCurrentPage(page, testInfo, "collection-detail-quiz");
   });
 
-  test("collection-settings-public", async ({ page }, testInfo) => {
+  shotTest("collection-settings-public", async (page, testInfo) => {
     await safeGoto(page, "/collections");
     await waitForCollectionsPageLoaded(page);
 
@@ -808,11 +945,11 @@ test.describe("User guide screenshots", () => {
     await waitForCollectionsPageLoaded(page);
   });
 
-  test("collections-discover-public", async ({ page }, testInfo) => {
+  shotTest("collections-discover-public", async (page, testInfo) => {
     await capture(page, testInfo, "collections-discover-public", "/collections?tab=discover");
   });
 
-  test("collection-bookmark", async ({ page }, testInfo) => {
+  shotTest("collection-bookmark", async (page, testInfo) => {
     await safeGoto(page, "/collections?tab=discover");
     await page
       .locator("button[title*='Bookmark']")
@@ -823,11 +960,11 @@ test.describe("User guide screenshots", () => {
     await captureCurrentPage(page, testInfo, "collection-bookmark");
   });
 
-  test("collections-bookmarked", async ({ page }, testInfo) => {
+  shotTest("collections-bookmarked", async (page, testInfo) => {
     await capture(page, testInfo, "collections-bookmarked", "/collections?tab=bookmarked");
   });
 
-  test("add-items-prepopulated", async ({ page }, testInfo) => {
+  shotTest("add-items-prepopulated", async (page, testInfo) => {
     await openScopedAddItemsPage(page);
     await waitForSelectValue(page, "#item-form-category", "geography");
     await waitForSelectValue(page, "#item-form-rank1", "capitals");
