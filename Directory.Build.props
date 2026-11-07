@@ -3,7 +3,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <QuizymodeVersion>3.131.0</QuizymodeVersion>
+    <QuizymodeVersion>3.132.0</QuizymodeVersion>
     <!--<TreatWarningsAsErrors>true</TreatWarningsAsErrors>-->
   </PropertyGroup>
 </Project>

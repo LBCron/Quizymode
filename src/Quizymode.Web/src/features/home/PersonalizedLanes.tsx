@@ -1,5 +1,5 @@
 import { topicBrowsePath, topicLabel, topicParts } from "@/features/interests/topicPaths";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRightIcon } from "@heroicons/react/24/outline";
@@ -8,6 +8,7 @@ import { collectionsApi } from "@/api/collections";
 import type { FeaturedSetDto } from "@/api/featured";
 import { dailyQuizApi, interestsApi, reviewQueueApi } from "@/api/learningLoop";
 import { studySessionsApi } from "@/api/studySessions";
+import { topicActivityApi } from "@/api/topicActivity";
 import { buildCategoryPath } from "@/utils/categorySlug";
 import { getCategoryThemeBySlug } from "@/features/categories/categoryThemes";
 import { readGuestHistory, readGuestRunSummary } from "@/features/guestHistory/guestHistoryStorage";
@@ -21,7 +22,16 @@ import { useStudyPlanActions, useStudyPlans } from "@/features/studyPlans/useStu
 import { MAX_LANE_PLANS, daysUntil } from "@/features/studyPlans/studyPlanSteps";
 import { homeCategoryCards } from "./homePageData";
 import { MAX_INTERESTS } from "@/features/learningLoop/localLearningState";
-import { addSuppression, readSuppressions, suggestTopics } from "./topicSuggestions";
+import {
+  addSuppression,
+  chooseSuggestionCard,
+  readSuggestionCardState,
+  readSuppressions,
+  suggestFromActivity,
+  suggestTopics,
+  writeSuggestionCardState,
+  type SuggestionCardState,
+} from "./topicSuggestions";
 import { rankPersonalizedHome, type ActivityRun } from "./personalization";
 
 const laneClass = "rounded-[24px] border border-white/10 bg-slate-950/70 p-2 sm:p-3 shadow-xl shadow-slate-950/25";
@@ -91,6 +101,13 @@ export function PersonalizedLanes({ featuredSets, focused = false }: { featuredS
     enabled: signedIn,
     retry: false,
   });
+  const topicActivityQuery = useQuery({
+    queryKey: ["home", "topic-activity", userId],
+    queryFn: () => topicActivityApi.get(),
+    enabled: signedIn,
+    retry: false,
+    staleTime: 5 * 60 * 1000,
+  });
   const reviewQuery = useQuery({
     queryKey: ["review-queue", "summary", userId],
     queryFn: () => reviewQueueApi.getSummary(),
@@ -139,10 +156,22 @@ export function PersonalizedLanes({ featuredSets, focused = false }: { featuredS
     [explicitInterests, runs, featuredSets, popularQuery.data, focused],
   );
 
-  const suggestion =
-    interestsStatus === "ready" && explicitInterests.length < MAX_INTERESTS
-      ? suggestTopics(runs, explicitInterests, suppressed)[0]
-      : undefined;
+  // Signed in: the server aggregate (#385). Guest: this browser's runs. At most one new card per UTC day (AC 3.15.6).
+  const [cardState, setCardState] = useState<SuggestionCardState>(readSuggestionCardState);
+  const suggestionChoice = useMemo(() => {
+    if (interestsStatus !== "ready" || explicitInterests.length >= MAX_INTERESTS) return { card: undefined, next: cardState };
+    const candidates = signedIn
+      ? suggestFromActivity(topicActivityQuery.data?.topics ?? [], explicitInterests, suppressed)
+      : suggestTopics(runs, explicitInterests, suppressed);
+    return chooseSuggestionCard(candidates, cardState, utcToday());
+  }, [interestsStatus, explicitInterests, suppressed, signedIn, topicActivityQuery.data, runs, cardState]);
+  const suggestion = suggestionChoice.card;
+  useEffect(() => {
+    if (suggestionChoice.next !== cardState) {
+      writeSuggestionCardState(suggestionChoice.next);
+      setCardState(suggestionChoice.next);
+    }
+  }, [suggestionChoice, cardState]);
 
   const today = utcToday();
   const localDaily = signedIn ? [] : readDailyCompletions();

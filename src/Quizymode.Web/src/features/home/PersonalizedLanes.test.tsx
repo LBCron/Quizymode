@@ -3,6 +3,7 @@ import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { installMemoryLocalStorage } from "@/test/memoryStorage";
 import { dailyQuizApi, interestsApi, reviewQueueApi } from "@/api/learningLoop";
 import { studySessionsApi } from "@/api/studySessions";
+import { topicActivityApi } from "@/api/topicActivity";
 import { studyPlansApi, type StudyPlanDto } from "@/api/studyPlans";
 import { collectionsApi } from "@/api/collections";
 import { AxiosError, type AxiosResponse } from "axios";
@@ -31,6 +32,7 @@ vi.mock("@/api/learningLoop", () => ({
   interestsApi: { get: vi.fn(), replace: vi.fn(), popularCategories: vi.fn() },
 }));
 vi.mock("@/api/studySessions", () => ({ studySessionsApi: { list: vi.fn() } }));
+vi.mock("@/api/topicActivity", () => ({ topicActivityApi: { get: vi.fn().mockResolvedValue({ windowDays: 30, topics: [] }) } }));
 vi.mock("@/api/studyPlans", () => ({ studyPlansApi: { list: vi.fn(), upsert: vi.fn(), remove: vi.fn() } }));
 vi.mock("@/api/collections", () => ({ collectionsApi: { getById: vi.fn().mockResolvedValue({ name: "Tennis Trivia" }) } }));
 
@@ -352,11 +354,11 @@ describe("PersonalizedLanes test-date plans (#364)", () => {
     vi.mocked(interestsApi.replace).mockResolvedValue(["history", "trivia/sports"]);
     vi.mocked(reviewQueueApi.getSummary).mockResolvedValue({ dueCount: 0, totalCount: 0, nextDueAt: null });
     vi.mocked(dailyQuizApi.get).mockResolvedValue({ date: utcToday(), items: [], completion: null, streak: 0 });
-    const session = (id: string, nav: string[]) => ({
-      id, origin: "quiz", runId: `run-${id}`, completedAt: new Date().toISOString(), correct: 3, total: 5, missedItemIds: [],
-      source: { kind: "category" as const, categorySlug: "trivia", navigationKeywords: nav, filterKeywords: [] },
+    vi.mocked(studySessionsApi.list).mockResolvedValue([]);
+    vi.mocked(topicActivityApi.get).mockResolvedValue({
+      windowDays: 30,
+      topics: [{ path: "trivia/sports", runs: 2, lastCompletedAt: new Date().toISOString() }],
     });
-    vi.mocked(studySessionsApi.list).mockResolvedValue([session("a", ["sports"]), session("b", ["sports", "tennis"])]);
 
     renderLanes(featured);
 
@@ -372,16 +374,37 @@ describe("PersonalizedLanes test-date plans (#364)", () => {
     vi.mocked(interestsApi.get).mockResolvedValue([]);
     vi.mocked(reviewQueueApi.getSummary).mockResolvedValue({ dueCount: 0, totalCount: 0, nextDueAt: null });
     vi.mocked(dailyQuizApi.get).mockResolvedValue({ date: utcToday(), items: [], completion: null, streak: 0 });
-    const session = (id: string) => ({
-      id, origin: "quiz", runId: `run-${id}`, completedAt: new Date().toISOString(), correct: 3, total: 5, missedItemIds: [],
-      source: { kind: "category" as const, categorySlug: "science", navigationKeywords: [], filterKeywords: [] },
+    vi.mocked(studySessionsApi.list).mockResolvedValue([]);
+    vi.mocked(topicActivityApi.get).mockResolvedValue({
+      windowDays: 30,
+      topics: [{ path: "science", runs: 2, lastCompletedAt: new Date().toISOString() }],
     });
-    vi.mocked(studySessionsApi.list).mockResolvedValue([session("a"), session("b")]);
 
     renderLanes(featured);
 
     fireEvent.click(within(await screen.findByRole("group", { name: "Topic suggestion" })).getByRole("button", { name: "Not interested" }));
     expect(screen.queryByRole("group", { name: "Topic suggestion" })).not.toBeInTheDocument();
     expect(JSON.parse(localStorage.getItem("quizymode.topicSuppressions.v1") ?? "[]")).toEqual(["science"]);
+  });
+
+  it("signed in: a second new suggestion waits until the next UTC day", async () => {
+    auth.value = { isAuthenticated: true, isLoading: false, userId: "user-1" };
+    vi.mocked(interestsApi.get).mockResolvedValue([]);
+    vi.mocked(reviewQueueApi.getSummary).mockResolvedValue({ dueCount: 0, totalCount: 0, nextDueAt: null });
+    vi.mocked(dailyQuizApi.get).mockResolvedValue({ date: utcToday(), items: [], completion: null, streak: 0 });
+    vi.mocked(studySessionsApi.list).mockResolvedValue([]);
+    vi.mocked(topicActivityApi.get).mockResolvedValue({
+      windowDays: 30,
+      topics: [
+        { path: "science", runs: 3, lastCompletedAt: new Date().toISOString() },
+        { path: "history", runs: 2, lastCompletedAt: new Date().toISOString() },
+      ],
+    });
+
+    renderLanes(featured);
+
+    fireEvent.click(within(await screen.findByRole("group", { name: "Topic suggestion" })).getByRole("button", { name: "Not interested" }));
+    expect(screen.queryByRole("group", { name: "Topic suggestion" })).not.toBeInTheDocument();
+    expect(JSON.parse(localStorage.getItem("quizymode.topicSuggestionCard.v1") ?? "{}").newCardDate).toBe(utcToday());
   });
 });
