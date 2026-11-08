@@ -263,7 +263,7 @@ internal sealed class TopicSuggestionProfiles(
             .Where(ItemVisibility.PublicEligible)
             .GroupBy(_ => 1)
             .Select(group => new { Count = group.Count(), Newest = group.Max(item => item.UpdatedAt ?? item.CreatedAt) })
-            .FirstOrDefaultAsync(cancellationToken);
+            .SingleOrDefaultAsync(cancellationToken); // one group (GroupBy constant), so Single is safe (#490)
 
         return row is null ? new Fingerprint(0, null) : new Fingerprint(row.Count, row.Newest);
     }

@@ -89,9 +89,10 @@ internal static partial class StartupExtensions
                     return LogEventLevel.Error;
                 }
 
+                // Successful requests are Debug so the Information volume stays near the app's own lifecycle lines (#490).
                 return httpContext.Response.StatusCode >= StatusCodes.Status400BadRequest
                     ? LogEventLevel.Warning
-                    : LogEventLevel.Information;
+                    : LogEventLevel.Debug;
             };
         });
 

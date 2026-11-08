@@ -80,6 +80,9 @@ internal sealed class ItemQueryExecutor
             .Include(i => i.ItemKeywords)
                 .ThenInclude(ik => ik.Keyword)
             .Include(i => i.Category)
+            // Deterministic paging: creation order with an Id tiebreaker (#490).
+            .OrderBy(i => i.CreatedAt)
+            .ThenBy(i => i.Id)
             .Skip((request.Page - 1) * request.PageSize)
             .Take(request.PageSize)
             .ToListAsync(_cancellationToken);

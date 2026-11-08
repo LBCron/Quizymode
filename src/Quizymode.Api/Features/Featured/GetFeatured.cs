@@ -129,7 +129,7 @@ public static class GetFeatured
                 var stats = await query
                     .GroupBy(_ => 1)
                     .Select(g => new { Count = g.Count(), LastMod = g.Max(i => (DateTime?)(i.UpdatedAt ?? i.CreatedAt)) })
-                    .FirstOrDefaultAsync(cancellationToken);
+                    .SingleOrDefaultAsync(cancellationToken); // one group (GroupBy constant), so Single is safe (#490)
 
                 sets.Add(new FeaturedSetDto(fi.Id, fi.DisplayName, fi.CategorySlug, fi.NavKeyword1, fi.NavKeyword2, stats?.Count ?? 0, stats?.LastMod, fi.SortOrder));
             }

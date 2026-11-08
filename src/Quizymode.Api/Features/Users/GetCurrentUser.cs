@@ -72,8 +72,9 @@ public static class GetCurrentUser
                     Error.Validation("User.InvalidUserId", "Invalid user ID format"));
             }
 
+            // Id is the primary key, so at most one row (#490: a deterministic single-row lookup).
             User? user = await db.Users
-                .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+                .SingleOrDefaultAsync(u => u.Id == userId, cancellationToken);
 
             if (user is null)
             {
