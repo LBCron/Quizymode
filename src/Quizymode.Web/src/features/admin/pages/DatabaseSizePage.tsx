@@ -34,7 +34,7 @@ const DatabaseSizePage = () => {
   const getUsageColor = (percentage: number): string => {
     if (percentage >= 90) return 'text-red-600';
     if (percentage >= 75) return 'text-orange-600';
-    return 'text-green-600';
+    return 'text-green-700';
   };
 
   const getProgressBarColor = (percentage: number): string => {

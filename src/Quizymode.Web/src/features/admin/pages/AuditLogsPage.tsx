@@ -292,7 +292,7 @@ const AuditLogsPage = () => {
                         {formatDate(log.createdUtc)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {log.userEmail || <span className="text-gray-400">N/A</span>}
+                        {log.userEmail || <span className="text-gray-500">N/A</span>}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-indigo-100 text-indigo-ink">
@@ -306,7 +306,7 @@ const AuditLogsPage = () => {
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">
-                        {log.entityId || <span className="text-gray-400">N/A</span>}
+                        {log.entityId || <span className="text-gray-500">N/A</span>}
                       </td>
                     </tr>
                   ))}

@@ -2198,6 +2198,7 @@ A public page at `/featured` shows Admin-curated Sets and Collections with modif
 - **AC 14.4** [Anyone] **Given** the page loads, **then** `<html data-theme="dark|light">` is set before React mounts by an inline script in `index.html` (so a saved Light theme shows without a flash of Dark), and the app corrects it once sign-in state is known: a guest is set to `dark`, a signed-in user to the saved choice. A guest with a saved Light choice can briefly see Light until the app loads.
 - **AC 14.5** [System] **Contract for the user-guide capture (#506):** the preference lives in `localStorage` key `quizymode.theme.v1` with the value `dark` or `light` (anything else reads as `dark`), and the applied theme is the `data-theme` attribute on `<html>`. Writing the key and dispatching a `StorageEvent` for it switches a signed-in session in place.
 - **AC 14.6** [Anyone] **Given** any page in either theme, **then** text is readable (WCAG AA for body text), focus states stay visible, and there is no horizontal scroll at 390 px or 1440 px.
+  - Light admin follow-up (3.136.1): the audit-log "N/A" placeholders use `text-gray-500` (were `gray-400`, 2.6:1 on white) and the database usage percentage uses `text-green-700` (was `green-600`, 3.2:1). Admin routes pass a computed WCAG AA text check in both themes (dashboard, review board, audit logs, database size, keywords, ideas, client errors) once deployed.
 - **AC 14.7** Printing always uses a white page regardless of theme. (frontend tests: themePreference, useApplyTheme, ThemePicker, UserProfileModal)
 
 ---
