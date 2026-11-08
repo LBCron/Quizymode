@@ -28,8 +28,16 @@ import { buildCollectionPath, buildCollectionStudyPath } from "@/utils/collectio
 import type {
   CollectionDiscoverItem,
   CollectionRatingResponse,
+  CollectionResponse,
   CreateCollectionRequest,
 } from "@/types/api";
+import { SignupPrompt } from "@/features/auth/components/SignupPrompt";
+import {
+  GUEST_BOOKMARKS_CHANGED_EVENT,
+  addLocalBookmark,
+  readLocalBookmarks,
+  removeLocalBookmark,
+} from "@/features/collections/localBookmarks";
 
 type TabId = "mine" | "bookmarked" | "discover";
 
@@ -386,6 +394,14 @@ const CollectionsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get("tab") as TabId | null;
   const [activeTab, setActiveTab] = useState<TabId>(tabParam && ["mine", "bookmarked", "discover"].includes(tabParam) ? tabParam : "mine");
+  // Anonymous visitors keep bookmarks in this browser (#503, AC 1.15.1); signed-in mode never reads them.
+  const [guestBookmarkIds, setGuestBookmarkIds] = useState<string[]>(() => readLocalBookmarks());
+  const [guestBookmarkNotice, setGuestBookmarkNotice] = useState<string | null>(null);
+  useEffect(() => {
+    const refresh = () => setGuestBookmarkIds(readLocalBookmarks());
+    window.addEventListener(GUEST_BOOKMARKS_CHANGED_EVENT, refresh);
+    return () => window.removeEventListener(GUEST_BOOKMARKS_CHANGED_EVENT, refresh);
+  }, []);
   const [discoverQuery, setDiscoverQuery] = useState("");
   const [discoverPage, setDiscoverPage] = useState(1);
   const [discoverCategory, setDiscoverCategory] = useState("");
@@ -404,7 +420,7 @@ const CollectionsPage = () => {
 
   useEffect(() => {
     if (authLoading || isAuthenticated) return;
-    if (activeTab === "mine" || activeTab === "bookmarked") {
+    if (activeTab === "mine") {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setActiveTab("discover");
       setSearchParams((prev) => {
@@ -421,7 +437,7 @@ const CollectionsPage = () => {
   }, [discoverNav1]);
 
   const setTab = (tab: TabId) => {
-    if (!isAuthenticated && (tab === "mine" || tab === "bookmarked")) return;
+    if (!isAuthenticated && tab === "mine") return;
     setActiveTab(tab);
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev);
@@ -451,6 +467,31 @@ const CollectionsPage = () => {
     queryFn: () => collectionsApi.getBookmarks(),
     enabled: isAuthenticated && !authLoading && activeTab === "bookmarked",
   });
+
+  // Guest bookmarks (AC 1.15.3): each stored id is re-read through the public GET; unavailable ones (private, deleted) drop out.
+  const { data: guestBookmarksData } = useQuery({
+    queryKey: ["collections", "guest-bookmarks", guestBookmarkIds],
+    queryFn: async (): Promise<CollectionResponse[]> => {
+      const results = await Promise.all(guestBookmarkIds.map((id) => collectionsApi.getById(id).catch(() => null)));
+      return results.filter((c): c is CollectionResponse => c !== null);
+    },
+    enabled: !isAuthenticated && !authLoading && activeTab === "bookmarked" && guestBookmarkIds.length > 0,
+  });
+
+  const bookmarkAsGuest = (id: string) => {
+    const result = addLocalBookmark(id);
+    setGuestBookmarkNotice(
+      result === "limit"
+        ? "This browser holds up to 50 bookmarks. Sign in to bookmark more."
+        : result === "storage"
+          ? "Could not save this bookmark in this browser."
+          : null,
+    );
+  };
+
+  const unbookmarkAsGuest = (id: string) => {
+    if (!removeLocalBookmark(id)) setGuestBookmarkNotice("Could not update bookmarks in this browser.");
+  };
 
   const { data: discoverCategoriesData } = useQuery({
     queryKey: ["categories"],
@@ -637,7 +678,7 @@ const CollectionsPage = () => {
   };
 
   const myCollections = data?.collections ?? [];
-  const bookmarkedCollections = bookmarksData?.collections ?? [];
+  const bookmarkedCollections = isAuthenticated ? (bookmarksData?.collections ?? []) : (guestBookmarksData ?? []);
   const discoverItems = discoverData?.items ?? [];
   const discoverTotal = discoverData?.totalCount ?? 0;
   const discoverHasActiveFilters =
@@ -681,7 +722,7 @@ const CollectionsPage = () => {
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex overflow-hidden rounded-xl border border-on-panel/15 bg-panel-raised/50 shadow-sm">
             {(["mine", "bookmarked", "discover"] as const).map((tab) => {
-              const locked = !isAuthenticated && (tab === "mine" || tab === "bookmarked");
+              const locked = !isAuthenticated && tab === "mine";
               return (
                 <button
                   key={tab}
@@ -1099,6 +1140,15 @@ const CollectionsPage = () => {
         )
       )}
 
+      {!isAuthenticated && (guestBookmarkNotice || (guestBookmarkIds.length > 0 && activeTab !== "mine")) && (
+        <div className="mb-4 space-y-3">
+          {guestBookmarkNotice && (
+            <p role="status" className="text-sm text-on-panel-muted">{guestBookmarkNotice}</p>
+          )}
+          {guestBookmarkIds.length > 0 && <SignupPrompt reason="keep-collection" />}
+        </div>
+      )}
+
       {activeTab === "bookmarked" && (
         bookmarkedCollections.length > 0 ? (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -1112,7 +1162,7 @@ const CollectionsPage = () => {
                 createdBy={c.createdBy}
                 isOwner={currentUserId ? c.createdBy === currentUserId : false}
                 isBookmarked={true}
-                onUnbookmark={(id) => unbookmarkMutation.mutate(id)}
+                onUnbookmark={isAuthenticated ? (id) => unbookmarkMutation.mutate(id) : unbookmarkAsGuest}
                 isBookmarkPending={unbookmarkMutation.isPending}
                 showRating={true}
               />
@@ -1144,16 +1194,20 @@ const CollectionsPage = () => {
                     createdAt={c.createdAt}
                     createdBy={c.createdBy}
                     isOwner={false}
-                    isBookmarked={c.isBookmarked}
+                    isBookmarked={isAuthenticated ? c.isBookmarked : guestBookmarkIds.includes(c.id.toLowerCase())}
                     onBookmark={
-                      isAuthenticated && !c.isBookmarked
-                        ? (id) => bookmarkMutation.mutate(id)
-                        : undefined
+                      !isAuthenticated
+                        ? bookmarkAsGuest
+                        : !c.isBookmarked
+                          ? (id) => bookmarkMutation.mutate(id)
+                          : undefined
                     }
                     onUnbookmark={
-                      isAuthenticated && c.isBookmarked
-                        ? (id) => unbookmarkMutation.mutate(id)
-                        : undefined
+                      !isAuthenticated
+                        ? unbookmarkAsGuest
+                        : c.isBookmarked
+                          ? (id) => unbookmarkMutation.mutate(id)
+                          : undefined
                     }
                     isBookmarkPending={bookmarkMutation.isPending || unbookmarkMutation.isPending}
                     showRating={true}

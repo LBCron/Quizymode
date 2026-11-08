@@ -10,6 +10,7 @@ const mockGetBookmarks = vi.fn();
 const mockGetSettings = vi.fn();
 const mockGetAllItems = vi.fn();
 const mockUpdate = vi.fn();
+const mockGetById = vi.fn();
 
 vi.mock("@/api/collections", () => ({
   collectionsApi: {
@@ -17,6 +18,7 @@ vi.mock("@/api/collections", () => ({
     discover: (opts: unknown) => mockDiscover(opts),
     getBookmarks: () => mockGetBookmarks(),
     getBookmarkedBy: vi.fn().mockResolvedValue({ users: [] }),
+    getById: (id: string) => mockGetById(id),
     getRating: vi.fn().mockResolvedValue({ averageStars: null, count: 0 }),
     create: vi.fn(),
     update: (...args: unknown[]) => mockUpdate(...args),
@@ -180,5 +182,32 @@ describe("CollectionsPage", () => {
     await waitFor(() => {
       expect(screen.getByRole("button", { name: /discover/i })).toBeInTheDocument();
     });
+  });
+
+  it("lets a guest bookmark a public collection in this browser and see it under Bookmarked (AC 1.15.2, 1.15.3)", async () => {
+    window.localStorage.clear();
+    mockUseAuth.mockReturnValue({ isAuthenticated: false, userId: null, isAdmin: false });
+    mockGetAll.mockResolvedValue({ collections: [] });
+    const publicId = "00000000-0000-4000-8000-00000000000d";
+    mockDiscover.mockResolvedValue({
+      items: [{ id: publicId, name: "Public Set", itemCount: 4, createdBy: "someone", createdAt: "2024-01-01T00:00:00Z", isBookmarked: false, averageStars: null, ratingCount: 0 }],
+      total: 1, page: 1, pageSize: 10,
+    });
+    mockGetById.mockResolvedValue({ id: publicId, name: "Public Set", itemCount: 4, createdBy: "someone", createdAt: "2024-01-01T00:00:00Z" });
+
+    renderPage();
+
+    fireEvent.click(await screen.findByRole("button", { name: /^discover$/i }));
+    fireEvent.click(await screen.findByTitle("Bookmark collection"));
+    await waitFor(() => {
+      expect(JSON.parse(window.localStorage.getItem("quizymode.bookmarks.v1") ?? "{}").collections).toEqual([publicId]);
+    });
+
+    const bookmarkedTab = screen.getByRole("button", { name: /^bookmarked$/i });
+    expect(bookmarkedTab).toBeEnabled();
+    fireEvent.click(bookmarkedTab);
+    expect(await screen.findByText("Public Set")).toBeInTheDocument();
+    expect(mockGetById).toHaveBeenCalledWith(publicId);
+    expect(mockGetBookmarks).not.toHaveBeenCalled();
   });
 });
