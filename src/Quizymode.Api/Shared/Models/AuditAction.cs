@@ -25,6 +25,7 @@ public enum AuditAction
     IdeaCommentCreated,
     IdeaCommentUpdated,
     IdeaCommentDeleted,
-    UserInternalFlagChanged
+    UserInternalFlagChanged,
+    DailyDigestTestSent
 }
 

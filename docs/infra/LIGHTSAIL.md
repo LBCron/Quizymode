@@ -40,20 +40,26 @@ Notes:
 - After the deployment is active, check `/health`, then upload a small PNG as a signed-in user (`POST /media/images`, multipart field `file`), download it with `GET /media/images/{id}/content` using the same bearer token, and run the `head-object` and unauthenticated `curl` checks from S3_CLOUDFRONT.md.
 - Memory: decoding is limited to 16 megapixels and one decode at a time per instance (AC 3.24.9); the SkiaSharp native library is bundled in the image, nothing is installed on the host.
 
-## LLM model audit settings (#480)
+## Email, LLM model audit and daily digest settings (#480, #509)
 
-The daily LLM model-list audit emails the admin through SMTP (the SES SMTP endpoint). Add these environment variables to the container in a **new deployment** (values are not listed here; the SMTP password is a secret and must never be committed, pasted in chat or logged).
+The daily LLM model-list audit (#480) and the daily maintainer digest (#509) email the admin through one shared SMTP sender (the SES SMTP endpoint). Add these environment variables to the container in a **new deployment** (values are not listed here; the SMTP password is a secret and must never be committed, pasted in chat or logged). The app reads **only** variables that start with `APP_`, so a name without the prefix is silently ignored.
 
 | Variable | Purpose |
 | --- | --- |
-| `Llm__ModelAudit__Enabled` | `true` turns the daily job on (default `false`) |
-| `Llm__ModelAudit__AdminAddress` | the single recipient |
-| `Llm__ModelAudit__From` | the SES-verified sender address |
-| `Llm__ModelAudit__Smtp__Host` | the SES SMTP endpoint host |
-| `Llm__ModelAudit__Smtp__Port` | SMTP port (default 587, STARTTLS) |
-| `Llm__ModelAudit__Smtp__UserName` | the SES SMTP user name |
-| `Llm__ModelAudit__Smtp__Password` | the SES SMTP password (secret) |
+| `APP_Email__From` | the SES-verified sender address |
+| `APP_Email__AdminAddress` | the single recipient (must be SES-verified while the account is in the sandbox) |
+| `APP_Email__Smtp__Host` | the SES SMTP endpoint host |
+| `APP_Email__Smtp__Port` | SMTP port (default 587, STARTTLS) |
+| `APP_Email__Smtp__UserName` | the SES SMTP user name |
+| `APP_Email__Smtp__Password` | the SES SMTP password (secret) |
+| `APP_Llm__ModelAudit__Enabled` | `true` turns the daily LLM audit on (default `false`) |
+| `APP_DailyDigest__Enabled` | `true` turns the 08:00 digest on (default `false`) |
+| `APP_DailyDigest__TimeZone` | IANA time zone id (default `America/Chicago`) |
+| `APP_DailyDigest__SendAtLocalTime` | local due time, `HH:mm` (default `08:00`) |
+| `APP_DailyDigest__AdminBaseUrl` | base URL for the links in the email; without it the links are left out |
 
-Without the SMTP variables the audit still records findings and shows the admin banner; the email is retried on each run once the settings exist.
+Without the SMTP variables the audit still records findings and shows the admin banner (the email is retried on each run once the settings exist), and the digest rows are recorded as `Failed` / `NotConfigured` and retried hourly.
 
-The first audit run happens 24 hours after the API boots, then every 24 hours, so an instance that restarts more often than that may never run the audit on its own. Use `POST /admin/llm-model-audit/run` to run it on demand.
+The digest needs time-zone data in the container image (the startup log line `DailyDigest: enabled, timezone America/Chicago, next due ...` proves it). With an unknown zone it logs one error and never sends. After the deployment is active, as an admin call `GET /admin/daily-digest/preview`, then `POST /admin/daily-digest/test-send`, and the next morning check a `Sent` row in `DailyDigestRuns` and the `DailyDigest: sent` log line. The same page, `/admin`, has a "Daily digest" card with Preview, Send test email and Send digest now.
+
+The first LLM audit run happens 24 hours after the API boots, then every 24 hours, so an instance that restarts more often than that may never run the audit on its own. Use `POST /admin/llm-model-audit/run` to run it on demand. The digest polls every 10 minutes instead, so restarts do not skip it.

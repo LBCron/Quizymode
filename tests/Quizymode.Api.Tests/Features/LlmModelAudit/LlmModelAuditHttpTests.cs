@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Quizymode.Api.Features.LlmModelAudit;
 using Quizymode.Api.Features.StudyGuideDocuments.Generation;
+using Quizymode.Api.Shared.Email;
 using Quizymode.Api.Tests.TestFixtures;
 using Xunit;
 

@@ -31,7 +31,8 @@ public sealed class AuditActionTests
         ("IdeaCommentCreated", 16),
         ("IdeaCommentUpdated", 17),
         ("IdeaCommentDeleted", 18),
-        ("UserInternalFlagChanged", 19)
+        ("UserInternalFlagChanged", 19),
+        ("DailyDigestTestSent", 20)
     ];
 
     [Fact]

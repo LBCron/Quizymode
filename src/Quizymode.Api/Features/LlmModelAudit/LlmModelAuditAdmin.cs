@@ -107,15 +107,6 @@ internal static class LlmModelAuditAdmin
                 .RemoveAllResilienceHandlers()
                 .RedactLoggedHeaders(["Authorization", "x-goog-api-key"]);
 #pragma warning restore EXTEXP0001
-            if (!string.IsNullOrWhiteSpace(configuration[$"{LlmModelAuditOptions.SectionName}:Smtp:Host"]))
-            {
-                services.AddSingleton<IEmailSender, SmtpEmailSender>();
-            }
-            else
-            {
-                services.AddSingleton<IEmailSender, NoOpEmailSender>();
-            }
-
             services.AddHostedService<LlmModelAuditService>();
         }
     }

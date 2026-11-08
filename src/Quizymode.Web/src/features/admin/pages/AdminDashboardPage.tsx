@@ -3,6 +3,7 @@ import { Navigate, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { adminApi } from '@/api/admin';
 import AdminOverviewPanel from '../components/AdminOverviewPanel';
+import DailyDigestCard from '../components/DailyDigestCard';
 
 const AdminDashboardPage = () => {
   const { isAuthenticated, isAdmin } = useAuth();
@@ -23,6 +24,7 @@ const AdminDashboardPage = () => {
         Administrative tools for managing the application. Access review board, database monitoring, and audit logs.
       </p>
       <AdminOverviewPanel />
+      <DailyDigestCard />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Link
           to="/admin/review-board"

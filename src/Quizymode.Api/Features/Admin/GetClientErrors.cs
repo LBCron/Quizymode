@@ -214,6 +214,48 @@ public static partial class GetClientErrors
             groups.Take(MaxGroups).ToList()));
     }
 
+    /// <summary>Human, non-internal front-end error totals for one window.</summary>
+    internal sealed record WindowCounts(int Reports, int Sessions, int SignedInUsers, int NewGroups);
+
+    /// <summary>
+    /// Counts for the half-open window <c>[startUtc, endExclusiveUtc)</c> with bots and internal sessions excluded,
+    /// for the daily digest (#509). A group is new when no report with its fingerprint exists before the window start.
+    /// </summary>
+    internal static async Task<WindowCounts> CountForWindowAsync(
+        ApplicationDbContext db,
+        DateTime startUtc,
+        DateTime endExclusiveUtc,
+        CancellationToken cancellationToken)
+    {
+        IQueryable<ClientError> windowQuery = db.ClientErrors
+            .AsNoTracking()
+            .Where(clientError => clientError.OccurredUtc >= startUtc && clientError.OccurredUtc < endExclusiveUtc);
+        IQueryable<string> internalSessionIds = InternalTrafficFilter.InternalClientErrorSessionIds(db, windowQuery);
+
+        var rows = await windowQuery
+            .Where(clientError => !clientError.IsBot && !internalSessionIds.Contains(clientError.SessionId))
+            .OrderByDescending(clientError => clientError.OccurredUtc)
+            .Take(MaxRows)
+            .Select(clientError => new { clientError.Fingerprint, clientError.SessionId, clientError.UserId })
+            .ToListAsync(cancellationToken);
+
+        List<string> fingerprints = rows.Select(row => row.Fingerprint).Distinct(StringComparer.Ordinal).ToList();
+        int knownBefore = fingerprints.Count == 0
+            ? 0
+            : await db.ClientErrors
+                .AsNoTracking()
+                .Where(clientError => fingerprints.Contains(clientError.Fingerprint) && clientError.OccurredUtc < startUtc)
+                .Select(clientError => clientError.Fingerprint)
+                .Distinct()
+                .CountAsync(cancellationToken);
+
+        return new WindowCounts(
+            rows.Count,
+            rows.Select(row => row.SessionId).Distinct(StringComparer.Ordinal).Count(),
+            rows.Where(row => row.UserId.HasValue).Select(row => row.UserId!.Value).Distinct().Count(),
+            fingerprints.Count - knownBefore);
+    }
+
     /// <summary>
     /// Groups reports by fingerprint, most frequent first (ties: most recent first). First seen is the
     /// earliest report ever for the fingerprint when known, otherwise the earliest in <paramref name="rows"/>.

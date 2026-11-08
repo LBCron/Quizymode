@@ -14,6 +14,10 @@ vi.mock("../components/AdminOverviewPanel", () => ({
   default: () => <div>overview panel</div>,
 }));
 
+vi.mock("../components/DailyDigestCard", () => ({
+  default: () => <div>daily digest card</div>,
+}));
+
 vi.mock("@/contexts/AuthContext", () => ({
   useAuth: () => mockUseAuth(),
 }));

@@ -2,6 +2,7 @@ using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Quizymode.Api.Data;
 using Quizymode.Api.Features.StudyGuideDocuments.Generation;
+using Quizymode.Api.Shared.Email;
 using Quizymode.Api.Shared.Models;
 
 namespace Quizymode.Api.Features.LlmModelAudit;

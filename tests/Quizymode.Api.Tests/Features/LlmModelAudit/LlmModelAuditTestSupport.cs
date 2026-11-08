@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Quizymode.Api.Features.LlmModelAudit;
 using Quizymode.Api.Features.StudyGuideDocuments.Generation;
+using Quizymode.Api.Shared.Email;
 
 namespace Quizymode.Api.Tests.Features.LlmModelAudit;
 
@@ -32,6 +33,8 @@ internal sealed class CountingEmailSender : IEmailSender
     private int _sent;
 
     public bool Configured { get; set; } = true;
+
+    public bool IsConfigured => Configured;
 
     public int Sent => _sent;
 

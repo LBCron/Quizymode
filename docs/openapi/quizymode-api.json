@@ -835,6 +835,236 @@
         }
       }
     },
+    "/admin/daily-digest/preview": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Preview the daily digest for a completed local day without sending it (Admin only)",
+        "description": "date (yyyy-MM-dd) defaults to yesterday in the digest time zone and must be a completed day within the last 180 days.",
+        "parameters": [
+          {
+            "name": "date",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/System.String"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Quizymode.Api.Features.Admin.DailyDigest.DailyDigestAdmin.PreviewResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/admin/daily-digest/test-send": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Email the preview with a [TEST] prefix to the configured admin address; at most once per 5 minutes (Admin only)",
+        "parameters": [
+          {
+            "name": "date",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/System.String"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Quizymode.Api.Features.Admin.DailyDigest.DailyDigestAdmin.TestSendResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "502": {
+            "description": "Bad Gateway",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/daily-digest/send-now": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Email a digest for an explicit UTC window to the configured admin address; at most once per minute (Admin only)",
+        "description": "The window is at most 31 days and must end now or earlier. There is no recipient parameter. The send is recorded as an ad hoc run and never changes the scheduled run of any day.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Quizymode.Api.Features.Admin.DailyDigest.DailyDigestAdmin.SendNowRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Quizymode.Api.Features.Admin.DailyDigest.DailyDigestAdmin.SendNowResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "429": {
+            "description": "Too Many Requests"
+          },
+          "502": {
+            "description": "Bad Gateway",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/daily-digest/runs": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Recent daily digest runs and the digest status (Admin only)",
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "schema": {
+              "default": 14,
+              "$ref": "#/components/schemas/System.Int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Quizymode.Api.Features.Admin.DailyDigest.DailyDigestAdmin.RunsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
     "/admin/categories/{id}": {
       "delete": {
         "tags": [
@@ -8129,6 +8359,626 @@
                 "$ref": "#/components/schemas/System.String"
               }
             ]
+          }
+        }
+      },
+      "Quizymode.Api.Features.Admin.DailyDigest.AccountsSection": {
+        "required": [
+          "activeAccounts",
+          "newAccounts",
+          "anonymousSessions",
+          "convertedSessions",
+          "authenticatedSessions"
+        ],
+        "type": "object",
+        "properties": {
+          "activeAccounts": {
+            "$ref": "#/components/schemas/System.Int32"
+          },
+          "newAccounts": {
+            "$ref": "#/components/schemas/System.Int32"
+          },
+          "anonymousSessions": {
+            "$ref": "#/components/schemas/System.Int32"
+          },
+          "convertedSessions": {
+            "$ref": "#/components/schemas/System.Int32"
+          },
+          "authenticatedSessions": {
+            "$ref": "#/components/schemas/System.Int32"
+          }
+        }
+      },
+      "Quizymode.Api.Features.Admin.DailyDigest.BaselineSummary": {
+        "required": [
+          "label",
+          "days",
+          "expectedDays",
+          "averages"
+        ],
+        "type": "object",
+        "properties": {
+          "label": {
+            "$ref": "#/components/schemas/System.String"
+          },
+          "days": {
+            "$ref": "#/components/schemas/System.Int32"
+          },
+          "expectedDays": {
+            "$ref": "#/components/schemas/System.Int32"
+          },
+          "averages": {
+            "$ref": "#/components/schemas/System.Collections.Generic.DictionaryOfSystem.StringAndSystem.NullableOfSystem.Double"
+          }
+        },
+        "description": "Averages of the comparison windows. string BaselineSummary.Label is \"7-day avg\" for a daily digest or \"previous window\" for\nan ad hoc window. A value is null when no comparison window had it."
+      },
+      "Quizymode.Api.Features.Admin.DailyDigest.DailyDigestAdmin.PreviewResponse": {
+        "required": [
+          "reportDate",
+          "windowStartUtc",
+          "windowEndUtc",
+          "summary",
+          "subject",
+          "textBody"
+        ],
+        "type": "object",
+        "properties": {
+          "reportDate": {
+            "$ref": "#/components/schemas/System.DateOnly"
+          },
+          "windowStartUtc": {
+            "$ref": "#/components/schemas/System.DateTime"
+          },
+          "windowEndUtc": {
+            "$ref": "#/components/schemas/System.DateTime"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/Quizymode.Api.Features.Admin.DailyDigest.DigestReport"
+          },
+          "subject": {
+            "$ref": "#/components/schemas/System.String"
+          },
+          "textBody": {
+            "$ref": "#/components/schemas/System.String"
+          }
+        }
+      },
+      "Quizymode.Api.Features.Admin.DailyDigest.DailyDigestAdmin.RunResponse": {
+        "required": [
+          "id",
+          "kind",
+          "reportDate",
+          "status",
+          "attempts",
+          "windowStartUtc",
+          "windowEndUtc",
+          "sentUtc",
+          "lastError",
+          "nextAttemptUtc",
+          "createdUtc"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/System.Guid"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/System.String"
+          },
+          "reportDate": {
+            "$ref": "#/components/schemas/System.DateOnly"
+          },
+          "status": {
+            "$ref": "#/components/schemas/System.String"
+          },
+          "attempts": {
+            "$ref": "#/components/schemas/System.Int32"
+          },
+          "windowStartUtc": {
+            "$ref": "#/components/schemas/System.DateTime"
+          },
+          "windowEndUtc": {
+            "$ref": "#/components/schemas/System.DateTime"
+          },
+          "sentUtc": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.NullableOfSystem.DateTime"
+              }
+            ]
+          },
+          "lastError": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.String"
+              }
+            ]
+          },
+          "nextAttemptUtc": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.NullableOfSystem.DateTime"
+              }
+            ]
+          },
+          "createdUtc": {
+            "$ref": "#/components/schemas/System.DateTime"
+          }
+        }
+      },
+      "Quizymode.Api.Features.Admin.DailyDigest.DailyDigestAdmin.RunsResponse": {
+        "required": [
+          "enabled",
+          "disabledReason",
+          "emailConfigured",
+          "timeZone",
+          "nextDueUtc",
+          "lastTestSentUtc",
+          "runs"
+        ],
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "$ref": "#/components/schemas/System.Boolean"
+          },
+          "disabledReason": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.String"
+              }
+            ]
+          },
+          "emailConfigured": {
+            "$ref": "#/components/schemas/System.Boolean"
+          },
+          "timeZone": {
+            "$ref": "#/components/schemas/System.String"
+          },
+          "nextDueUtc": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.NullableOfSystem.DateTime"
+              }
+            ]
+          },
+          "lastTestSentUtc": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.NullableOfSystem.DateTime"
+              }
+            ]
+          },
+          "runs": {
+            "$ref": "#/components/schemas/System.Collections.Generic.ListOfQuizymode.Api.Features.Admin.DailyDigest.DailyDigestAdmin.RunResponse"
+          }
+        }
+      },
+      "Quizymode.Api.Features.Admin.DailyDigest.DailyDigestAdmin.SendNowRequest": {
+        "required": [
+          "from",
+          "to"
+        ],
+        "type": "object",
+        "properties": {
+          "from": {
+            "$ref": "#/components/schemas/System.DateTimeOffset"
+          },
+          "to": {
+            "$ref": "#/components/schemas/System.DateTimeOffset"
+          }
+        }
+      },
+      "Quizymode.Api.Features.Admin.DailyDigest.DailyDigestAdmin.SendNowResponse": {
+        "required": [
+          "id",
+          "status",
+          "windowStartUtc",
+          "windowEndUtc"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/System.Guid"
+          },
+          "status": {
+            "$ref": "#/components/schemas/System.String"
+          },
+          "windowStartUtc": {
+            "$ref": "#/components/schemas/System.DateTime"
+          },
+          "windowEndUtc": {
+            "$ref": "#/components/schemas/System.DateTime"
+          }
+        }
+      },
+      "Quizymode.Api.Features.Admin.DailyDigest.DailyDigestAdmin.TestSendResponse": {
+        "required": [
+          "subject"
+        ],
+        "type": "object",
+        "properties": {
+          "subject": {
+            "$ref": "#/components/schemas/System.String"
+          }
+        }
+      },
+      "Quizymode.Api.Features.Admin.DailyDigest.DaySummary": {
+        "required": [
+          "visits",
+          "accounts",
+          "quizzes",
+          "sources",
+          "problems"
+        ],
+        "type": "object",
+        "properties": {
+          "visits": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Quizymode.Api.Features.Admin.DailyDigest.VisitsSection"
+              }
+            ]
+          },
+          "accounts": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Quizymode.Api.Features.Admin.DailyDigest.AccountsSection"
+              }
+            ]
+          },
+          "quizzes": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Quizymode.Api.Features.Admin.DailyDigest.QuizSection"
+              }
+            ]
+          },
+          "sources": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Quizymode.Api.Features.Admin.DailyDigest.SourcesSection"
+              }
+            ]
+          },
+          "problems": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Quizymode.Api.Features.Admin.DailyDigest.ProblemsSection"
+              }
+            ]
+          }
+        }
+      },
+      "Quizymode.Api.Features.Admin.DailyDigest.DigestHealth": {
+        "required": [
+          "rawPageViews",
+          "rawEvents"
+        ],
+        "type": "object",
+        "properties": {
+          "rawPageViews": {
+            "$ref": "#/components/schemas/System.Int32"
+          },
+          "rawEvents": {
+            "$ref": "#/components/schemas/System.Int32"
+          }
+        }
+      },
+      "Quizymode.Api.Features.Admin.DailyDigest.DigestReport": {
+        "required": [
+          "kind",
+          "reportDate",
+          "timeZone",
+          "startUtc",
+          "endUtc",
+          "current",
+          "baseline",
+          "waiting",
+          "health",
+          "previousDigests",
+          "newVersion",
+          "computedUtc"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/System.String"
+          },
+          "reportDate": {
+            "$ref": "#/components/schemas/System.DateOnly"
+          },
+          "timeZone": {
+            "$ref": "#/components/schemas/System.String"
+          },
+          "startUtc": {
+            "$ref": "#/components/schemas/System.DateTime"
+          },
+          "endUtc": {
+            "$ref": "#/components/schemas/System.DateTime"
+          },
+          "current": {
+            "$ref": "#/components/schemas/Quizymode.Api.Features.Admin.DailyDigest.DaySummary"
+          },
+          "baseline": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Quizymode.Api.Features.Admin.DailyDigest.BaselineSummary"
+              }
+            ]
+          },
+          "waiting": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Quizymode.Api.Features.Admin.DailyDigest.WaitingSection"
+              }
+            ]
+          },
+          "health": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Quizymode.Api.Features.Admin.DailyDigest.DigestHealth"
+              }
+            ]
+          },
+          "previousDigests": {
+            "$ref": "#/components/schemas/System.Collections.Generic.ListOfSystem.String"
+          },
+          "newVersion": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.String"
+              }
+            ]
+          },
+          "computedUtc": {
+            "$ref": "#/components/schemas/System.DateTime"
+          },
+          "allUnavailable": {
+            "description": "True when every section of the current window failed, so there is nothing worth sending.",
+            "$ref": "#/components/schemas/System.Boolean"
+          }
+        },
+        "description": "Aggregate-only digest numbers (#509). A null section means \"unavailable\" (the query failed), which is different from zero.\nThe whole report is persisted as JSON so every send attempt renders identical text."
+      },
+      "Quizymode.Api.Features.Admin.DailyDigest.ProblemsSection": {
+        "required": [
+          "errorReports",
+          "errorSessions",
+          "errorUsers",
+          "newErrorGroups",
+          "problemReports",
+          "otherFeedback",
+          "pictureReports"
+        ],
+        "type": "object",
+        "properties": {
+          "errorReports": {
+            "$ref": "#/components/schemas/System.Int32"
+          },
+          "errorSessions": {
+            "$ref": "#/components/schemas/System.Int32"
+          },
+          "errorUsers": {
+            "$ref": "#/components/schemas/System.Int32"
+          },
+          "newErrorGroups": {
+            "$ref": "#/components/schemas/System.Int32"
+          },
+          "problemReports": {
+            "$ref": "#/components/schemas/System.Int32"
+          },
+          "otherFeedback": {
+            "$ref": "#/components/schemas/System.Int32"
+          },
+          "pictureReports": {
+            "$ref": "#/components/schemas/System.Int32"
+          }
+        }
+      },
+      "Quizymode.Api.Features.Admin.DailyDigest.QuizSection": {
+        "required": [
+          "starts",
+          "completed",
+          "participants",
+          "topics"
+        ],
+        "type": "object",
+        "properties": {
+          "starts": {
+            "$ref": "#/components/schemas/System.Int32"
+          },
+          "completed": {
+            "$ref": "#/components/schemas/System.Int32"
+          },
+          "participants": {
+            "$ref": "#/components/schemas/System.Int32"
+          },
+          "topics": {
+            "$ref": "#/components/schemas/System.Collections.Generic.ListOfQuizymode.Api.Features.Admin.DailyDigest.TopicCount"
+          }
+        }
+      },
+      "Quizymode.Api.Features.Admin.DailyDigest.SourceRow": {
+        "required": [
+          "name",
+          "sessions",
+          "engagedSessions",
+          "quizStarts",
+          "convertedSessions",
+          "newAccounts"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "$ref": "#/components/schemas/System.String"
+          },
+          "sessions": {
+            "$ref": "#/components/schemas/System.Int32"
+          },
+          "engagedSessions": {
+            "$ref": "#/components/schemas/System.Int32"
+          },
+          "quizStarts": {
+            "$ref": "#/components/schemas/System.Int32"
+          },
+          "convertedSessions": {
+            "$ref": "#/components/schemas/System.Int32"
+          },
+          "newAccounts": {
+            "$ref": "#/components/schemas/System.Int32"
+          }
+        }
+      },
+      "Quizymode.Api.Features.Admin.DailyDigest.SourcesSection": {
+        "required": [
+          "top",
+          "linkedIn"
+        ],
+        "type": "object",
+        "properties": {
+          "top": {
+            "$ref": "#/components/schemas/System.Collections.Generic.ListOfQuizymode.Api.Features.Admin.DailyDigest.SourceRow"
+          },
+          "linkedIn": {
+            "$ref": "#/components/schemas/Quizymode.Api.Features.Admin.DailyDigest.SourceRow"
+          }
+        }
+      },
+      "Quizymode.Api.Features.Admin.DailyDigest.TopicCount": {
+        "required": [
+          "label",
+          "starts"
+        ],
+        "type": "object",
+        "properties": {
+          "label": {
+            "$ref": "#/components/schemas/System.String"
+          },
+          "starts": {
+            "$ref": "#/components/schemas/System.Int32"
+          }
+        }
+      },
+      "Quizymode.Api.Features.Admin.DailyDigest.VisitsSection": {
+        "required": [
+          "pageViews",
+          "sessions",
+          "engagedSessions",
+          "browsers",
+          "sessionsWithoutBrowserId",
+          "newBrowsers",
+          "returningBrowsers",
+          "itemSteps"
+        ],
+        "type": "object",
+        "properties": {
+          "pageViews": {
+            "$ref": "#/components/schemas/System.Int32"
+          },
+          "sessions": {
+            "$ref": "#/components/schemas/System.Int32"
+          },
+          "engagedSessions": {
+            "$ref": "#/components/schemas/System.Int32"
+          },
+          "browsers": {
+            "$ref": "#/components/schemas/System.Int32"
+          },
+          "sessionsWithoutBrowserId": {
+            "$ref": "#/components/schemas/System.Int32"
+          },
+          "newBrowsers": {
+            "$ref": "#/components/schemas/System.Int32"
+          },
+          "returningBrowsers": {
+            "$ref": "#/components/schemas/System.Int32"
+          },
+          "itemSteps": {
+            "$ref": "#/components/schemas/System.Int32"
+          }
+        }
+      },
+      "Quizymode.Api.Features.Admin.DailyDigest.WaitingSection": {
+        "required": [
+          "itemsToReview",
+          "privateKeywords",
+          "ideas",
+          "pictures",
+          "oldestPictureAgeDays",
+          "newFeedback"
+        ],
+        "type": "object",
+        "properties": {
+          "itemsToReview": {
+            "$ref": "#/components/schemas/System.Int32"
+          },
+          "privateKeywords": {
+            "$ref": "#/components/schemas/System.Int32"
+          },
+          "ideas": {
+            "$ref": "#/components/schemas/System.Int32"
+          },
+          "pictures": {
+            "$ref": "#/components/schemas/System.Int32"
+          },
+          "oldestPictureAgeDays": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/System.NullableOfSystem.Int32"
+              }
+            ]
+          },
+          "newFeedback": {
+            "$ref": "#/components/schemas/System.Int32"
           }
         }
       },
@@ -19067,6 +19917,12 @@
           "$ref": "#/components/schemas/System.String"
         }
       },
+      "System.Collections.Generic.DictionaryOfSystem.StringAndSystem.NullableOfSystem.Double": {
+        "type": "object",
+        "additionalProperties": {
+          "$ref": "#/components/schemas/System.NullableOfSystem.Double"
+        }
+      },
       "System.Collections.Generic.DictionaryOfSystem.StringAndSystem.String": {
         "type": "object",
         "additionalProperties": {
@@ -19215,6 +20071,24 @@
         "type": "array",
         "items": {
           "$ref": "#/components/schemas/Quizymode.Api.Features.Admin.AdminUsersActivity.UserUrlHistoryResponse"
+        }
+      },
+      "System.Collections.Generic.ListOfQuizymode.Api.Features.Admin.DailyDigest.DailyDigestAdmin.RunResponse": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Quizymode.Api.Features.Admin.DailyDigest.DailyDigestAdmin.RunResponse"
+        }
+      },
+      "System.Collections.Generic.ListOfQuizymode.Api.Features.Admin.DailyDigest.SourceRow": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Quizymode.Api.Features.Admin.DailyDigest.SourceRow"
+        }
+      },
+      "System.Collections.Generic.ListOfQuizymode.Api.Features.Admin.DailyDigest.TopicCount": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Quizymode.Api.Features.Admin.DailyDigest.TopicCount"
         }
       },
       "System.Collections.Generic.ListOfQuizymode.Api.Features.Admin.GetAcquisitionReport.ChannelRowResponse": {
@@ -19726,6 +20600,10 @@
         "format": "date"
       },
       "System.DateTime": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "System.DateTimeOffset": {
         "type": "string",
         "format": "date-time"
       },

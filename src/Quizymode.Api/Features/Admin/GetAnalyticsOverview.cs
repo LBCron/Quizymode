@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Quizymode.Api.Data;
+using Quizymode.Api.Features.Admin.DailyDigest;
 using Quizymode.Api.Services;
 using Quizymode.Api.Shared.Http;
 using Quizymode.Api.Shared.Kernel;
@@ -104,8 +105,8 @@ public static class GetAnalyticsOverview
         DateTime windowStart = windowEndExclusive.AddDays(-request.Days);
         DateTime previousStart = windowStart.AddDays(-request.Days);
 
-        List<SessionClassifier.ClassifiedSession> current = await ClassifyWindowAsync(db, windowStart, windowEndExclusive, cancellationToken);
-        List<SessionClassifier.ClassifiedSession> previous = await ClassifyWindowAsync(db, previousStart, windowStart, cancellationToken);
+        List<SessionClassifier.ClassifiedSession> current = await DailySummaryBuilder.ClassifyWindowAsync(db, windowStart, windowEndExclusive, cancellationToken);
+        List<SessionClassifier.ClassifiedSession> previous = await DailySummaryBuilder.ClassifyWindowAsync(db, previousStart, windowStart, cancellationToken);
 
         List<DateTime> signupTimes = await db.Users
             .AsNoTracking()
@@ -116,10 +117,10 @@ public static class GetAnalyticsOverview
         // Cohort rows are all-time and independent of the window, so load them once for both windows.
         List<VisitorCohortReport.CohortRow> cohortRows = await VisitorCohortReport.LoadRowsAsync(
             db, false, false, cancellationToken);
-        VisitorCohortReport.Response currentVisitors = await VisitorCohortReport.BuildAsync(
-            db, cohortRows, windowStart, windowEndExclusive.AddTicks(-1), cancellationToken);
-        VisitorCohortReport.Response previousVisitors = await VisitorCohortReport.BuildAsync(
-            db, cohortRows, previousStart, windowStart.AddTicks(-1), cancellationToken);
+        VisitorCohortReport.Response currentVisitors = await DailySummaryBuilder.BuildVisitorsAsync(
+            db, cohortRows, windowStart, windowEndExclusive, cancellationToken);
+        VisitorCohortReport.Response previousVisitors = await DailySummaryBuilder.BuildVisitorsAsync(
+            db, cohortRows, previousStart, windowStart, cancellationToken);
 
         Kpis currentKpis = BuildKpis(
             current,
@@ -139,25 +140,14 @@ public static class GetAnalyticsOverview
         Result<GetClientErrors.Response> clientErrors = await GetClientErrors.HandleAsync(
             new GetClientErrors.QueryRequest(request.Days), db, cancellationToken);
 
-        int picturesAwaiting = await db.Items.CountAsync(
-            item => item.ImageReviewState == ItemImageReviewState.PendingReview, cancellationToken);
-        DateTime? oldestPictureSubmittedAt = picturesAwaiting == 0
-            ? null
-            : await (from review in db.ItemImageReviews
-                     join item in db.Items on review.ItemId equals item.Id
-                     where item.ImageReviewState == ItemImageReviewState.PendingReview && review.Revision == item.ImageRevision
-                     select (DateTime?)review.SubmittedAt).MinAsync(cancellationToken);
-
+        WorkQueueBuilder.Counts queue = await WorkQueueBuilder.BuildAsync(db, cancellationToken);
         WorkQueue workQueue = new(
-            await db.Items.CountAsync(item => item.ReadyForReview, cancellationToken),
-            await db.Keywords.CountAsync(
-                keyword => keyword.IsPrivate && keyword.IsReviewPending
-                    && db.ItemKeywords.Any(itemKeyword => itemKeyword.KeywordId == keyword.Id),
-                cancellationToken),
-            await db.Ideas.CountAsync(idea => idea.ModerationState == IdeaModerationState.PendingReview, cancellationToken),
+            queue.ItemsAwaitingReview,
+            queue.PendingPrivateKeywords,
+            queue.IdeasAwaitingModeration,
             clientErrors.IsSuccess ? clientErrors.Value.NewGroups : 0,
-            picturesAwaiting,
-            oldestPictureSubmittedAt);
+            queue.PicturesAwaitingReview,
+            queue.OldestPictureSubmittedAt);
 
         return Result.Success(new Response(
             request.Days,
@@ -170,33 +160,20 @@ public static class GetAnalyticsOverview
             workQueue));
     }
 
-    private static async Task<List<SessionClassifier.ClassifiedSession>> ClassifyWindowAsync(
-        ApplicationDbContext db,
-        DateTime startUtc,
-        DateTime endExclusiveUtc,
-        CancellationToken cancellationToken)
-    {
-        IQueryable<PageView> scope = db.PageViews
-            .AsNoTracking()
-            .Where(pageView => pageView.CreatedUtc >= startUtc && pageView.CreatedUtc < endExclusiveUtc && !pageView.IsBot);
-        scope = InternalTrafficFilter.ExcludeInternalSessions(db, scope);
-
-        return await SessionClassifier.ClassifyAsync(scope, cancellationToken);
-    }
-
     internal static Kpis BuildKpis(
         List<SessionClassifier.ClassifiedSession> sessions,
         int signups,
         int? newVisitors,
         int? returningVisitors)
     {
+        DailySummaryBuilder.SessionStats stats = DailySummaryBuilder.Summarize(sessions);
         return new Kpis(
-            sessions.Count,
-            sessions.Count(session => session.IsEngaged),
-            sessions.Count(session => session.HasStudyActivity),
-            sessions.Count(session => session.Outcome == SessionClassifier.OutcomeConverted),
+            stats.HumanSessions,
+            stats.EngagedSessions,
+            stats.StudySessions,
+            stats.ConvertedSessions,
             signups,
-            sessions.Where(session => session.UserId.HasValue).Select(session => session.UserId!.Value).Distinct().Count(),
+            stats.ActiveAccounts,
             newVisitors,
             returningVisitors);
     }
@@ -235,7 +212,7 @@ public static class GetAnalyticsOverview
         return points;
     }
 
-    private static async Task<List<ReleaseMarker>> BuildReleaseMarkersAsync(
+    internal static async Task<List<ReleaseMarker>> BuildReleaseMarkersAsync(
         ApplicationDbContext db,
         DateTime windowStart,
         DateTime windowEndExclusive,
